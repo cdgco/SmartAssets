@@ -12,6 +12,7 @@
   "main": "src/main.js",
   "dependencies": {
     "ant-design-vue": "1.7.6",
+    "api-key-auth": "^0.2.3",
     "body-parser": "^1.19.1",
     "chart.js": "3.4.1",
     "connect-history-api-fallback": "^1.6.0",
