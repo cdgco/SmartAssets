@@ -2,85 +2,51 @@ var express = require('express');
 var bodyParser = require('body-parser');
 const path = require('path');
 const history = require('connect-history-api-fallback')
+const OpenApiValidator = require('express-openapi-validator');
 
-// put server express routes at the beginning //
 var app = express();
 
-var router = express.Router();
+const apiSpec = path.join(__dirname, 'api.yaml');
 
-// GET /api/users
-router.get('/users', (req, res) => {
-    res.send('GET request to users')
-})
+app.use(express.urlencoded({ extended: false }));
+app.use(express.text());
+app.use(express.json());
 
-// GET /api/users/:id
-router.get('/users/:id', (req, res) => {
-    res.send('GET request to users/' + req.params.id)
-})
+app.use('/api/spec', express.static(apiSpec));
 
-router.get('/', function(req, res) {
+app.use(
+    OpenApiValidator.middleware({
+        apiSpec,
+        validateRequests: true,
+        validateResponses: true,
+    }),
+);
+
+app.get('/api/', function(req, res, next) {
     res.json({
         "success": true,
+        "code": 200,
         "errors": [],
         "messages": [
             "hooray! welcome to our api!"
         ],
         "result": null
     });
-})
+});
 
-router.get('*', (req, res) => {
-    res.json({
+app.use((err, req, res, next) => {
+    console.error(err);
+    res.status(err.status || 500).json({
         "success": false,
-        "errors": [{
-            "code": 7000,
-            "message": "no route for that uri"
-        }],
-        "messages": [],
+        "code": (err.status || 500),
+        "messages": [err.message],
+        "errors": err.errors,
         "result": null
     });
 });
 
-router.post('*', (req, res) => {
-    res.json({
-        "success": false,
-        "errors": [{
-            "code": 7000,
-            "message": "No route for that URI"
-        }],
-        "messages": [],
-        "result": null
-    });
-});
-
-router.put('*', (req, res) => {
-    res.json({
-        "success": false,
-        "errors": [{
-            "code": 7000,
-            "message": "No route for that URI"
-        }],
-        "result": null
-    });
-});
-
-router.delete('*', (req, res) => {
-    res.json({
-        "success": false,
-        "errors": [{
-            "code": 7000,
-            "message": "No route for that URI"
-        }],
-        "result": null
-    });
-});
-
-app.use('/api', router);
-// put server express routes at the beginning //
 app.use(history())
-    //Serve the static files from the React app
 app.use(express.static(path.join(__dirname, '/dist')));
-
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());

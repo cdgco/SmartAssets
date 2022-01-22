@@ -1,0 +1,42 @@
+openapi: '3.0.0'
+info:
+  version: 1.0.0
+  title: SmartAssets
+servers:
+  - url: /api
+paths:
+  /:
+    get:
+      description: API home page
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Error:
+      required:
+        - code
+        - messages
+      properties:
+        code:
+          type: integer
+          format: int32
+        messages:
+          type: array
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
