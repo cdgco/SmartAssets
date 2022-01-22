@@ -15,7 +15,7 @@ router.get('/users', (req, res) => {
 
 // GET /api/users/:id
 router.get('/users/:id', (req, res) => {
-    res.send('GET request to users/:id')
+    res.send('GET request to users/' + req.params.id)
 })
 
 router.get('/', function(req, res) {
@@ -29,17 +29,6 @@ router.get('/', function(req, res) {
     });
 })
 
-// POST method route
-router.post('/', function(req, res) {
-    res.json({
-        "success": true,
-        "errors": [],
-        "messages": [
-            "hooray! welcome to our api!"
-        ],
-        "result": null
-    });
-})
 router.get('*', (req, res) => {
     res.json({
         "success": false,
