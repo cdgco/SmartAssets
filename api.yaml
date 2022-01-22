@@ -15,24 +15,25 @@ paths:
             application/json:
               schema:
                 type: object
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
 
 components:
   schemas:
     Error:
       required:
+        - success
         - code
         - messages
+        - errors
+        - result
       properties:
+        success:
+          type: boolean
         code:
           type: integer
           format: int32
         messages:
+          type: array
+        errors:
           type: array
 
   securitySchemes:
