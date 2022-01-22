@@ -1,7 +1,21 @@
 var express = require('express');
 const path = require('path');
+var https = require('https');
+var http = require('http');
+var fs = require('fs');
 const history = require('connect-history-api-fallback')
 var app = express();
+require('dotenv').config()
+
+var selfsigned = require('selfsigned');
+var attrs = [{ name: 'commonName', value: 'localhost' }];
+var pems = selfsigned.generate(attrs, { days: 365 });
+
+var options = {
+    key: pems['private'],
+    cert: pems['cert']
+};
+
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.text());
@@ -13,8 +27,12 @@ app.use('/', apiRouter);
 app.use(history())
 app.use(express.static(path.join(__dirname, '/dist')));
 
-var port = process.env.port || 8082
+var httpPort = process.env.httpPort || 8080
+var httpsPort = process.env.httpsPort || 8443
 
-app.listen(port, () => {
-    console.log("Server running on port " + port);
+http.createServer(app).listen(httpPort, () => {
+    console.log("HTTP Server running on port " + httpPort);
+});
+https.createServer(options, app).listen(httpsPort, () => {
+    console.log("HTTPS Server running on port " + httpsPort);
 });
