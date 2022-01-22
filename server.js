@@ -19,15 +19,71 @@ router.get('/users/:id', (req, res) => {
 })
 
 router.get('/', function(req, res) {
-    res.send('GET request to the homepage')
+    res.json({
+        "success": true,
+        "errors": [],
+        "messages": [
+            "hooray! welcome to our api!"
+        ],
+        "result": null
+    });
 })
 
 // POST method route
 router.post('/', function(req, res) {
-    res.send('POST request to the homepage')
+    res.json({
+        "success": true,
+        "errors": [],
+        "messages": [
+            "hooray! welcome to our api!"
+        ],
+        "result": null
+    });
 })
 router.get('*', (req, res) => {
-    res.send('API ERROR')
+    res.json({
+        "success": false,
+        "errors": [{
+            "code": 7000,
+            "message": "no route for that uri"
+        }],
+        "messages": [],
+        "result": null
+    });
+});
+
+router.post('*', (req, res) => {
+    res.json({
+        "success": false,
+        "errors": [{
+            "code": 7000,
+            "message": "No route for that URI"
+        }],
+        "messages": [],
+        "result": null
+    });
+});
+
+router.put('*', (req, res) => {
+    res.json({
+        "success": false,
+        "errors": [{
+            "code": 7000,
+            "message": "No route for that URI"
+        }],
+        "result": null
+    });
+});
+
+router.delete('*', (req, res) => {
+    res.json({
+        "success": false,
+        "errors": [{
+            "code": 7000,
+            "message": "No route for that URI"
+        }],
+        "result": null
+    });
 });
 
 app.use('/api', router);
