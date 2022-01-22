@@ -3,12 +3,12 @@ const path = require('path');
 const history = require('connect-history-api-fallback')
 var app = express();
 
-const apiRouter = require('./api');
-app.use('/', apiRouter);
-
 app.use(express.urlencoded({ extended: false }));
 app.use(express.text());
 app.use(express.json());
+
+const apiRouter = require('./api');
+app.use('/', apiRouter);
 
 app.use(history())
 app.use(express.static(path.join(__dirname, '/dist')));
