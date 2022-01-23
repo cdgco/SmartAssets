@@ -2,7 +2,6 @@ var express = require('express');
 const path = require('path');
 var https = require('https');
 var http = require('http');
-var fs = require('fs');
 const history = require('connect-history-api-fallback')
 var app = express();
 require('dotenv').config()
@@ -15,7 +14,6 @@ var options = {
     key: pems['private'],
     cert: pems['cert']
 };
-
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.text());
