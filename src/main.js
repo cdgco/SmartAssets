@@ -19,6 +19,13 @@ import DefaultLayout from './layouts/Default.vue'
 import DashboardLayout from './layouts/Dashboard.vue'
 import DashboardRTLLayout from './layouts/DashboardRTL.vue'
 import router from './router'
+import axios from 'axios';
+import { createAuth } from '@websanova/vue-auth';
+import authBasic from '@websanova/vue-auth/drivers/auth/basic.js';
+import driverHttpAxios from '@websanova/vue-auth/dist/drivers/http/axios.1.x.esm.js';
+import driverRouterVueRouter from '@websanova/vue-auth/dist/drivers/router/vue-router.2.x.esm.js';
+
+
 
 // import './plugins/click-away'
 
@@ -35,7 +42,23 @@ Vue.component("layout-default", DefaultLayout);
 Vue.component("layout-dashboard", DashboardLayout);
 Vue.component("layout-dashboard-rtl", DashboardRTLLayout);
 
+var auth = createAuth({
+    plugins: {
+        http: axios,
+        router: router
+    },
+    drivers: {
+        http: driverHttpAxios,
+        auth: driverAuthBearer,
+        router: driverRouterVueRouter,
+    },
+    options: {
+        rolesKey: 'type',
+        notFoundRedirect: { name: 'user-account' },
+    }
+});
+
 new Vue({
-  router,
-  render: h => h(App)
+    router,
+    render: h => h(App)
 }).$mount('#app')

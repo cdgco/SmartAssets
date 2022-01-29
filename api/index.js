@@ -2,7 +2,7 @@ var express = require('express');
 const path = require('path');
 const OpenApiValidator = require('express-openapi-validator');
 const apiRouter = require('express').Router();
-var rateLimit = require('express-rate-limit')
+var rateLimit = require('express-rate-limit');
 
 const allowlist = ['127.0.0.1']
 
@@ -23,7 +23,7 @@ const limiter = rateLimit({
     skip: (request, response) => allowlist.includes(request.ip),
 })
 
-apiRouter.use(limiter)
+//apiRouter.use(limiter)
 
 const apiKeys = new Map();
 apiKeys.set('24023tuf098252cn409v4850n2', {
@@ -44,8 +44,8 @@ apiRouter.use('/api/spec', express.static(apiSpec));
 apiRouter.use(
     OpenApiValidator.middleware({
         apiSpec,
-        validateRequests: true,
-        validateResponses: true,
+        validateRequests: true, // true
+        validateResponses: true, // true
         validateSecurity: {
             handlers: {
                 ApiKeyAuth: (req, scopes, schema) => {
@@ -58,18 +58,30 @@ apiRouter.use(
     }),
 );
 
+const db = require("./models/");
+db.mongoose
+    .connect(db.url, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    })
+    .then(() => {
+        console.log("Connected to the database!");
+    })
+    .catch(err => {
+        console.log("Cannot connect to the database!", err);
+        process.exit();
+    });
+
+const assetRouter = require('./routes/asset.router.js');
+apiRouter.use('/api/assets', assetRouter);
+
 apiRouter.get('/api/', function(req, res, next) {
-    var curApiKey = req.get('X-API-KEY');
     res.json({
         "success": true,
         "code": 200,
         "errors": [],
         "messages": [
-            "hooray! welcome to our api!",
-            "api key: " + curApiKey,
-            "user id: " + apiKeys.get(curApiKey)['id'],
-            "name: " + apiKeys.get(curApiKey)['name'],
-            "secret: " + apiKeys.get(curApiKey)['secret'],
+            "hooray! welcome to our api!"
         ],
         "result": null
     });

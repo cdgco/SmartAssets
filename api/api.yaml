@@ -15,9 +15,48 @@ paths:
             application/json:
               schema:
                 type: object
+  /assets:
+    get:
+      description: API home page
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      description: Creates a new pet in the store.
+      requestBody:
+        description: Pet to add to the store
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+             type: object
+          application/json:
+            schema:
+             type: object
+      responses:
+        '200':
+          description: pet response
+          content:
+            application/json:
+              schema:
+                type: object
+
 
 components:
   schemas:
+    Asset:
+      required:
+        - title
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        published:
+          type: boolean
     Error:
       required:
         - success
