@@ -18,6 +18,8 @@ import App from './App.vue'
 import DefaultLayout from './layouts/Default.vue'
 import DashboardLayout from './layouts/Dashboard.vue'
 import DashboardRTLLayout from './layouts/DashboardRTL.vue'
+import Toast from "vue-toastification";
+import "./css/toast.css";
 import router from './router'
 import axios from 'axios';
 
@@ -28,6 +30,21 @@ import './scss/app.scss';
 import './registerServiceWorker'
 
 Vue.use(Antd);
+Vue.use(Toast, {
+    transition: "Vue-Toastification__bounce",
+    maxToasts: 5,
+    newestOnTop: true,
+    filterBeforeCreate: (toast, toasts) => {
+        if (toasts.filter(
+                t => t.type === toast.type
+            ).length !== 0) {
+            // Returning false discards the toast
+            return false;
+        }
+        // You can modify the toast if you want
+        return toast;
+    }
+});
 
 Vue.config.productionTip = false
 

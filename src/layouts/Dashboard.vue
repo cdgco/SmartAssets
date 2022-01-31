@@ -96,27 +96,6 @@
 				showSettingsDrawer: false,
 			}
 		},
-		mounted() {		
-			let code = "";
-			let reading = false;
-
-			document.addEventListener('keypress', e => {
-				if (e.key == "Enter") {
-					console.log("Barcode Scanned: " +code);
-					code = "";
-				} else {
-					code += e.key;          
-				}
-
-				if(!reading) {
-					reading = true;
-					setTimeout(() => {
-						code = "";
-						reading = false;
-					}, 50);
-				}
-			})
-		},
 		methods: {
 			toggleSidebar( value ) {
 				this.sidebarCollapsed = value ;

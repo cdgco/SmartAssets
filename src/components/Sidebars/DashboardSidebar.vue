@@ -101,10 +101,6 @@
 						VIEW & FIX
 					</a-button>
 				</div>
-		
-				<div class="footer-box">
-					<h6>Barcode Scanner Connected</h6>
-				</div>
 
 			<!-- / Sidebar Footer -->
 
@@ -136,6 +132,52 @@
 				type: String,
 				default: "light",
 			},
+		},
+		setup() {
+			const toast = useToast();
+
+			return { toast }
+		},
+		mounted() {		
+			let code = "";
+			let reading = false;
+
+			document.addEventListener('keypress', e => {
+				if (e.key == "Enter") {
+					console.log("Barcode Scanned: " +code);
+					this.barcodeError();
+					code = "";
+				} else {
+					code += e.key;          
+				}
+
+				if(!reading) {
+					reading = true;
+					setTimeout(() => {
+						code = "";
+						reading = false;
+					}, 50);
+				}
+			})
+		},
+		methods: {
+			barcodeError() {
+
+				this.$toast.error("Barcode Not Found", {
+				position: "bottom-left",
+				timeout: 5000,
+				closeOnClick: true,
+				pauseOnFocusLoss: true,
+				pauseOnHover: false,
+				draggable: false,
+				draggablePercent: 0.6,
+				showCloseButtonOnHover: true,
+				hideProgressBar: false,
+				closeButton: "button",
+				icon: false,
+				rtl: false
+				});
+			}
 		},
 		data() {
 			return {

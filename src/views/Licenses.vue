@@ -19,6 +19,7 @@
 			<li><a href="#selfsigned">selfsigned</a></li>
 			<li><a href="#vue">vue</a></li>
 			<li><a href="#vue-router">vue-router</a></li>
+			<li><a href="#vue-toastification">vue-toastification</a></li>
 		</ul>
 		<hr><br>
 		<h4 id="ant-design-vue">ant-design-vue</h4>
@@ -93,7 +94,7 @@
 		</p>
 		<h4 id="mongoose">mongoose</h4>
 		<p>MIT License
-			<br><br>Copyright (c) 2010-2013 LearnBoost <dev@learnboost.com>
+			<br><br>Copyright (c) 2010-2013 LearnBoost &lt;dev@learnboost.com&gt;
 			<br>Copyright (c) 2013-2021 Automattic
 			<br><br>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 			<br><br>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
@@ -130,6 +131,13 @@
 		<h4 id="vue-router">vue-router</h4>
 		<p>MIT License
 			<br><br>Copyright (c) 2013-present Evan You
+			<br><br>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+			<br><br>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+			<br><br>THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+		</p>
+		<h4 id="vue-toastification">vue-toastification</h4>
+		<p>MIT License
+			<br><br>Copyright (c) 2019 maronato
 			<br><br>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 			<br><br>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 			<br><br>THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
