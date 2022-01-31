@@ -3,29 +3,22 @@ const Asset = db.assets;
 
 // Create and Save a new asset
 exports.create = (req, res) => {
-    // Validate request
-    if (!req.body.title) {
-        res.json({
-            "success": false,
-            "code": 400,
-            "errors": ["Data can not be empty!"],
-            "messages": ["Data can not be empty!"],
-            "result": null
-        });
-    }
 
-    // Create a Tutorial
     const asset = new Asset({
-        title: req.body.title,
+        name: req.body.name,
         description: req.body.description,
         published: req.body.published ? req.body.published : false
     });
 
-    // Save Tutorial in the database
-    asset
-        .save(asset)
+    asset.save(asset)
         .then(data => {
-            res.send(data);
+            res.json({
+                "success": true,
+                "code": 200,
+                "errors": [],
+                "messages": [],
+                "result": data
+            });
         })
         .catch(err => {
             res.json({
@@ -40,8 +33,8 @@ exports.create = (req, res) => {
 
 // Retrieve all Tutorials from the database (with condition).
 exports.findAll = (req, res) => {
-    const title = req.query.title;
-    var condition = title ? { title: { $regex: new RegExp(title), $options: "i" } } : {};
+    const name = req.query.name;
+    var condition = name ? { name: { $regex: new RegExp(name), $options: "i" } } : {};
 
     Asset.find(condition)
         .then(data => {
@@ -80,7 +73,15 @@ exports.findOne = (req, res) => {
                     "messages": ["No found asset with id " + id],
                     "result": null
                 });
-            } else res.send(data);
+            } else {
+                res.json({
+                    "success": true,
+                    "code": 200,
+                    "errors": [],
+                    "messages": [],
+                    "result": data
+                });
+            }
         })
         .catch(err => {
             res.json({
@@ -93,35 +94,8 @@ exports.findOne = (req, res) => {
         });
 };
 
-// find all published assets
-exports.findAllPublished = (req, res) => {
-    Asset.find({ published: true })
-        .then(data => {
-            res.send(data);
-        })
-        .catch(err => {
-            res.json({
-                "success": false,
-                "code": 500,
-                "errors": [err.message || "Some error occurred while retrieving assets."],
-                "messages": [err.message || "Some error occurred while retrieving assets."],
-                "result": null
-            });
-        });
-};
-
 // Update a asset identified by the id in the request
 exports.update = (req, res) => {
-    if (!req.body) {
-        res.json({
-            "success": false,
-            "code": 400,
-            "errors": ["Data to update can not be empty!"],
-            "messages": ["Data to update can not be empty!"],
-            "result": null
-        });
-    }
-
     const id = req.params.id;
 
     Asset.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
@@ -194,8 +168,12 @@ exports.delete = (req, res) => {
 exports.deleteAll = (req, res) => {
     Asset.deleteMany({})
         .then(data => {
-            res.send({
-                message: `${data.deletedCount} assets were deleted successfully!`
+            res.json({
+                "success": true,
+                "code": 200,
+                "errors": [],
+                "messages": [`${data.deletedCount} assets were deleted successfully!`],
+                "result": null
             });
         })
         .catch(err => {

@@ -75,6 +75,9 @@ db.mongoose
 const assetRouter = require('./routes/asset.router.js');
 apiRouter.use('/api/assets', assetRouter);
 
+const userRouter = require('./routes/user.router.js');
+apiRouter.use('/api/users', userRouter);
+
 apiRouter.get('/api/', function(req, res, next) {
     res.json({
         "success": true,

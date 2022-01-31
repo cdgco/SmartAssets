@@ -17,7 +17,13 @@ paths:
                 type: object
   /assets:
     get:
-      description: API home page
+      description: Retrieve all assets
+      parameters:
+        - name: name
+          in: query
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -26,43 +32,224 @@ paths:
               schema:
                 type: object
     post:
-      description: Creates a new pet in the store.
+      description: Create a new asset.
       requestBody:
-        description: Pet to add to the store
+        required: true
         content:
           application/x-www-form-urlencoded:
             schema:
-             type: object
+             $ref: '#/components/schemas/NewAsset'
           application/json:
             schema:
-             type: object
+             $ref: '#/components/schemas/NewAsset'
       responses:
         '200':
-          description: pet response
+          description: Asset created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      description: Delete all assets
+      responses:
+        '200':
+          description: Assets deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+  /assets/{id}:
+    get:
+      description: Retrieve asset with specified ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+    put:
+      description: Update asset with specified ID.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+             $ref: '#/components/schemas/Asset'
+          application/json:
+            schema:
+             $ref: '#/components/schemas/Asset'
+      responses:
+        '200':
+          description: Asset updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      description: Delete asset with specified ID.
+      responses:
+        '200':
+          description: Asset deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+  /users:
+    get:
+      description: Retrieve all users
+      parameters:
+        - name: username
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: email
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      description: Create a new user.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+             $ref: '#/components/schemas/NewUser'
+          application/json:
+            schema:
+             $ref: '#/components/schemas/NewUser'
+      responses:
+        '200':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+  /users/{id}:
+    get:
+      description: Retrieve user with specified ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+    put:
+      description: Update user with specified ID.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+             $ref: '#/components/schemas/User'
+          application/json:
+            schema:
+             $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      description: Delete user with specified ID.
+      responses:
+        '200':
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+  /users/admin:
+    get:
+      description: Retrieve all users with admin status
+      responses:
+        '200':
+          description: OK
           content:
             application/json:
               schema:
                 type: object
 
 
+
 components:
   schemas:
     Asset:
-      required:
-        - title
       properties:
-        title:
+        name:
           type: string
         description:
           type: string
         published:
           type: boolean
+    NewAsset:
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        published:
+          type: boolean
+    NewUser:
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        name:
+          type: string
+        admin:
+          type: boolean
+        phone:
+          type: string
+        location:
+          type: string
+        title:
+          type: string
+    User:
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        name:
+          type: string
+        admin:
+          type: boolean
+        phone:
+          type: string
+        location:
+          type: string
+        title:
+          type: string
     Error:
       required:
         - success
         - code
-        - messages
         - errors
+        - messages
         - result
       properties:
         success:
@@ -70,10 +257,13 @@ components:
         code:
           type: integer
           format: int32
-        messages:
-          type: array
         errors:
           type: array
+        messages:
+          type: array
+        result:
+          type: object
+        
 
   securitySchemes:
     ApiKeyAuth:
