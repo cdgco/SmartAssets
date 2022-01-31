@@ -81,11 +81,6 @@
 </template>
 
 <script>
-	import 'vue-github-buttons/dist/vue-github-buttons.css'; // Stylesheet
-	import VueGitHubButtons from 'vue-github-buttons';
-	import Vue from 'vue';
-	Vue.use(VueGitHubButtons, { useCache: true });
-
 	export default ({
 		props: {
 			// Settings drawer visiblility status.
