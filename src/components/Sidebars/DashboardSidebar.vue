@@ -87,7 +87,7 @@
 			<!-- / Sidebar Navigation Menu -->
 			<p style="font-size:5px;">&nbsp;</p>
 				<div class="footer-box">
-					<router-link to="/newasset"><a-button type="primary" block>
+					<router-link to="/assets/new"><a-button type="primary" block>
 						NEW ASSET
 					</a-button></router-link><p style="font-size:5px;">&nbsp;</p>
 					<a-button type="primary" href="https://demos.creative-tim.com/muse-vue-ant-design-dashboard/documentation" block target="_blank">
@@ -145,7 +145,12 @@
 			document.addEventListener('keypress', e => {
 				if (e.key == "Enter") {
 					console.log("Barcode Scanned: " +code);
-					this.barcodeError();
+					if (code == "K8A267422") {
+						this.barcodeSuccess();
+					}
+					else {
+						this.barcodeError();
+					}
 					code = "";
 				} else {
 					code += e.key;          
@@ -164,6 +169,23 @@
 			barcodeError() {
 
 				this.$toast.error("Barcode Not Found", {
+				position: "bottom-left",
+				timeout: 5000,
+				closeOnClick: true,
+				pauseOnFocusLoss: true,
+				pauseOnHover: false,
+				draggable: false,
+				draggablePercent: 0.6,
+				showCloseButtonOnHover: true,
+				hideProgressBar: false,
+				closeButton: "button",
+				icon: false,
+				rtl: false
+				});
+			},
+			barcodeSuccess() {
+
+				this.$toast.success("Barcode Found", {
 				position: "bottom-left",
 				timeout: 5000,
 				closeOnClick: true,

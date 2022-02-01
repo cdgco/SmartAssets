@@ -111,7 +111,7 @@
 		},
 		{
 			title: "REST API",
-			datetime: "https://smartassets.cdgtech.one/api",
+			datetime: window.location.origin + "/api",
 			amount: "2,500",
 			type: -1,// 0 is for pending, 1 is for deposit, -1 is for withdrawal.
 			status: 'danger',

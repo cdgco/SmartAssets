@@ -36,6 +36,76 @@ exports.create = (req, res) => {
         });
 };
 
+exports.registerNewUser = async(req, res) => {
+    try {
+        console.log(isUser);
+        if (isUser.length >= 1) {
+            res.json({
+                "success": false,
+                "code": 409,
+                "errors": ["email already in use"],
+                "messages": [],
+                "result": null
+            });
+        }
+        const user = new User({
+            name: req.body.name,
+            email: req.body.email,
+            password: req.body.password
+        });
+        let data = await user.save();
+        const token = await user.generateAuthToken(); // here it is calling the method that we created in the model
+        res.json({
+            "success": true,
+            "code": 201,
+            "errors": [],
+            "messages": [],
+            "result": { user, token }
+        });
+    } catch (err) {
+        res.json({
+            "success": false,
+            "code": 400,
+            "errors": [err],
+            "messages": [],
+            "result": null
+        });
+    }
+};
+
+exports.loginUser = async(req, res) => {
+    try {
+        const email = req.body.email;
+        const password = req.body.password;
+        const user = await User.findByCredentials(email, password);
+        if (!user) {
+            res.json({
+                "success": false,
+                "code": 401,
+                "errors": ["Login failed! Check authentication credentials"],
+                "messages": [],
+                "result": null
+            });
+        }
+        const token = await user.generateAuthToken();
+        res.json({
+            "success": true,
+            "code": 201,
+            "errors": [],
+            "messages": [],
+            "result": { user, token }
+        });
+    } catch (err) {
+        res.json({
+            "success": false,
+            "code": 400,
+            "errors": [err],
+            "messages": [],
+            "result": null
+        });
+    }
+};
+
 // Retrieve all Tutorials from the database (with condition).
 exports.findAll = (req, res) => {
     const username = req.query.username;

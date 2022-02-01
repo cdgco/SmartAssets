@@ -18,6 +18,7 @@ import App from './App.vue'
 import DefaultLayout from './layouts/Default.vue'
 import DashboardLayout from './layouts/Dashboard.vue'
 import DashboardRTLLayout from './layouts/DashboardRTL.vue'
+import AssetLayout from './layouts/Asset.vue'
 import Toast from "vue-toastification";
 import "./css/toast.css";
 import router from './router'
@@ -52,6 +53,7 @@ Vue.config.productionTip = false
 Vue.component("layout-default", DefaultLayout);
 Vue.component("layout-dashboard", DashboardLayout);
 Vue.component("layout-dashboard-rtl", DashboardRTLLayout);
+Vue.component("layout-asset", AssetLayout);
 
 new Vue({
     router,

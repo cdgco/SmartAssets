@@ -3,6 +3,9 @@ const path = require('path');
 const OpenApiValidator = require('express-openapi-validator');
 const apiRouter = require('express').Router();
 var rateLimit = require('express-rate-limit');
+const morgan = require("morgan");
+const cors = require("cors");
+const bodyParser = require("body-parser");
 
 const allowlist = ['127.0.0.1']
 
@@ -24,17 +27,33 @@ const limiter = rateLimit({
 })
 
 //apiRouter.use(limiter)
+apiRouter.use(morgan("dev"));
+
+apiRouter.use(cors());
+
+apiRouter.use(bodyParser.urlencoded({ extended: false }));
+apiRouter.use(bodyParser.json());
 
 const apiKeys = new Map();
-apiKeys.set('24023tuf098252cn409v4850n2', {
+apiKeys.set('b57a83f9-9e39-4bc3-94cd-a3ca1388dea0', {
     id: 1,
-    name: 'user1',
+    name: 'global',
     secret: 'secret1'
 });
-apiKeys.set('987654321', {
+apiKeys.set('8c626f83-b5ca-4891-9e77-af95244a76ef', {
     id: 2,
-    name: 'user2',
+    name: 'assets',
     secret: 'secret2'
+});
+apiKeys.set('4d4657e9-6f4c-4262-b18a-16b4ef89f565', {
+    id: 3,
+    name: 'projects',
+    secret: 'secret3'
+});
+apiKeys.set('790168d5-bc87-404a-aded-6664887c1d8d', {
+    id: 4,
+    name: 'users',
+    secret: 'secret4'
 });
 
 const apiSpec = path.join(__dirname, 'api.yaml');
@@ -44,8 +63,8 @@ apiRouter.use('/api/spec', express.static(apiSpec));
 apiRouter.use(
     OpenApiValidator.middleware({
         apiSpec,
-        validateRequests: true, // true
-        validateResponses: true, // true
+        validateRequests: false, // true
+        validateResponses: false, // true
         validateSecurity: {
             handlers: {
                 ApiKeyAuth: (req, scopes, schema) => {

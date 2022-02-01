@@ -2,7 +2,9 @@ const userRouter = require('express').Router();
 const users = require("../controllers/user.controller.js");
 
 // Create a new user
-userRouter.post("/", users.create);
+userRouter.post("/", users.registerNewUser);
+
+userRouter.post("/login", users.loginUser);
 
 // Retrieve all users
 userRouter.get("/", users.findAll);

@@ -11,7 +11,7 @@
 			<!-- Sign In Form Column -->
 			<a-col :span="24" :md="12" :lg="{span: 12, offset: 0}" :xl="{span: 6, offset: 2}" class="col-form">
 				<h1 class="mb-15">Sign In</h1>
-				<h5 class="font-regular text-muted">Enter your email and password to sign in</h5>
+				<h6 class="font-regular text-muted">Enter your username and password to sign in</h6>
 
 				<!-- Sign In Form -->
 				<a-form
@@ -21,25 +21,30 @@
 					@submit="handleSubmit"
 					:hideRequiredMark="true"
 				>
-					<a-form-item class="mb-10" label="Email" :colon="false">
+					<a-form-item class="mb-10" label="Username" :colon="false" :validate-status="userNameError() ? 'error' : ''" :help="userNameError() || ''">
 						<a-input 
 						v-decorator="[
-						'email',
-						{ rules: [{ required: true, message: 'Please input your email!' }] },
-						]" placeholder="Email" />
+          					'userName',
+          					{ rules: [{ required: true, message: 'Please input your username!' }] },
+        				]"
+        				placeholder="Username">
+						<a-icon slot="prefix" type="user" style="color:rgba(0,0,0,.25)" /></a-input>
 					</a-form-item>
-					<a-form-item class="mb-5" label="Password" :colon="false">
+					<a-form-item class="mb-5" label="Password" :colon="false" :validate-status="passwordError() ? 'error' : ''" :help="passwordError() || ''">
 						<a-input
 						v-decorator="[
-						'password',
-						{ rules: [{ required: true, message: 'Please input your password!' }] },
-						]" type="password" placeholder="Password" />
+          					'password',
+          					{ rules: [{ required: true, message: 'Please input your Password!' }] },
+        				]"
+        				type="password"
+        				placeholder="Password">
+						<a-icon slot="prefix" type="lock" style="color:rgba(0,0,0,.25)" /></a-input>
 					</a-form-item>
 					<a-form-item class="mb-10">
     					<a-switch v-model="rememberMe" /> Remember Me
 					</a-form-item>
 					<a-form-item>
-						<a-button type="primary" block html-type="submit" class="login-form-button">
+						<a-button type="primary" block html-type="submit" class="login-form-button" :disabled="hasErrors(form.getFieldsError())">
 							SIGN IN
 						</a-button>
 					</a-form-item>
@@ -50,7 +55,7 @@
 
 			<!-- Sign In Image Column -->
 			<a-col :span="24" :md="12" :lg="12" :xl="12" class="col-img">
-				<img src="images/img-signin.jpg" alt="">
+				<img src="images/img-signin.jpeg" alt="">
 			</a-col>
 			<!-- Sign In Image Column -->
 
@@ -60,19 +65,40 @@
 </template>
 
 <script>
+	function hasErrors(fieldsError) {
+	return Object.keys(fieldsError).some(field => fieldsError[field]);
+	}
 
 	export default ({
 		data() {
 			return {
+				hasErrors,
+      			form: this.$form.createForm(this, { name: 'horizontal_login' }),
 				// Binded model property for "Sign In Form" switch button for "Remember Me" .
 				rememberMe: true,
 			}
+		},
+		mounted() {
+			this.$nextTick(() => {
+			// To disabled submit button at the beginning.
+			this.form.validateFields();
+			});
 		},
 		beforeCreate() {
 			// Creates the form and adds to it component's "form" property.
 			this.form = this.$form.createForm(this, { name: 'normal_login' });
 		},
 		methods: {
+			// Only show error after a field is touched.
+			userNameError() {
+			const { getFieldError, isFieldTouched } = this.form;
+			return isFieldTouched('userName') && getFieldError('userName');
+			},
+			// Only show error after a field is touched.
+			passwordError() {
+			const { getFieldError, isFieldTouched } = this.form;
+			return isFieldTouched('password') && getFieldError('password');
+			},
 			// Handles input validation after submission.
 			handleSubmit(e) {
 				e.preventDefault();

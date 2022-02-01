@@ -39,6 +39,20 @@ let routes = [{
             import ('../views/Assets.vue'),
     },
     {
+        path: '/assets/new',
+        name: 'New Asset',
+        layout: "dashboard",
+        component: () =>
+            import ('../views/CreateAsset.vue'),
+    },
+    {
+        path: '/assets/:id',
+        name: 'Asset',
+        layout: "asset",
+        component: () =>
+            import ('../views/Asset.vue'),
+    },
+    {
         path: '/projects',
         name: 'Projects',
         layout: "dashboard",
@@ -90,13 +104,6 @@ let routes = [{
         name: 'Licenses',
         component: () =>
             import ('../views/Licenses.vue'),
-    },
-    {
-        path: '/newasset',
-        name: 'New Asset',
-        layout: "dashboard",
-        component: () =>
-            import ('../views/CreateAsset.vue'),
     },
     {
         path: '/sign-up',
