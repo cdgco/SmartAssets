@@ -112,7 +112,8 @@
 </template>
 
 <script>
-
+	import { useToast } from "vue-toastification";
+	
 	export default ({
 		props: {
 			// Sidebar collapsed status.

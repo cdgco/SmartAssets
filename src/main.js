@@ -11,9 +11,9 @@ Coded by Creative Tim
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. 
 */
 
-import Vue from 'vue'
+import { createApp } from 'vue'
 import Antd from 'ant-design-vue';
-import 'ant-design-vue/dist/antd.css';
+import 'ant-design-vue/dist/antd.dark.css';
 import App from './App.vue'
 import DefaultLayout from './layouts/Default.vue'
 import DashboardLayout from './layouts/Dashboard.vue'
@@ -28,10 +28,13 @@ import axios from 'axios';
 
 import './scss/app.scss';
 
-import './registerServiceWorker'
+//import './registerServiceWorker'
 
-Vue.use(Antd);
-Vue.use(Toast, {
+const app = createApp(App)
+app.use(router);
+
+app.use(Antd);
+app.use(Toast, {
     transition: "Vue-Toastification__bounce",
     maxToasts: 5,
     newestOnTop: true,
@@ -47,15 +50,16 @@ Vue.use(Toast, {
     }
 });
 
-Vue.config.productionTip = false
+app.config.productionTip = false
 
 // Adding template layouts to the vue components.
-Vue.component("layout-default", DefaultLayout);
-Vue.component("layout-dashboard", DashboardLayout);
-Vue.component("layout-dashboard-rtl", DashboardRTLLayout);
-Vue.component("layout-asset", AssetLayout);
+app.component("layout-default", DefaultLayout);
+app.component("layout-dashboard", DashboardLayout);
+app.component("layout-dashboard-rtl", DashboardRTLLayout);
+app.component("layout-asset", AssetLayout);
 
-new Vue({
-    router,
-    render: h => h(App)
-}).$mount('#app')
+// new Vue({
+//     router,
+//     render: h => h(App)
+// }).$mount('#app')
+app.mount('#app')

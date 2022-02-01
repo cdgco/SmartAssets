@@ -1,14 +1,12 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 
-Vue.use(VueRouter)
-
-let routes = [{
-        // will match everything
-        path: '*',
-        component: () =>
-            import ('../views/404.vue'),
-    },
+let routes = [
+    // {
+    //     // will match everything
+    //     path: '*',
+    //     component: () =>
+    //         import ('../views/404.vue'),
+    // },
     {
         path: '/',
         name: 'Home',
@@ -130,10 +128,10 @@ function addLayoutToRoute(route, parentLayout = "default") {
 
 routes = routes.map((route) => addLayoutToRoute(route));
 
-const router = new VueRouter({
-    mode: 'history',
-    base: process.env.BASE_URL,
+const router = createRouter({
+    history: createWebHistory(),
     routes,
+    base: process.env.BASE_URL,
     scrollBehavior(to, from, savedPosition) {
         if (to.hash) {
             return {
