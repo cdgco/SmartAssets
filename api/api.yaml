@@ -203,6 +203,7 @@ paths:
   /auth/signin:
     post:
       description: Create a new user.
+      security: []  
       requestBody:
         required: true
         content:

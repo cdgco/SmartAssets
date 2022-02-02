@@ -135,6 +135,12 @@ let routes = [{
         name: 'Sign-In',
         component: () =>
             import ('../views/Sign-In.vue'),
+        beforeEnter: (to, from, next) => {
+            if (localStorage.getItem("user") !== null) next({
+                name: 'Dashboard'
+            })
+            else next()
+        }
     },
     {
         path: '/licenses',
@@ -150,7 +156,13 @@ let routes = [{
         },
         component: () =>
             import ('../views/Sign-Up.vue'),
-    },
+        beforeEnter: (to, from, next) => {
+            if (localStorage.getItem("user") !== null) next({
+                name: 'Dashboard'
+            })
+            else next()
+        }
+    }
 ]
 
 // Adding layout property from each route to the meta

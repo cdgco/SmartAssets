@@ -67,6 +67,8 @@
 </template>
 
 <script>
+	import { login } from "../components/auth.script";
+
 	function hasErrors(fieldsError) {
 	return Object.keys(fieldsError).some(field => fieldsError[field]);
 	}
@@ -93,20 +95,41 @@
 		methods: {
 			// Only show error after a field is touched.
 			userNameError() {
-			const { getFieldError, isFieldTouched } = this.form;
-			return isFieldTouched('userName') && getFieldError('userName');
+				const { getFieldError, isFieldTouched } = this.form;
+				return isFieldTouched('userName') && getFieldError('userName');
 			},
 			// Only show error after a field is touched.
 			passwordError() {
-			const { getFieldError, isFieldTouched } = this.form;
-			return isFieldTouched('password') && getFieldError('password');
+				const { getFieldError, isFieldTouched } = this.form;
+				return isFieldTouched('password') && getFieldError('password');
+			},
+			async submit(values) {
+				this.item = {
+					username: values.userName,
+					password: values.password
+					};
+				this.loading = true;
+				const response = await login(this.item);
+				if (response.data.result.accessToken) {
+					// DO NOT USE LOCAL STORAGE
+					localStorage.setItem("user", JSON.stringify(response.data.result));
+					this.item = {
+					username: "",
+					password: ""
+					};
+					this.loading = false;
+					this.$router.push("/dashboard");
+				} else {
+					// error
+					console.log("Error", response);
+				}
 			},
 			// Handles input validation after submission.
 			handleSubmit(e) {
 				e.preventDefault();
 				this.form.validateFields((err, values) => {
 					if ( !err ) {
-						console.log('Received values of form: ', values) ;
+						this.submit(values);
 					}
 				});
 			},
