@@ -13,10 +13,27 @@ let routes = [{
         path: '/',
         name: 'Home',
         beforeEnter: (to, from, next) => {
-            if (to.name !== 'Sign-In' && localStorage.getItem("user") === null) next({
-                name: 'Sign-In'
-            })
-            else next()
+            var itemStr = localStorage.getItem("user")
+            if (to.name !== 'Sign-In' && itemStr === null) {
+                next({ name: 'Sign-In' })
+            } else {
+                var item = JSON.parse(itemStr)
+                const now = Math.floor(new Date().getTime() / 1000.0)
+                    // compare the expiry time of the item with the current time
+                if (now > item.expiry || now > item.maxexpiry) {
+                    localStorage.removeItem("user")
+                    next({ name: 'Sign-In' })
+                } else {
+                    if (item.remember === true) {
+                        var exptime = 2629743;
+                    } else {
+                        var exptime = 7200;
+                    }
+                    item.expiry = now + exptime
+                    localStorage.setItem("user", JSON.stringify(item));
+                    next()
+                }
+            }
         },
         redirect: '/dashboard',
     },
@@ -25,10 +42,22 @@ let routes = [{
         name: 'Dashboard',
         layout: "dashboard",
         beforeEnter: (to, from, next) => {
-            if (to.name !== 'Sign-In' && localStorage.getItem("user") === null) next({
-                name: 'Sign-In'
-            })
-            else next()
+            var item = JSON.parse(itemStr)
+            const now = Math.floor(new Date().getTime() / 1000.0)
+                // compare the expiry time of the item with the current time
+            if (now > item.expiry || now > item.maxexpiry) {
+                localStorage.removeItem("user")
+                next({ name: 'Sign-In' })
+            } else {
+                if (item.remember === true) {
+                    var exptime = 2629743;
+                } else {
+                    var exptime = 7200;
+                }
+                item.expiry = now + exptime
+                localStorage.setItem("user", JSON.stringify(item));
+                next()
+            }
         },
         // route level code-splitting
         // this generates a separate chunk (about.[hash].js) for this route
@@ -43,10 +72,22 @@ let routes = [{
         component: () =>
             import ('../views/Assets.vue'),
         beforeEnter: (to, from, next) => {
-            if (to.name !== 'Sign-In' && localStorage.getItem("user") === null) next({
-                name: 'Sign-In'
-            })
-            else next()
+            var item = JSON.parse(itemStr)
+            const now = Math.floor(new Date().getTime() / 1000.0)
+                // compare the expiry time of the item with the current time
+            if (now > item.expiry || now > item.maxexpiry) {
+                localStorage.removeItem("user")
+                next({ name: 'Sign-In' })
+            } else {
+                if (item.remember === true) {
+                    var exptime = 2629743;
+                } else {
+                    var exptime = 7200;
+                }
+                item.expiry = now + exptime
+                localStorage.setItem("user", JSON.stringify(item));
+                next()
+            }
         },
     },
     {
@@ -56,10 +97,22 @@ let routes = [{
         component: () =>
             import ('../views/CreateAsset.vue'),
         beforeEnter: (to, from, next) => {
-            if (to.name !== 'Sign-In' && localStorage.getItem("user") === null) next({
-                name: 'Sign-In'
-            })
-            else next()
+            var item = JSON.parse(itemStr)
+            const now = Math.floor(new Date().getTime() / 1000.0)
+                // compare the expiry time of the item with the current time
+            if (now > item.expiry || now > item.maxexpiry) {
+                localStorage.removeItem("user")
+                next({ name: 'Sign-In' })
+            } else {
+                if (item.remember === true) {
+                    var exptime = 2629743;
+                } else {
+                    var exptime = 7200;
+                }
+                item.expiry = now + exptime
+                localStorage.setItem("user", JSON.stringify(item));
+                next()
+            }
         },
     },
     {
@@ -69,10 +122,22 @@ let routes = [{
         component: () =>
             import ('../views/Asset.vue'),
         beforeEnter: (to, from, next) => {
-            if (to.name !== 'Sign-In' && localStorage.getItem("user") === null) next({
-                name: 'Sign-In'
-            })
-            else next()
+            var item = JSON.parse(itemStr)
+            const now = Math.floor(new Date().getTime() / 1000.0)
+                // compare the expiry time of the item with the current time
+            if (now > item.expiry || now > item.maxexpiry) {
+                localStorage.removeItem("user")
+                next({ name: 'Sign-In' })
+            } else {
+                if (item.remember === true) {
+                    var exptime = 2629743;
+                } else {
+                    var exptime = 7200;
+                }
+                item.expiry = now + exptime
+                localStorage.setItem("user", JSON.stringify(item));
+                next()
+            }
         },
     },
     {
@@ -82,10 +147,22 @@ let routes = [{
         component: () =>
             import ('../views/Projects.vue'),
         beforeEnter: (to, from, next) => {
-            if (to.name !== 'Sign-In' && localStorage.getItem("user") === null) next({
-                name: 'Sign-In'
-            })
-            else next()
+            var item = JSON.parse(itemStr)
+            const now = Math.floor(new Date().getTime() / 1000.0)
+                // compare the expiry time of the item with the current time
+            if (now > item.expiry || now > item.maxexpiry) {
+                localStorage.removeItem("user")
+                next({ name: 'Sign-In' })
+            } else {
+                if (item.remember === true) {
+                    var exptime = 2629743;
+                } else {
+                    var exptime = 7200;
+                }
+                item.expiry = now + exptime
+                localStorage.setItem("user", JSON.stringify(item));
+                next()
+            }
         },
     },
     {
@@ -95,10 +172,22 @@ let routes = [{
         component: () =>
             import ('../views/Connections.vue'),
         beforeEnter: (to, from, next) => {
-            if (to.name !== 'Sign-In' && localStorage.getItem("user") === null) next({
-                name: 'Sign-In'
-            })
-            else next()
+            var item = JSON.parse(itemStr)
+            const now = Math.floor(new Date().getTime() / 1000.0)
+                // compare the expiry time of the item with the current time
+            if (now > item.expiry || now > item.maxexpiry) {
+                localStorage.removeItem("user")
+                next({ name: 'Sign-In' })
+            } else {
+                if (item.remember === true) {
+                    var exptime = 2629743;
+                } else {
+                    var exptime = 7200;
+                }
+                item.expiry = now + exptime
+                localStorage.setItem("user", JSON.stringify(item));
+                next()
+            }
         },
     },
     {
@@ -108,10 +197,22 @@ let routes = [{
         component: () =>
             import ('../views/Metrics.vue'),
         beforeEnter: (to, from, next) => {
-            if (to.name !== 'Sign-In' && localStorage.getItem("user") === null) next({
-                name: 'Sign-In'
-            })
-            else next()
+            var item = JSON.parse(itemStr)
+            const now = Math.floor(new Date().getTime() / 1000.0)
+                // compare the expiry time of the item with the current time
+            if (now > item.expiry || now > item.maxexpiry) {
+                localStorage.removeItem("user")
+                next({ name: 'Sign-In' })
+            } else {
+                if (item.remember === true) {
+                    var exptime = 2629743;
+                } else {
+                    var exptime = 7200;
+                }
+                item.expiry = now + exptime
+                localStorage.setItem("user", JSON.stringify(item));
+                next()
+            }
         },
     },
     {
@@ -124,10 +225,22 @@ let routes = [{
         component: () =>
             import ('../views/Profile.vue'),
         beforeEnter: (to, from, next) => {
-            if (to.name !== 'Sign-In' && localStorage.getItem("user") === null) next({
-                name: 'Sign-In'
-            })
-            else next()
+            var item = JSON.parse(itemStr)
+            const now = Math.floor(new Date().getTime() / 1000.0)
+                // compare the expiry time of the item with the current time
+            if (now > item.expiry || now > item.maxexpiry) {
+                localStorage.removeItem("user")
+                next({ name: 'Sign-In' })
+            } else {
+                if (item.remember === true) {
+                    var exptime = 2629743;
+                } else {
+                    var exptime = 7200;
+                }
+                item.expiry = now + exptime
+                localStorage.setItem("user", JSON.stringify(item));
+                next()
+            }
         },
     },
     {
@@ -176,6 +289,7 @@ function addLayoutToRoute(route, parentLayout = "default") {
     }
     return route;
 }
+
 
 routes = routes.map((route) => addLayoutToRoute(route));
 

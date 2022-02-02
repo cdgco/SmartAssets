@@ -56,7 +56,7 @@
 			<!-- / Sign In Form Column -->
 
 			<!-- Sign In Image Column -->
-			<a-col :span="24" :md="12" :lg="12" :xl="12" class="col-img">
+			<a-col :span="0" :md="0" :lg="0" :xl="12" class="col-img">
 				<img src="images/img-signin.jpeg" alt="">
 			</a-col>
 			<!-- Sign In Image Column -->
@@ -109,10 +109,23 @@
 					password: values.password
 					};
 				this.loading = true;
+				if (true) {
+					var remember = true;
+					var exptime = 2629743;
+				}
+				else {
+					var remember = false;
+					var exptime = 7200;
+				}
 				const response = await login(this.item);
 				if (response.data.result.accessToken) {
-					// DO NOT USE LOCAL STORAGE
-					localStorage.setItem("user", JSON.stringify(response.data.result));
+					const jwt = {
+						value: response.data.result,
+						expiry: Math.floor(new Date().getTime()/1000.0) + exptime,
+						maxexpiry: Math.floor(new Date().getTime()/1000.0) + 31556926,
+						rememberme: remember
+					}
+					localStorage.setItem("user", JSON.stringify(jwt));
 					this.item = {
 					username: "",
 					password: ""
