@@ -1,7 +1,6 @@
 const dbConfig = require("../../db.config.js");
 
 const mongoose = require("mongoose");
-const AutoIncrement = require('mongoose-sequence')(mongoose);
 mongoose.Promise = global.Promise;
 const db = {};
 db.mongoose = mongoose;

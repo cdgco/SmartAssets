@@ -51,7 +51,7 @@
 								initialValue: false,
 							},
         				]"
-        				type="hidden">
+        				type="hidden"/>
 					</a-form-item>
 					<a-form-item>
 						<a-button type="primary" block html-type="submit" class="login-form-button" :disabled="hasErrors(form.getFieldsError())">
