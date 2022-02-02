@@ -6,6 +6,7 @@ var rateLimit = require('express-rate-limit');
 const morgan = require("morgan");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const { auth_jwt_token } = require("./auth");
 
 const allowlist = ['127.0.0.1']
 
@@ -90,6 +91,24 @@ db.mongoose
         console.log("Cannot connect to the database!", err);
         process.exit();
     });
+
+const Role = db.roles
+Role.estimatedDocumentCount((err, count) => {
+    if (!err && count === 0) {
+        new Role({ name: "user" }).save();
+        new Role({ name: "admin" }).save();
+    }
+});
+
+const authRouter = require('./routes/auth.router.js') // user authentication
+
+apiRouter.use('/api/auth', authRouter, function(req, res, next) {
+    res.header(
+        "Access-Control-Allow-Headers",
+        "x-access-token, Origin, Content-Type, Accept"
+    );
+    next();
+})
 
 const assetRouter = require('./routes/asset.router.js');
 apiRouter.use('/api/assets', assetRouter);

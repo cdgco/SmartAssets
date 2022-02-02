@@ -200,7 +200,44 @@ paths:
             application/json:
               schema:
                 type: object
-
+  /auth/signin:
+    post:
+      description: Create a new user.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+             $ref: '#/components/schemas/NewUser'
+          application/json:
+            schema:
+             $ref: '#/components/schemas/NewUser'
+      responses:
+        '200':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+  /auth/signup:
+    post:
+      description: Create a new user.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+             $ref: '#/components/schemas/NewUser'
+          application/json:
+            schema:
+             $ref: '#/components/schemas/NewUser'
+      responses:
+        '200':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
 
 
 components:

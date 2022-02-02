@@ -27,7 +27,8 @@
           					'userName',
           					{ rules: [{ required: true, message: 'Please input your username!' }] },
         				]"
-        				placeholder="Username">
+        				placeholder="Username"
+						autocomplete="username">
 						<a-icon slot="prefix" type="user" style="color:rgba(0,0,0,.25)" /></a-input>
 					</a-form-item>
 					<a-form-item class="mb-5" label="Password" :colon="false" :validate-status="passwordError() ? 'error' : ''" :help="passwordError() || ''">
@@ -37,7 +38,8 @@
           					{ rules: [{ required: true, message: 'Please input your Password!' }] },
         				]"
         				type="password"
-        				placeholder="Password">
+        				placeholder="Password"
+						autocomplete="current-password">
 						<a-icon slot="prefix" type="lock" style="color:rgba(0,0,0,.25)" /></a-input>
 					</a-form-item>
 					<a-form-item class="mb-10">

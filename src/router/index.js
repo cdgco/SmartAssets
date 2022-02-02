@@ -12,12 +12,24 @@ let routes = [{
     {
         path: '/',
         name: 'Home',
+        beforeEnter: (to, from, next) => {
+            if (to.name !== 'Sign-In' && localStorage.getItem("user") === null) next({
+                name: 'Sign-In'
+            })
+            else next()
+        },
         redirect: '/dashboard',
     },
     {
         path: '/dashboard',
         name: 'Dashboard',
         layout: "dashboard",
+        beforeEnter: (to, from, next) => {
+            if (to.name !== 'Sign-In' && localStorage.getItem("user") === null) next({
+                name: 'Sign-In'
+            })
+            else next()
+        },
         // route level code-splitting
         // this generates a separate chunk (about.[hash].js) for this route
         // which is lazy-loaded when the route is visited.
@@ -25,18 +37,17 @@ let routes = [{
             import ( /* webpackChunkName: "dashboard" */ '../views/Dashboard.vue'),
     },
     {
-        path: '/layout',
-        name: 'Layout',
-        layout: "dashboard",
-        component: () =>
-            import ('../views/Layout.vue'),
-    },
-    {
         path: '/assets',
         name: 'Assets',
         layout: "dashboard",
         component: () =>
             import ('../views/Assets.vue'),
+        beforeEnter: (to, from, next) => {
+            if (to.name !== 'Sign-In' && localStorage.getItem("user") === null) next({
+                name: 'Sign-In'
+            })
+            else next()
+        },
     },
     {
         path: '/assets/new',
@@ -44,6 +55,12 @@ let routes = [{
         layout: "dashboard",
         component: () =>
             import ('../views/CreateAsset.vue'),
+        beforeEnter: (to, from, next) => {
+            if (to.name !== 'Sign-In' && localStorage.getItem("user") === null) next({
+                name: 'Sign-In'
+            })
+            else next()
+        },
     },
     {
         path: '/assets/:id',
@@ -51,6 +68,12 @@ let routes = [{
         layout: "asset",
         component: () =>
             import ('../views/Asset.vue'),
+        beforeEnter: (to, from, next) => {
+            if (to.name !== 'Sign-In' && localStorage.getItem("user") === null) next({
+                name: 'Sign-In'
+            })
+            else next()
+        },
     },
     {
         path: '/projects',
@@ -58,6 +81,12 @@ let routes = [{
         layout: "dashboard",
         component: () =>
             import ('../views/Projects.vue'),
+        beforeEnter: (to, from, next) => {
+            if (to.name !== 'Sign-In' && localStorage.getItem("user") === null) next({
+                name: 'Sign-In'
+            })
+            else next()
+        },
     },
     {
         path: '/connections',
@@ -65,6 +94,12 @@ let routes = [{
         layout: "dashboard",
         component: () =>
             import ('../views/Connections.vue'),
+        beforeEnter: (to, from, next) => {
+            if (to.name !== 'Sign-In' && localStorage.getItem("user") === null) next({
+                name: 'Sign-In'
+            })
+            else next()
+        },
     },
     {
         path: '/metrics',
@@ -72,16 +107,12 @@ let routes = [{
         layout: "dashboard",
         component: () =>
             import ('../views/Metrics.vue'),
-    },
-    {
-        path: '/rtl',
-        name: 'RTL',
-        layout: "dashboard-rtl",
-        meta: {
-            layoutClass: 'dashboard-rtl',
+        beforeEnter: (to, from, next) => {
+            if (to.name !== 'Sign-In' && localStorage.getItem("user") === null) next({
+                name: 'Sign-In'
+            })
+            else next()
         },
-        component: () =>
-            import ('../views/RTL.vue'),
     },
     {
         path: '/account',
@@ -92,6 +123,12 @@ let routes = [{
         },
         component: () =>
             import ('../views/Profile.vue'),
+        beforeEnter: (to, from, next) => {
+            if (to.name !== 'Sign-In' && localStorage.getItem("user") === null) next({
+                name: 'Sign-In'
+            })
+            else next()
+        },
     },
     {
         path: '/sign-in',
