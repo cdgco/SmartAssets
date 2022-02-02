@@ -141,29 +141,31 @@
 		mounted() {		
 			let code = "";
 			let reading = false;
+				document.addEventListener('keypress', e => {
+					if (`${this.$route.name}` != 'Sign-In') {
+						if (e.key == "Enter") {
+							if (code == "K8A267422") {
+								this.barcodeSuccess();
+							}
+							else {
+								if (code != '') {
+									this.barcodeError();
+								}
+							}
+							code = "";
+						} else {
+							code += e.key;          
+						}
 
-			document.addEventListener('keypress', e => {
-				if (e.key == "Enter") {
-					console.log("Barcode Scanned: " +code);
-					if (code == "K8A267422") {
-						this.barcodeSuccess();
+						if(!reading) {
+							reading = true;
+							setTimeout(() => {
+								code = "";
+								reading = false;
+							}, 50);
+						}
 					}
-					else {
-						this.barcodeError();
-					}
-					code = "";
-				} else {
-					code += e.key;          
-				}
-
-				if(!reading) {
-					reading = true;
-					setTimeout(() => {
-						code = "";
-						reading = false;
-					}, 50);
-				}
-			})
+				})
 		},
 		methods: {
 			barcodeError() {

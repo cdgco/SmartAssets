@@ -241,6 +241,7 @@ let routes = [{
     {
         path: '/sign-in',
         name: 'Sign-In',
+        layout: "default",
         component: () =>
             import ('../views/Sign-In.vue'),
         beforeEnter: (to, from, next) => {
