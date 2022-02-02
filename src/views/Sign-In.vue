@@ -43,7 +43,15 @@
 						<a-icon slot="prefix" type="lock" style="color:rgba(0,0,0,.25)" /></a-input>
 					</a-form-item>
 					<a-form-item class="mb-10">
-    					<a-switch v-model="rememberMe" /> Remember Me
+    					<a-switch v-model="rememberMe" @change="onChange"/> Remember Me
+						<a-input
+						v-decorator="[
+          					'remember',
+							  {
+								initialValue: false,
+							},
+        				]"
+        				type="hidden">
 					</a-form-item>
 					<a-form-item>
 						<a-button type="primary" block html-type="submit" class="login-form-button" :disabled="hasErrors(form.getFieldsError())">
@@ -79,7 +87,7 @@
 				hasErrors,
       			form: this.$form.createForm(this, { name: 'horizontal_login' }),
 				// Binded model property for "Sign In Form" switch button for "Remember Me" .
-				rememberMe: true,
+				rememberMe: false,
 			}
 		},
 		mounted() {
@@ -93,6 +101,12 @@
 			this.form = this.$form.createForm(this, { name: 'normal_login' });
 		},
 		methods: {
+			onChange(checked) {
+				this.form.setFieldsValue({
+					remember: checked
+				});
+
+			},
 			// Only show error after a field is touched.
 			userNameError() {
 				const { getFieldError, isFieldTouched } = this.form;
@@ -109,26 +123,18 @@
 					password: values.password
 					};
 				this.loading = true;
-				if (true) {
-					var remember = true;
-					var exptime = 2629743;
-				}
-				else {
-					var remember = false;
-					var exptime = 7200;
-				}
 				const response = await login(this.item);
 				if (response.data.result.accessToken) {
 					const jwt = {
 						value: response.data.result,
-						expiry: Math.floor(new Date().getTime()/1000.0) + exptime,
+						expiry: Math.floor(new Date().getTime()/1000.0) + ((values.remember) ? 2629743 : 7200),
 						maxexpiry: Math.floor(new Date().getTime()/1000.0) + 31556926,
-						rememberme: remember
+						remember: values.remember
 					}
 					localStorage.setItem("user", JSON.stringify(jwt));
 					this.item = {
-					username: "",
-					password: ""
+						username: "",
+						password: ""
 					};
 					this.loading = false;
 					this.$router.push("/dashboard");
