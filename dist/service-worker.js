@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/precache-manifest.df72b8003044807e7079bcda24ff85dc.js"
+  "/precache-manifest.54550b1107126e1099877b693625ee50.js"
 );
 
 workbox.core.setCacheNameDetails({prefix: "smart-assets"});

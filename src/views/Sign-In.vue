@@ -2,15 +2,14 @@
 	This is the sign in page, it uses the dashboard layout in: 
 	"./layouts/Default.vue" .
  -->
-
 <template>
 	<div class="sign-in">
-		
 		<a-row type="flex" :gutter="[24,24]" justify="space-around" align="middle">
 
 			<!-- Sign In Form Column -->
 			<a-col :span="24" :md="12" :lg="{span: 12, offset: 0}" :xl="{span: 6, offset: 2}" class="col-form">
 				<h1 class="mb-15">Sign In</h1>
+				<span v-if="show"><a-alert type="error" message="Invalid username or password" banner /><br></span>
 				<h6 class="font-regular text-muted">Enter your username and password to sign in</h6>
 
 				<!-- Sign In Form -->
@@ -88,6 +87,7 @@
       			form: this.$form.createForm(this, { name: 'horizontal_login' }),
 				// Binded model property for "Sign In Form" switch button for "Remember Me" .
 				rememberMe: false,
+				show: false,
 			}
 		},
 		mounted() {
@@ -124,7 +124,7 @@
 					};
 				this.loading = true;
 				const response = await login(this.item);
-				if (response.data.result.accessToken) {
+				if (response.data.success) {
 					const jwt = {
 						value: response.data.result,
 						expiry: Math.floor(new Date().getTime()/1000.0) + ((values.remember) ? 2629743 : 7200),
@@ -140,7 +140,7 @@
 					this.$router.push("/dashboard");
 				} else {
 					// error
-					console.log("Error", response);
+					this.show = true;
 				}
 			},
 			// Handles input validation after submission.
