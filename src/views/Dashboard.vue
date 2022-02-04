@@ -11,14 +11,16 @@
 			<a-col :span="24" :lg="10" class="mb-24">
 
 				<!-- Active Users Card -->
-				<CardBarChart></CardBarChart>
+				<CardBarChart v-if="loaded"></CardBarChart>
+				<a-skeleton active v-else/>
 				<!-- Active Users Card -->
 
 			</a-col>
 			<a-col :span="24" :lg="14" class="mb-24">
 				
 				<!-- Sales Overview Card -->
-				<CardLineChart></CardLineChart>
+				<CardLineChart v-if="loaded"></CardLineChart>
+				<a-skeleton active v-else/>
 				<!-- / Sales Overview Card -->
 
 			</a-col>
@@ -34,7 +36,9 @@
 				<CardAssetTable
 					:data="tableData"
 					:columns="tableColumns"
+					v-if="loaded"
 				></CardAssetTable>
+				<a-skeleton active v-else/>
 				<!-- / Projects Table Card -->
 				
 			</a-col>
@@ -44,7 +48,8 @@
 			<a-col :span="24" :lg="8" class="mb-24">
 
 				<!-- Orders History Timeline Card -->
-				<CardEventHistory></CardEventHistory>
+				<CardEventHistory v-if="loaded"></CardEventHistory>
+				<a-skeleton active v-else/>
 				<!-- / Orders History Timeline Card -->
 
 			</a-col>
@@ -180,9 +185,19 @@
 				tableData,
 
 				// Associating table columns with its corresponding property.
-				tableColumns
+				tableColumns,
+				loaded : true
 			}
 		},
+		methods: {
+			async loading() {
+				this.loaded = true
+			}
+
+		},
+		 created() {
+			setTimeout(this.loading, 1000);
+		}
 	})
 
 </script>

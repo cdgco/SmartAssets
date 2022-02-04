@@ -1,174 +1,259 @@
+const crypto = require('crypto');
 const db = require("../models");
 const User = db.users;
+const Role = db.roles;
 
-// Create and Save a new asset
-exports.create = (req, res) => {
-    // Create a Tutorial
+var jwt = require("jsonwebtoken");
+var bcrypt = require("bcryptjs");
+
+exports.signup = (req, res) => {
     const user = new User({
         username: req.body.username,
         email: req.body.email,
-        password: req.body.password,
-        admin: req.body.admin ? req.body.admin : false,
+        password: bcrypt.hashSync(req.body.password, 8),
         name: req.body.name ? req.body.name : "",
         phone: req.body.phone ? req.body.phone : "",
         location: req.body.location ? req.body.location : "",
         title: req.body.title ? req.body.title : ""
     });
 
-    user.save(user)
-        .then(data => {
-            res.json({
+    user.save((err, user) => {
+        if (err) {
+            return res.json({
+                "success": false,
+                "code": 500,
+                "errors": [err],
+                "messages": [err],
+                "result": null
+            });
+        }
+
+        if (req.body.role) {
+            Role.find({
+                    name: { $in: req.body.role }
+                },
+                (err, roles) => {
+                    if (err) {
+                        return res.json({
+                            "success": false,
+                            "code": 500,
+                            "errors": [err],
+                            "messages": [err],
+                            "result": null
+                        });
+                    }
+
+                    user.roles = roles.map(role => role._id);
+                    user.save(err => {
+                        if (err) {
+                            return res.json({
+                                "success": false,
+                                "code": 500,
+                                "errors": [err],
+                                "messages": [err],
+                                "result": null
+                            });
+                        }
+                        return res.json({
+                            "success": true,
+                            "code": 200,
+                            "errors": [],
+                            "messages": ["User was registered successfully!"],
+                            "result": {
+                                id: user._id,
+                                username: user.username,
+                                email: user.email,
+                                name: user.name,
+                                phone: user.phone,
+                                location: user.location,
+                                title: user.title
+                            }
+                        });
+                    });
+                }
+            );
+        } else {
+            Role.findOne({ name: "user" }, (err, role) => {
+                if (err) {
+                    return res.json({
+                        "success": false,
+                        "code": 500,
+                        "errors": [err],
+                        "messages": [err],
+                        "result": null
+                    });
+                }
+
+                user.roles = [role._id];
+                user.save(err => {
+                    if (err) {
+                        return res.json({
+                            "success": false,
+                            "code": 500,
+                            "errors": [err],
+                            "messages": [err],
+                            "result": null
+                        });
+                    }
+                    return res.json({
+                        "success": true,
+                        "code": 200,
+                        "errors": [],
+                        "messages": ["User was registered successfully!"],
+                        "result": {
+                            id: user._id,
+                            username: user.username,
+                            email: user.email,
+                            name: user.name,
+                            phone: user.phone,
+                            location: user.location,
+                            title: user.title
+                        }
+                    });
+                });
+            });
+        }
+    });
+};
+
+exports.signin = (req, res) => {
+    User.findOne({
+            username: req.body.username
+        })
+        .populate("roles", "-__v")
+        .exec((err, user) => {
+
+            if (err) {
+                return res.json({
+                    "success": false,
+                    "code": 500,
+                    "errors": [err],
+                    "messages": [err],
+                    "result": null
+                });
+            }
+
+            if (!user) {
+                return res.json({
+                    "success": false,
+                    "code": 404,
+                    "errors": ["Invalid Credentials"],
+                    "messages": [err],
+                    "result": null
+                });
+            }
+
+            var passwordIsValid = bcrypt.compareSync(
+                req.body.password,
+                user.password
+            );
+
+            if (!passwordIsValid) {
+                return res.json({
+                    "success": true,
+                    "code": 401,
+                    "errors": [],
+                    "messages": ["Invalid Credentials"],
+                    "result": null
+                });
+            }
+
+            const { privateKey, publicKey } = crypto.generateKeyPairSync('ec', {
+                namedCurve: 'sect239k1'
+            });
+
+            // generate a signature of the payload
+            const sign = crypto.createSign('SHA256');
+            sign.write(`${user}`);
+            sign.end();
+            var signature = sign.sign(privateKey, 'hex');
+            console.log(signature)
+
+
+            // sign username
+            var token = jwt.sign({ id: user.id }, signature, {
+                expiresIn: 86400 // 24 hours
+            });
+
+            var authorities = [];
+
+            for (let i = 0; i < user.roles.length; i++) {
+                authorities.push("ROLE_" + user.roles[i].name.toUpperCase());
+            }
+            return res.json({
                 "success": true,
                 "code": 200,
                 "errors": [],
                 "messages": [],
-                "result": data
-            });
-        })
-        .catch(err => {
-            res.json({
-                "success": false,
-                "code": 500,
-                "errors": [err.message || "Some error occurred while creating the user."],
-                "messages": [err.message || "Some error occurred while creating the user."],
-                "result": null
+                "result": {
+                    id: user._id,
+                    accessToken: token, // access token
+                    signature: signature // signature
+                }
             });
         });
-};
-
-exports.registerNewUser = async(req, res) => {
-    try {
-        console.log(isUser);
-        if (isUser.length >= 1) {
-            res.json({
-                "success": false,
-                "code": 409,
-                "errors": ["email already in use"],
-                "messages": [],
-                "result": null
-            });
-        }
-        const user = new User({
-            name: req.body.name,
-            email: req.body.email,
-            password: req.body.password
-        });
-        let data = await user.save();
-        const token = await user.generateAuthToken(); // here it is calling the method that we created in the model
-        res.json({
-            "success": true,
-            "code": 201,
-            "errors": [],
-            "messages": [],
-            "result": { user, token }
-        });
-    } catch (err) {
-        res.json({
-            "success": false,
-            "code": 400,
-            "errors": [err],
-            "messages": [],
-            "result": null
-        });
-    }
-};
-
-exports.loginUser = async(req, res) => {
-    try {
-        const email = req.body.email;
-        const password = req.body.password;
-        const user = await User.findByCredentials(email, password);
-        if (!user) {
-            res.json({
-                "success": false,
-                "code": 401,
-                "errors": ["Login failed! Check authentication credentials"],
-                "messages": [],
-                "result": null
-            });
-        }
-        const token = await user.generateAuthToken();
-        res.json({
-            "success": true,
-            "code": 201,
-            "errors": [],
-            "messages": [],
-            "result": { user, token }
-        });
-    } catch (err) {
-        res.json({
-            "success": false,
-            "code": 400,
-            "errors": [err],
-            "messages": [],
-            "result": null
-        });
-    }
 };
 
 // Retrieve all Tutorials from the database (with condition).
 exports.findAll = (req, res) => {
     const username = req.query.username;
     const email = req.query.email;
-    if (email) {
-        var condition = { email: { $regex: new RegExp(username), $options: "i" } };
+    const phone = req.query.phone;
+    const name = req.query.name;
+    if (username) {
+        var condition = { username: { $regex: new RegExp(username), $options: "i" } };
+    } else if (email) {
+        var condition = { email: { $regex: new RegExp(email), $options: "i" } };
+    } else if (phone) {
+        var condition = { phone: { $regex: new RegExp(phone), $options: "i" } };
+    } else if (name) {
+        var condition = { name: { $regex: new RegExp(name), $options: "i" } };
     } else {
-        if (username) {
-            var condition = { username: { $regex: new RegExp(username), $options: "i" } };
-        } else {
-            var condition = {};
-        }
+        var condition = {};
     }
-
     User.find(condition)
-        .then(data => {
-            res.json({
+        .select("-password")
+        .populate("roles", "name")
+        .exec((err, user) => {
+            if (err) {
+                return res.json({
+                    "success": false,
+                    "code": 500,
+                    "errors": [err],
+                    "messages": [err],
+                    "result": null
+                });
+            }
+
+            if (!user) {
+                return res.json({
+                    "success": false,
+                    "code": 404,
+                    "errors": ["No users found"],
+                    "messages": [err],
+                    "result": null
+                });
+            }
+
+            return res.json({
                 "success": true,
                 "code": 200,
                 "errors": [],
                 "messages": [],
-                "result": data
+                "result": user
+
             });
-        })
-        .catch(err => {
-            res.json({
-                "success": false,
-                "code": 500,
-                "errors": [err.message || "Some error occurred while retrieving users."],
-                "messages": [err.message || "Some error occurred while retrieving users."],
-                "result": null
-            });
+
         });
+
 };
 
-// find all published assets
-exports.findAllAdmin = (req, res) => {
-    User.find({ admin: true })
-        .then(data => {
-            res.json({
-                "success": true,
-                "code": 200,
-                "errors": [],
-                "messages": [],
-                "result": data
-            });
-        })
-        .catch(err => {
-            res.json({
-                "success": false,
-                "code": 500,
-                "errors": [err.message || "Some error occurred while retrieving users."],
-                "messages": [err.message || "Some error occurred while retrieving users."],
-                "result": null
-            });
-        });
-};
-
-// Find a single asset with a id
 exports.findOne = (req, res) => {
     const id = req.params.id;
 
     User.findById(id)
+        .select("-password")
+        .populate("roles", "name")
         .then(data => {
             if (!data) {
                 res.json({
@@ -199,7 +284,6 @@ exports.findOne = (req, res) => {
         });
 };
 
-// Update a asset identified by the id in the request
 exports.update = (req, res) => {
     const id = req.params.id;
 
@@ -234,7 +318,6 @@ exports.update = (req, res) => {
         });
 };
 
-// Delete an asset with the specified id in the request
 exports.delete = (req, res) => {
     const id = req.params.id;
 

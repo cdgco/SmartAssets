@@ -2,28 +2,30 @@
 
 	<!-- Active Users Card -->
 	<a-card :bordered="false" class="dashboard-bar-chart">
-		<chart-bar :height="220" :data="barChartData"></chart-bar>
+		<chart-bar :height="220" :data="barChartData" v-if="loaded"></chart-bar>
+		<a-skeleton active v-else/>
 		<div class="card-title">
 			<h6>New Assets</h6>
-			<p>than last week <span class="text-success">+23%</span></p>
+			<p v-if="loaded">than last week <span class="text-success">+23%</span></p>
 		</div>
 		<a-row class="card-footer" type="flex" justify="center" align="top">
-			<a-col :span="6">
+			<a-col v-if="loaded" :span="6">
 				<h4>14</h4>
 				<span>Desktops</span>
 			</a-col>
-			<a-col :span="6">
+			<a-col v-if="loaded" :span="6">
 				<h4>10</h4>
 				<span>Laptops</span>
 			</a-col>
-			<a-col :span="6">
+			<a-col v-if="loaded" :span="6">
 				<h4>3</h4>
 				<span>Monitors</span>
 			</a-col>
-			<a-col :span="6">
+			<a-col v-if="loaded" :span="6">
 				<h4>4</h4>
 				<span>Other</span>
 			</a-col>
+			<a-skeleton active v-else/>
 		</a-row>
 	</a-card>
 	<!-- Active Users Card -->
@@ -54,8 +56,18 @@
 						maxBarThickness: 20,
 					}, ],
 				},
+				loaded : false
 			}
 		},
+		methods: {
+			async loading() {
+				this.loaded = true
+			}
+
+		},
+		 created() {
+			setTimeout(this.loading, 1000);
+		}
 	})
 
 </script>

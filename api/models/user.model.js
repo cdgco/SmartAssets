@@ -8,7 +8,11 @@ module.exports = mongoose => {
             roles: [{
                 type: mongoose.Schema.Types.ObjectId,
                 ref: "Role"
-            }]
+            }],
+            name: String,
+            phone: String,
+            location: String,
+            title: String
         }, { timestamps: true })
     );
     return User;

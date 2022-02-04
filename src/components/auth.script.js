@@ -8,7 +8,7 @@ export const signup = async item => {
         roles: ["user"]
     };
     let request = {
-        url: process.env.VUE_APP_API_URL + "/auth/signup", // should be replaced after going to production with domain url
+        url: process.env.VUE_APP_API_URL + "/users/signup", // should be replaced after going to production with domain url
         method: "post",
         headers: {
             "Content-type": "application/json"
@@ -26,7 +26,7 @@ export const login = async item => {
         password: item.password
     };
     let request = {
-        url: process.env.VUE_APP_API_URL + "/auth/signin", // should be replaced after going to production with domain url
+        url: process.env.VUE_APP_API_URL + "/users/signin", // should be replaced after going to production with domain url
         method: "post",
         headers: {
             "Content-type": "application/json"

@@ -1,24 +1,21 @@
+const { verify_user } = require("../auth");
 const userRouter = require('express').Router();
-const users = require("../controllers/user.controller.js");
+const user = require("../controllers/user.controller");
 
-// Create a new user
-userRouter.post("/", users.registerNewUser);
+userRouter.post("/signin", user.signin);
 
-userRouter.post("/login", users.loginUser);
+userRouter.post("/signup", [
+        verify_user.checkDuplicateUsernameOrEmail,
+        verify_user.checkRoleExists
+    ],
+    user.signup
+)
+userRouter.get("/", user.findAll);
 
-// Retrieve all users
-userRouter.get("/", users.findAll);
+userRouter.get("/:id", user.findOne);
 
-// Retrieve all admin users
-userRouter.get("/admin", users.findAllAdmin);
+userRouter.put("/:id", user.update);
 
-// Retrieve a single user with id
-userRouter.get("/:id", users.findOne);
-
-// Update a user with id
-userRouter.put("/:id", users.update);
-
-// Delete a user with id
-userRouter.delete("/:id", users.delete);
+userRouter.delete("/:id", user.delete);
 
 module.exports = userRouter;

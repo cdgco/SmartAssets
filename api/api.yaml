@@ -109,46 +109,19 @@ paths:
           required: false
           schema:
             type: string
+        - name: phone
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: name
+          in: query
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-    post:
-      description: Create a new user.
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-             $ref: '#/components/schemas/NewUser'
-          application/json:
-            schema:
-             $ref: '#/components/schemas/NewUser'
-      responses:
-        '200':
-          description: User created successfully
-          content:
-            application/json:
-              schema:
-                type: object
-  /users/login:
-    post:
-      description: Create a new user.
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-             $ref: '#/components/schemas/NewUser'
-          application/json:
-            schema:
-             $ref: '#/components/schemas/NewUser'
-      responses:
-        '200':
-          description: User created successfully
           content:
             application/json:
               schema:
@@ -190,17 +163,7 @@ paths:
             application/json:
               schema:
                 type: object
-  /users/admin:
-    get:
-      description: Retrieve all users with admin status
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-  /auth/signin:
+  /users/signin:
     post:
       description: Create a new user.
       security: []  
@@ -209,10 +172,10 @@ paths:
         content:
           application/x-www-form-urlencoded:
             schema:
-             $ref: '#/components/schemas/NewUser'
+             $ref: '#/components/schemas/Login'
           application/json:
             schema:
-             $ref: '#/components/schemas/NewUser'
+             $ref: '#/components/schemas/Login'
       responses:
         '200':
           description: User created successfully
@@ -220,7 +183,7 @@ paths:
             application/json:
               schema:
                 type: object
-  /auth/signup:
+  /users/signup:
     post:
       description: Create a new user.
       requestBody:
@@ -228,10 +191,10 @@ paths:
         content:
           application/x-www-form-urlencoded:
             schema:
-             $ref: '#/components/schemas/NewUser'
+             $ref: '#/components/schemas/SignUp'
           application/json:
             schema:
-             $ref: '#/components/schemas/NewUser'
+             $ref: '#/components/schemas/SignUp'
       responses:
         '200':
           description: User created successfully
@@ -261,6 +224,29 @@ components:
           type: string
         published:
           type: boolean
+    Login:
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+    SignUp:
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
     NewUser:
       required:
         - username

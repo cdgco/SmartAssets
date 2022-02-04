@@ -64,8 +64,8 @@ apiRouter.use('/api/spec', express.static(apiSpec));
 apiRouter.use(
     OpenApiValidator.middleware({
         apiSpec,
-        validateRequests: false, // true
-        validateResponses: false, // true
+        validateRequests: true, // true
+        validateResponses: true, // true
         validateSecurity: {
             handlers: {
                 ApiKeyAuth: (req, scopes, schema) => {
@@ -100,9 +100,9 @@ Role.estimatedDocumentCount((err, count) => {
     }
 });
 
-const authRouter = require('./routes/auth.router.js') // user authentication
+const userRouter = require('./routes/user.router.js') // user authentication
 
-apiRouter.use('/api/auth', authRouter, function(req, res, next) {
+apiRouter.use('/api/users', userRouter, function(req, res, next) {
     res.header(
         "Access-Control-Allow-Headers",
         "x-access-token, Origin, Content-Type, Accept"
@@ -112,9 +112,6 @@ apiRouter.use('/api/auth', authRouter, function(req, res, next) {
 
 const assetRouter = require('./routes/asset.router.js');
 apiRouter.use('/api/assets', assetRouter);
-
-const userRouter = require('./routes/user.router.js');
-apiRouter.use('/api/users', userRouter);
 
 apiRouter.get('/api/', function(req, res, next) {
     res.json({
