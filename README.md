@@ -16,30 +16,14 @@ API centric asset management providing easy integration with existing tools.
 4. If desired create a `.env` file with your desired port numbers like so:
   ```
   httpPort = 8082
-httpsPort = 8443
+  httpsPort = 8443
+  VUE_APP_API_URL = "http://localhost:8082/api"
   ```
 5. If desired, add your SSL certificate in `server.js` lines 14 - 15:
 ```
-var options = {
-    key: pems['private'],
-    cert: pems['cert']
-};
+  key: pems['private'],
+  cert: pems['cert']
 ```
-6. Run `node server.js` to start the server.
-
-# Building from source
-
-SmartAssets is composed of two primary components, the Vue frontend and the Express backend.
-
-The Vue frontend consists of the `src` and `public` folders, and is compiled to the `dist` folder with the entry point `src/main.js`.
-
-To run the Vue development server, run `npm run serve`. By default, the Vue server runs on port 8082.
-To configure the Vue server, edit `vue.config.js`.
-To compile Vue, run `npm run build`.
-
-The Express backend consists of the `api` folder with the entry point `server.js`. The backend does not need to be compiled.
-
-To run the Express development server, run `node server.js`. By default, the Express server runs on ports 8080 & 8443.
-To configure the Vue server, edit `server.js`.
-
+6. Run `npm run build` to compile the app.
+7. Run `node server.js` to start the server.
 
