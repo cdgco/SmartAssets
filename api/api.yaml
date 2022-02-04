@@ -247,18 +247,6 @@ components:
           type: string
         role:
           type: string
-    NewUser:
-      required:
-        - username
-        - email
-        - password
-      properties:
-        username:
-          type: string
-        email:
-          type: string
-        password:
-          type: string
         name:
           type: string
         admin:
@@ -276,6 +264,8 @@ components:
         email:
           type: string
         password:
+          type: string
+        role:
           type: string
         name:
           type: string
