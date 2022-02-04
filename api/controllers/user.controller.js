@@ -150,7 +150,7 @@ exports.signin = (req, res) => {
 
             if (!passwordIsValid) {
                 return res.json({
-                    "success": true,
+                    "success": false,
                     "code": 401,
                     "errors": [],
                     "messages": ["Invalid Credentials"],
