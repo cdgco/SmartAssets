@@ -1,6 +1,6 @@
 # SmartAssets
 
-Open Source Asset Management software built with NodeJS, Vue, Express, MonogoDB.
+Open Source Asset Management software built with NodeJS, Vue, Express, MonogoDB & Elasticsearch
 
 API centric asset management providing easy integration with existing tools.
 
@@ -15,7 +15,7 @@ API centric asset management providing easy integration with existing tools.
 3. Run `npm install` to install dependencies.
 4. Edit `db.config.js` with your MongoDB server details.
 5. Edit `elastic.config.js` with your Elasticsearch server details.
-6. If desired create a `.env` file with your desired port numbers like so:
+6. Copy `.env.example` to `.env` changing the port numbers and API url like so:
   ```
   httpPort = 8082
   httpsPort = 8443
