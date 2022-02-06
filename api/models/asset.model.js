@@ -1,6 +1,12 @@
 module.exports = mongoose => {
+    const AutoIncrement = require('mongoose-sequence')(mongoose);
+    const uniqueValidator = require('mongoose-unique-validator');
     var schema = mongoose.Schema({
-        name: String,
+        _id: Number,
+        name: {
+            type: String,
+            unique: true,
+        },
         quantity: String,
         location: String,
         type: [{
@@ -20,7 +26,7 @@ module.exports = mongoose => {
             ref: "Company"
         }],
         serial: String,
-        model: [{
+        assetModel: [{
             type: mongoose.Schema.Types.ObjectId,
             ref: "Model"
         }],
@@ -28,10 +34,13 @@ module.exports = mongoose => {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Tag"
         }],
-        id: String,
         customFields: {}
-    }, { timestamps: true });
+    }, { timestamps: true, _id: false });
+
+    schema.plugin(AutoIncrement);
+    schema.plugin(uniqueValidator);
 
     const Asset = mongoose.model("asset", schema);
+
     return Asset;
 };

@@ -5,8 +5,9 @@ Open Source Asset Management software built with NodeJS, Vue, Express, MonogoDB.
 API centric asset management providing easy integration with existing tools.
 
 # Requirements
-1. MongoDB Database
-2. NodeJS Server
+1. MongoDB
+2. Elasticsearch
+3. Node / NPM
 
 # Installation
 

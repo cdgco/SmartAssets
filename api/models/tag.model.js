@@ -3,7 +3,7 @@ module.exports = mongoose => {
         "Tag",
         mongoose.Schema({
             name: String,
-        }, { timestamps: true })
+        }, { timestamps: false })
     );
     return Tag;
 };

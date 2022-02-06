@@ -3,7 +3,7 @@ module.exports = mongoose => {
         "Role",
         mongoose.Schema({
             name: String,
-        }, { timestamps: true })
+        }, { timestamps: false })
     );
     return Role;
 };

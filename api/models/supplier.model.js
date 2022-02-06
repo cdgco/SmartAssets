@@ -3,7 +3,7 @@ module.exports = mongoose => {
         "Supplier",
         mongoose.Schema({
             name: String,
-        }, { timestamps: true })
+        }, { timestamps: false })
     );
     return Supplier
 };
