@@ -39,6 +39,21 @@ paths:
           required: false
           schema:
             type: string
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: number
+        - name: skip
+          in: query
+          required: false
+          schema:
+            type: number
       responses:
         '200':
           description: OK
@@ -134,6 +149,31 @@ paths:
           required: false
           schema:
             type: string
+        - name: location
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: title
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: number
+        - name: skip
+          in: query
+          required: false
+          schema:
+            type: number
       responses:
         '200':
           description: OK

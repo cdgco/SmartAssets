@@ -167,7 +167,6 @@ exports.signin = (req, res) => {
             sign.write(`${user}`);
             sign.end();
             var signature = sign.sign(privateKey, 'hex');
-            console.log(signature)
 
 
             // sign username
@@ -196,24 +195,38 @@ exports.signin = (req, res) => {
 
 // Retrieve all Tutorials from the database (with condition).
 exports.findAll = (req, res) => {
-    const username = req.query.username;
-    const email = req.query.email;
-    const phone = req.query.phone;
-    const name = req.query.name;
-    if (username) {
-        var condition = { username: { $regex: new RegExp(username), $options: "i" } };
-    } else if (email) {
-        var condition = { email: { $regex: new RegExp(email), $options: "i" } };
-    } else if (phone) {
-        var condition = { phone: { $regex: new RegExp(phone), $options: "i" } };
-    } else if (name) {
-        var condition = { name: { $regex: new RegExp(name), $options: "i" } };
-    } else {
-        var condition = {};
+    var dynCondition = {}
+    var dynSort = {}
+    if (req.query.username) {
+        dynCondition.username = { $regex: new RegExp(username), $options: "i" }
     }
-    User.find(condition)
+    if (req.query.email) {
+        dynCondition.email = { $regex: new RegExp(email), $options: "i" }
+    }
+    if (req.query.phone) {
+        dynCondition.phone = { $regex: new RegExp(phone), $options: "i" }
+    }
+    if (req.query.name) {
+        dynCondition.name = { $regex: new RegExp(name), $options: "i" }
+    }
+    if (req.query.location) {
+        dynCondition.location = { $regex: new RegExp(location), $options: "i" }
+    }
+    if (req.query.title) {
+        dynCondition.title = { $regex: new RegExp(title), $options: "i" }
+    }
+    if (req.query.sort && req.query.sort.toLowerCase() == "asc") {
+        dynSort._id = 1;
+    } else if (req.query.sort && req.query.sort.toLowerCase() == "desc") {
+        dynSort._id = -1;
+    }
+
+    User.find(dynCondition)
         .select("-password")
         .populate("roles", "name")
+        .limit(parseInt(req.query.limit) || 0)
+        .skip(parseInt(req.query.skip) || 0)
+        .sort(dynSort)
         .exec((err, user) => {
             if (err) {
                 return res.json({

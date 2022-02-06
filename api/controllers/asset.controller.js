@@ -248,6 +248,7 @@ exports.create = (req, res) => {
 // Retrieve all Tutorials from the database (with condition).
 exports.findAll = (req, res) => {
     var dynCondition = {}
+    var dynSort = {}
     if (req.query.name) {
         dynCondition.name = { $regex: new RegExp(req.query.name), $options: "i" }
     }
@@ -260,9 +261,17 @@ exports.findAll = (req, res) => {
     if (req.query.serial) {
         dynCondition.serial = { $regex: new RegExp(req.query.serial), $options: "i" }
     }
-    console.log(dynCondition);
+    if (req.query.sort && req.query.sort.toLowerCase() == "asc") {
+        dynSort._id = 1;
+    } else if (req.query.sort && req.query.sort.toLowerCase() == "desc") {
+        dynSort._id = -1;
+    }
+
     Asset.find(dynCondition)
         .populate("type", "name")
+        .limit(parseInt(req.query.limit) || 0)
+        .skip(parseInt(req.query.skip) || 0)
+        .sort(dynSort)
         .then(data => {
             res.json({
                 "success": true,
