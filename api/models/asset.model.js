@@ -1,6 +1,8 @@
 module.exports = mongoose => {
     const AutoIncrement = require('mongoose-sequence')(mongoose);
     const uniqueValidator = require('mongoose-unique-validator');
+    const mexp = require('mongoose-elasticsearch-xp').v7;
+    const elasticConfig = require("../../elastic.config.js");
     var schema = mongoose.Schema({
         _id: Number,
         name: {
@@ -35,10 +37,27 @@ module.exports = mongoose => {
             ref: "Tag"
         }],
         customFields: {}
-    }, { timestamps: true, _id: false });
+    }, {
+        es_extend: {
+            id: {
+                es_type: 'string',
+                es_value: function(document) {
+                    return document._id;
+                }
+            }
+        },
+        timestamps: true,
+        _id: false
+    });
 
     schema.plugin(AutoIncrement);
     schema.plugin(uniqueValidator);
+    schema.plugin(mexp, {
+        "host": elasticConfig.host,
+        "port": elasticConfig.port,
+        "auth": elasticConfig.auth,
+        "protocol": elasticConfig.protocol
+    });
 
     const Asset = mongoose.model("asset", schema);
 

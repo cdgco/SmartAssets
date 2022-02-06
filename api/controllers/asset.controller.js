@@ -273,7 +273,7 @@ exports.findAll = (req, res) => {
         .skip(parseInt(req.query.skip) || 0)
         .sort(dynSort)
         .then(data => {
-            res.json({
+            return res.json({
                 "success": true,
                 "code": 200,
                 "errors": [],
@@ -282,7 +282,7 @@ exports.findAll = (req, res) => {
             });
         })
         .catch(err => {
-            res.json({
+            return res.json({
                 "success": false,
                 "code": 500,
                 "errors": [err.message || "Some error occurred while retrieving assets."],
@@ -299,7 +299,7 @@ exports.findOne = (req, res) => {
     Asset.findById(id)
         .then(data => {
             if (!data) {
-                res.json({
+                return res.json({
                     "success": false,
                     "code": 404,
                     "errors": ["No found asset with id " + id],
@@ -307,7 +307,7 @@ exports.findOne = (req, res) => {
                     "result": null
                 });
             } else {
-                res.json({
+                return res.json({
                     "success": true,
                     "code": 200,
                     "errors": [],
@@ -317,7 +317,7 @@ exports.findOne = (req, res) => {
             }
         })
         .catch(err => {
-            res.json({
+            return res.json({
                 "success": false,
                 "code": 500,
                 "errors": ["Error retrieving asset with id=" + id],
@@ -334,7 +334,7 @@ exports.update = (req, res) => {
     Asset.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
         .then(data => {
             if (!data) {
-                res.json({
+                return res.json({
                     "success": false,
                     "code": 404,
                     "errors": [`Cannot update asset with id=${id}. Maybe asset was not found!`],
@@ -342,7 +342,7 @@ exports.update = (req, res) => {
                     "result": null
                 });
             } else {
-                res.json({
+                return res.json({
                     "success": true,
                     "code": 200,
                     "errors": [],
@@ -352,7 +352,7 @@ exports.update = (req, res) => {
             }
         })
         .catch(err => {
-            res.json({
+            return res.json({
                 "success": false,
                 "code": 500,
                 "errors": ["Error updating asset with id=" + id],
@@ -369,7 +369,7 @@ exports.delete = (req, res) => {
     Asset.findByIdAndRemove(id)
         .then(data => {
             if (!data) {
-                res.json({
+                return res.json({
                     "success": false,
                     "code": 404,
                     "errors": [`Cannot delete asset with id=${id}. Maybe asset was not found!`],
@@ -377,7 +377,7 @@ exports.delete = (req, res) => {
                     "result": null
                 });
             } else {
-                res.json({
+                return res.json({
                     "success": true,
                     "code": 200,
                     "errors": [],
@@ -387,7 +387,7 @@ exports.delete = (req, res) => {
             }
         })
         .catch(err => {
-            res.json({
+            return res.json({
                 "success": false,
                 "code": 500,
                 "errors": ["Could not delete asset with id=" + id],
@@ -401,7 +401,7 @@ exports.delete = (req, res) => {
 exports.deleteAll = (req, res) => {
     Asset.deleteMany({})
         .then(data => {
-            res.json({
+            return res.json({
                 "success": true,
                 "code": 200,
                 "errors": [],
@@ -410,7 +410,7 @@ exports.deleteAll = (req, res) => {
             });
         })
         .catch(err => {
-            res.json({
+            return res.json({
                 "success": false,
                 "code": 500,
                 "errors": [err.message || "Some error occurred while removing all assets."],
@@ -418,4 +418,91 @@ exports.deleteAll = (req, res) => {
                 "result": null
             });
         });
+};
+
+exports.search = (req, res) => {
+    if (!isNaN(req.query.q)) {
+        Asset.findById(req.query.q)
+            .then(data => {
+                if (!data) {
+                    Asset.esSearch({
+                            "from": (parseInt(req.query.skip) || 0),
+                            "size": (parseInt(req.query.limit) || 10),
+                            "query": {
+                                "multi_match": {
+                                    "query": req.query.q,
+                                    "fuzziness": "4",
+                                    "fields": ["name", "location", "serial", "assetModel", "tags", "customFields"],
+                                    "lenient": true
+                                }
+                            }
+                        })
+                        .then(function(results) {
+                            return res.json({
+                                "success": true,
+                                "code": 200,
+                                "errors": [],
+                                "messages": [],
+                                "result": results
+                            });
+                        });
+                } else {
+                    return res.json({
+                        "success": true,
+                        "code": 200,
+                        "errors": [],
+                        "messages": [],
+                        "result": {
+                            "timed_out": false,
+                            "hits": {
+                                "total": {
+                                    "value": 1,
+                                    "realtion": "eq"
+                                },
+                                "hits": [{
+                                    "_index": "assets",
+                                    "_type": "asset",
+                                    "_id": data._id,
+                                    "_score": 1.0,
+                                    "_source": {
+                                        data
+                                    }
+                                }, ]
+                            }
+                        }
+                    });
+                }
+            })
+            .catch(err => {
+                return res.json({
+                    "success": false,
+                    "code": 500,
+                    "errors": ["Error retrieving asset with id=" + id],
+                    "messages": ["Error retrieving asset with id=" + id],
+                    "result": null
+                });
+            });
+    } else {
+        Asset.esSearch({
+                "from": (parseInt(req.query.skip) || 0),
+                "size": (parseInt(req.query.limit) || 10),
+                "query": {
+                    "multi_match": {
+                        "query": req.query.q,
+                        "fuzziness": "4",
+                        "fields": ["name", "location", "serial", "assetModel", "tags", "customFields"],
+                        "lenient": true
+                    }
+                }
+            })
+            .then(function(results) {
+                return res.json({
+                    "success": true,
+                    "code": 200,
+                    "errors": [],
+                    "messages": [],
+                    "result": results
+                });
+            });
+    }
 };
