@@ -199,7 +199,8 @@ exports.create = (req, res) => {
                 });
         }
         if (req.body.tags) {
-            for (const tag in req.body.tags) {
+            req.body.tags.forEach(function(tag, index, array) {
+                console.log(tag)
                 Tag.findOneAndUpdate({
                         name: tag
                     }, {
@@ -210,6 +211,7 @@ exports.create = (req, res) => {
                     },
                     function(err, tag) {
                         if (err) {
+                            console.log(err)
                             return res.json({
                                 "success": false,
                                 "code": 500,
@@ -219,20 +221,21 @@ exports.create = (req, res) => {
                             });
                         } else {
                             asset.tags.push(tag);
-                            asset.save(function(error) {
-                                if (error) {
-                                    return res.json({
-                                        "success": false,
-                                        "code": 500,
-                                        "errors": [error || "Some error occurred while creating the assets."],
-                                        "messages": [error || "Some error occurred while creating the assets."],
-                                        "result": null
-                                    });
-                                }
-                            });
                         }
                     });
-            }
+            })
+            asset.save(function(error) {
+                if (error) {
+                    console.log(error)
+                    return res.json({
+                        "success": false,
+                        "code": 500,
+                        "errors": [error || "Some error occurred while creating the assets."],
+                        "messages": [error || "Some error occurred while creating the assets."],
+                        "result": null
+                    });
+                }
+            });
         }
         return res.json({
             "success": true,
