@@ -577,7 +577,7 @@ exports.nativeSearch = (req, res) => {
                                 "result": null
                             });
                         }
-                        searchCount = results.count
+                        searchCount = results.body.count
                         elasticClient.search({
                             index: 'assets',
                             body: {
@@ -602,7 +602,7 @@ exports.nativeSearch = (req, res) => {
                                     "result": null
                                 });
                             }
-                            results2.count = searchCount
+                            results2.body.count = searchCount
                             return res.json({
                                 "success": true,
                                 "code": 200,
@@ -671,7 +671,7 @@ exports.nativeSearch = (req, res) => {
                     "result": null
                 });
             }
-            searchCount = results.count
+            searchCount = results.body.count
             elasticClient.search({
                 index: 'assets',
                 body: {
@@ -696,7 +696,7 @@ exports.nativeSearch = (req, res) => {
                         "result": null
                     });
                 }
-                results.count = searchCount
+                results.body.count = searchCount
                 return res.json({
                     "success": true,
                     "code": 200,

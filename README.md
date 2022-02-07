@@ -6,8 +6,8 @@ API centric asset management providing easy integration with existing tools.
 
 # Requirements
 1. MongoDB
-2. Elasticsearch
-3. Node / NPM
+2. Elasticsearch 7.x
+3. NodeJS / NPM
 
 # Installation
 1. Install MongoDB and Elasticsearch
