@@ -136,6 +136,56 @@ let routes = [{
         },
     },
     {
+        path: '/search',
+        name: 'Search',
+        layout: "dashboard",
+        component: () =>
+            import ('../views/Search.vue'),
+        beforeEnter: (to, from, next) => {
+            var itemStr = localStorage.getItem("user")
+            if (to.name !== 'Sign-In' && itemStr === null) {
+                next({ name: 'Sign-In' })
+            } else {
+                var item = JSON.parse(itemStr)
+                const now = Math.floor(new Date().getTime() / 1000.0)
+                    // compare the expiry time of the item with the current time
+                if (now > item.expiry || now > item.maxexpiry) {
+                    localStorage.removeItem("user")
+                    next({ name: 'Sign-In' })
+                } else {
+                    item.expiry = now + ((item.remember) ? 2629743 : 7200)
+                    localStorage.setItem("user", JSON.stringify(item));
+                    next()
+                }
+            }
+        },
+    },
+    {
+        path: '/search/:id',
+        name: 'Search',
+        layout: "dashboard",
+        component: () =>
+            import ('../views/Search.vue'),
+        beforeEnter: (to, from, next) => {
+            var itemStr = localStorage.getItem("user")
+            if (to.name !== 'Sign-In' && itemStr === null) {
+                next({ name: 'Sign-In' })
+            } else {
+                var item = JSON.parse(itemStr)
+                const now = Math.floor(new Date().getTime() / 1000.0)
+                    // compare the expiry time of the item with the current time
+                if (now > item.expiry || now > item.maxexpiry) {
+                    localStorage.removeItem("user")
+                    next({ name: 'Sign-In' })
+                } else {
+                    item.expiry = now + ((item.remember) ? 2629743 : 7200)
+                    localStorage.setItem("user", JSON.stringify(item));
+                    next()
+                }
+            }
+        },
+    },
+    {
         path: '/projects',
         name: 'Projects',
         layout: "dashboard",

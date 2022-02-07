@@ -421,13 +421,12 @@ exports.deleteAll = (req, res) => {
 };
 
 exports.search = (req, res) => {
+    var searchCount = 0;
     if (!isNaN(req.query.q)) {
         Asset.findById(req.query.q)
             .then(data => {
                 if (!data) {
-                    Asset.esSearch({
-                            "from": (parseInt(req.query.skip) || 0),
-                            "size": (parseInt(req.query.limit) || 10),
+                    Asset.esCount({
                             "query": {
                                 "multi_match": {
                                     "query": req.query.q,
@@ -438,14 +437,31 @@ exports.search = (req, res) => {
                             }
                         })
                         .then(function(results) {
-                            return res.json({
-                                "success": true,
-                                "code": 200,
-                                "errors": [],
-                                "messages": [],
-                                "result": results
-                            });
+                            searchCount = results.count
+                            Asset.esSearch({
+                                    "from": (parseInt(req.query.skip) || 0),
+                                    "size": (parseInt(req.query.limit) || 10),
+                                    "query": {
+                                        "multi_match": {
+                                            "query": req.query.q,
+                                            "fuzziness": "4",
+                                            "fields": ["name", "location", "serial", "assetModel", "tags", "customFields"],
+                                            "lenient": true
+                                        }
+                                    }
+                                })
+                                .then(function(results) {
+                                    // results.count = searchCount
+                                    return res.json({
+                                        "success": true,
+                                        "code": 200,
+                                        "errors": [],
+                                        "messages": [],
+                                        "result": results
+                                    });
+                                });
                         });
+
                 } else {
                     return res.json({
                         "success": true,
@@ -483,9 +499,7 @@ exports.search = (req, res) => {
                 });
             });
     } else {
-        Asset.esSearch({
-                "from": (parseInt(req.query.skip) || 0),
-                "size": (parseInt(req.query.limit) || 10),
+        Asset.esCount({
                 "query": {
                     "multi_match": {
                         "query": req.query.q,
@@ -496,13 +510,29 @@ exports.search = (req, res) => {
                 }
             })
             .then(function(results) {
-                return res.json({
-                    "success": true,
-                    "code": 200,
-                    "errors": [],
-                    "messages": [],
-                    "result": results
-                });
+                searchCount = results.count
+                Asset.esSearch({
+                        "from": (parseInt(req.query.skip) || 0),
+                        "size": (parseInt(req.query.limit) || 50),
+                        "query": {
+                            "multi_match": {
+                                "query": req.query.q,
+                                "fuzziness": "4",
+                                "fields": ["name", "location", "serial", "assetModel", "tags", "customFields"],
+                                "lenient": true
+                            }
+                        }
+                    })
+                    .then(function(results) {
+                        results.count = searchCount
+                        return res.json({
+                            "success": true,
+                            "code": 200,
+                            "errors": [],
+                            "messages": [],
+                            "result": results
+                        });
+                    });
             });
     }
 };
