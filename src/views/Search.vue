@@ -17,7 +17,7 @@
                         <a-row type="flex" align="middle">
                             <a-col :span="24">
                                 <h6>Search Results: {{ query }}</h6>
-                                <p>{{numResults}} results ({{seconds}} seconds)</p>			
+                                <p>{{numResults}} {{countWord}} ({{seconds}} seconds)</p>			
                             </a-col>
                         </a-row>
                     </template>
@@ -146,6 +146,7 @@
                 seconds: 0,
                 current: 1,
                 pageSize: 50,
+                countWord : "results"
 			}
 		},
         methods: {
@@ -160,6 +161,7 @@
                 if (response.data.success) {
                     this.tableData = response.data.result.hits.hits
                     this.numResults = response.data.result.count
+                    this.countWord = (response.data.result.count == 1) ? "result" : "results"
                     this.seconds = (response.data.result.took / 1000)
                     this.item = {
                         query: ""

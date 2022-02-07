@@ -7,6 +7,7 @@ var app = express();
 require('dotenv').config()
 const { Client } = require('@elastic/elasticsearch')
 const elasticConfig = require("./elastic.config.js");
+const dbConfig = require("./db.config.js");
 const elasticClient = new Client({
     node: elasticConfig.protocol + "://" + elasticConfig.host + ":" + elasticConfig.port,
     auth: {
@@ -28,9 +29,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.text());
 app.use(express.json());
 
-elasticClient.indices.exists({ index: 'assets' }, (err, results) => {
+elasticClient.indices.exists({ index: dbConfig.dbName }, (err, results) => {
     if (!results.body) {
-        elasticClient.indices.create({ index: "assets" })
+        elasticClient.indices.create({ index: dbConfig.dbName })
     }
 })
 const apiRouter = require('./api');

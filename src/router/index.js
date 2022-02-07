@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
+const jwt = require("jsonwebtoken");
 
 Vue.use(VueRouter)
 
@@ -48,6 +49,12 @@ let routes = [{
                     localStorage.removeItem("user")
                     next({ name: 'Sign-In' })
                 } else {
+                    // jwt.verify(item.value.accessToken, item.value.signature, (err, decoded) => {
+                    //     if (err) {
+                    //         console.log(err)
+                    //     }
+                    //     console.log(decoded);
+                    // });
                     item.expiry = now + ((item.remember) ? 2629743 : 7200)
                     localStorage.setItem("user", JSON.stringify(item));
                     next()
