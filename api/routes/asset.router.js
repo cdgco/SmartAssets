@@ -10,6 +10,9 @@ assetRouter.get("/", assets.findAll);
 // Retrieve all assets
 assetRouter.get("/search", assets.search);
 
+// Retrieve all assets
+assetRouter.get("/nativesearch", assets.nativeSearch);
+
 // Retrieve a single asset with id
 assetRouter.get("/:id", assets.findOne);
 

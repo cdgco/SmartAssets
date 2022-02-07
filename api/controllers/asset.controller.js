@@ -6,6 +6,15 @@ const Company = db.company;
 const Model = db.model;
 const Supplier = db.supplier;
 const Tag = db.tag;
+const { Client } = require('@elastic/elasticsearch')
+const elasticConfig = require("../../elastic.config.js");
+const elasticClient = new Client({
+    node: elasticConfig.protocol + "://" + elasticConfig.host + ":" + elasticConfig.port,
+    auth: {
+        username: elasticConfig.username,
+        password: elasticConfig.password
+    }
+})
 
 // Create and Save a new asset
 exports.create = (req, res) => {
@@ -537,5 +546,166 @@ exports.search = (req, res) => {
                         });
                     });
             });
+    }
+};
+
+exports.nativeSearch = (req, res) => {
+    var searchCount = 0;
+    if (!isNaN(req.query.q)) {
+        Asset.findById(req.query.q)
+            .then(data => {
+                if (!data) {
+                    elasticClient.count({
+                        index: 'assets',
+                        body: {
+                            query: {
+                                multi_match: {
+                                    query: req.query.q,
+                                    fuzziness: 4,
+                                    fields: ["name", "location", "serial", "assetModel", "tags", "customFields"],
+                                    lenient: true
+                                }
+                            }
+                        }
+                    }, (err, results) => {
+                        if (err) {
+                            return res.json({
+                                "success": false,
+                                "code": 500,
+                                "errors": [err],
+                                "messages": [],
+                                "result": null
+                            });
+                        }
+                        searchCount = results.count
+                        elasticClient.search({
+                            index: 'assets',
+                            body: {
+                                from: (parseInt(req.query.skip) || 0),
+                                size: (parseInt(req.query.limit) || 50),
+                                query: {
+                                    multi_match: {
+                                        query: req.query.q,
+                                        fuzziness: 4,
+                                        fields: ["name", "location", "serial", "assetModel", "tags", "customFields"],
+                                        lenient: true
+                                    }
+                                }
+                            }
+                        }, (err2, results2) => {
+                            if (err2) {
+                                return res.json({
+                                    "success": false,
+                                    "code": 500,
+                                    "errors": [err2],
+                                    "messages": [],
+                                    "result": null
+                                });
+                            }
+                            results2.count = searchCount
+                            return res.json({
+                                "success": true,
+                                "code": 200,
+                                "errors": [],
+                                "messages": [],
+                                "result": results2.body
+                            });
+                        })
+                    });
+                } else {
+                    return res.json({
+                        "success": true,
+                        "code": 200,
+                        "errors": [],
+                        "messages": [],
+                        "result": {
+                            "timed_out": false,
+                            "hits": {
+                                "total": {
+                                    "value": 1,
+                                    "realtion": "eq"
+                                },
+                                "hits": [{
+                                    "_index": "assets",
+                                    "_type": "asset",
+                                    "_id": data._id,
+                                    "_score": 1.0,
+                                    "_source": {
+                                        data
+                                    }
+                                }, ]
+                            }
+                        }
+                    });
+                }
+            })
+            .catch(err => {
+                return res.json({
+                    "success": false,
+                    "code": 500,
+                    "errors": ["Error retrieving asset with id=" + id],
+                    "messages": ["Error retrieving asset with id=" + id],
+                    "result": null
+                });
+            });
+    } else {
+        elasticClient.count({
+            index: 'assets',
+            body: {
+                query: {
+                    multi_match: {
+                        query: req.query.q,
+                        fuzziness: 4,
+                        fields: ["name", "location", "serial", "assetModel", "tags", "customFields"],
+                        lenient: true
+                    }
+                }
+            }
+        }, (err, results) => {
+            if (err) {
+                return res.json({
+                    "success": false,
+                    "code": 500,
+                    "errors": [err],
+                    "messages": [],
+                    "result": null
+                });
+            }
+            searchCount = results.count
+            elasticClient.search({
+                index: 'assets',
+                body: {
+                    from: (parseInt(req.query.skip) || 0),
+                    size: (parseInt(req.query.limit) || 50),
+                    query: {
+                        multi_match: {
+                            query: req.query.q,
+                            fuzziness: 4,
+                            fields: ["name", "location", "serial", "assetModel", "tags", "customFields"],
+                            lenient: true
+                        }
+                    }
+                }
+            }, (err, results) => {
+                if (err) {
+                    return res.json({
+                        "success": false,
+                        "code": 500,
+                        "errors": [err],
+                        "messages": [],
+                        "result": null
+                    });
+                }
+                results.count = searchCount
+                return res.json({
+                    "success": true,
+                    "code": 200,
+                    "errors": [],
+                    "messages": [],
+                    "result": results.body
+                });
+
+            })
+        });
     }
 };

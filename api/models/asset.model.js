@@ -52,10 +52,11 @@ module.exports = mongoose => {
 
     schema.plugin(AutoIncrement);
     schema.plugin(uniqueValidator);
+    var elasticCredential = (elasticConfig.username != '' || elasticConfig.password != '') ? (elasticConfig.username + ":" + elasticConfig.password) : ''
     schema.plugin(mexp, {
         "host": elasticConfig.host,
         "port": elasticConfig.port,
-        "auth": elasticConfig.auth,
+        "auth": elasticCredential,
         "protocol": elasticConfig.protocol
     });
 

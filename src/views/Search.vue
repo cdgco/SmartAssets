@@ -158,7 +158,6 @@
                 this.loading = true;
                 const response = await search(this.item);
                 if (response.data.success) {
-                    console.log(response.data.result.hits.hits)
                     this.tableData = response.data.result.hits.hits
                     this.numResults = response.data.result.count
                     this.seconds = (response.data.result.took / 1000)

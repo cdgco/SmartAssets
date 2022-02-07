@@ -5,6 +5,15 @@ var http = require('http');
 const history = require('connect-history-api-fallback')
 var app = express();
 require('dotenv').config()
+const { Client } = require('@elastic/elasticsearch')
+const elasticConfig = require("./elastic.config.js");
+const elasticClient = new Client({
+    node: elasticConfig.protocol + "://" + elasticConfig.host + ":" + elasticConfig.port,
+    auth: {
+        username: elasticConfig.username,
+        password: elasticConfig.password
+    }
+})
 
 var selfsigned = require('selfsigned');
 var attrs = [{ name: 'commonName', value: 'localhost' }];
@@ -19,6 +28,11 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.text());
 app.use(express.json());
 
+elasticClient.indices.exists({ index: 'assets' }, (err, results) => {
+    if (!results.body) {
+        elasticClient.indices.create({ index: "assets" })
+    }
+})
 const apiRouter = require('./api');
 app.use('/', apiRouter);
 

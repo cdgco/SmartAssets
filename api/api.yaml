@@ -114,6 +114,32 @@ paths:
             application/json:
               schema:
                 type: object
+  /assets/nativesearch:
+    get:
+      description: Search for assets
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: number
+        - name: skip
+          in: query
+          required: false
+          schema:
+            type: number
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
   /assets/{id}:
     get:
       description: Retrieve asset with specified ID
