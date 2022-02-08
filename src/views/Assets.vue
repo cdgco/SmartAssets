@@ -59,9 +59,9 @@
 			key: '1',
 			company: {
 				name: 'owen233-02',
-				logo: 'images/desktop.png',
+				logo: '/images/desktop.png',
 			},
-			members: [ "images/face-1.jpg", "images/face-4.jpg", "images/face-2.jpg", "images/face-3.jpg", ],
+			members: [ "/images/face-1.jpg", "/images/face-4.jpg", "/images/face-2.jpg", "/images/face-3.jpg", ],
 			budget: 'Desktop',
 			completion: 60,
 		},
@@ -69,9 +69,9 @@
 			key: '2',
 			company: {
 				name: 'owen233-01',
-				logo: 'images/desktop.png',
+				logo: '/images/desktop.png',
 			},
-			members: [ "images/face-4.jpg", "images/face-3.jpg", ],
+			members: [ "/images/face-4.jpg", "/images/face-3.jpg", ],
 			budget: 'Desktop',
 			completion: 10,
 		},
@@ -79,9 +79,9 @@
 			key: '3',
 			company: {
 				name: 'coe-support-xps',
-				logo: 'images/laptop.png',
+				logo: '/images/laptop.png',
 			},
-			members: [ "images/face-1.jpg", "images/face-2.jpg", "images/face-3.jpg", ],
+			members: [ "/images/face-1.jpg", "/images/face-2.jpg", "/images/face-3.jpg", ],
 			budget: 'Laptop',
 			completion: {
 				label: '100',
@@ -93,9 +93,9 @@
 			key: '4',
 			company: {
 				name: 'grep',
-				logo: 'images/desktop.png',
+				logo: '/images/desktop.png',
 			},
-			members: [ "images/face-1.jpg", "images/face-2.jpg", ],
+			members: [ "/images/face-1.jpg", "/images/face-2.jpg", ],
 			budget: 'Desktop',
 			completion: {
 				label: '100',
@@ -107,9 +107,9 @@
 			key: '5',
 			company: {
 				name: 'chmod',
-				logo: 'images/desktop.png',
+				logo: '/images/desktop.png',
 			},
-			members: [ "images/face-1.jpg", "images/face-4.jpg", "images/face-2.jpg", "images/face-3.jpg", ],
+			members: [ "/images/face-1.jpg", "/images/face-4.jpg", "/images/face-2.jpg", "/images/face-3.jpg", ],
 			budget: 'Desktop',
 			completion: 80,
 		},
@@ -117,9 +117,9 @@
 			key: '6',
 			company: {
 				name: 'echo',
-				logo: 'images/desktop.png',
+				logo: '/images/desktop.png',
 			},
-			members: [ "images/face-1.jpg", "images/face-4.jpg", "images/face-3.jpg", ],
+			members: [ "/images/face-1.jpg", "/images/face-4.jpg", "/images/face-3.jpg", ],
 			budget: 'Desktop',
 			completion: {
 				label: 'Cancelled',
@@ -131,9 +131,9 @@
 			key: '7',
 			company: {
 				name: 'toilet',
-				logo: 'images/desktop.png',
+				logo: '/images/desktop.png',
 			},
-			members: [ "images/face-1.jpg", "images/face-4.jpg", "images/face-3.jpg", ],
+			members: [ "/images/face-1.jpg", "/images/face-4.jpg", "/images/face-3.jpg", ],
 			budget: 'Desktop',
 			completion: {
 				label: 'Cancelled',
@@ -145,9 +145,9 @@
 			key: '8',
 			company: {
 				name: 'dumpster',
-				logo: 'images/desktop.png',
+				logo: '/images/desktop.png',
 			},
-			members: [ "images/face-1.jpg", "images/face-4.jpg", "images/face-3.jpg", ],
+			members: [ "/images/face-1.jpg", "/images/face-4.jpg", "/images/face-3.jpg", ],
 			budget: 'Desktop',
 			completion: {
 				label: 'Cancelled',
@@ -159,9 +159,9 @@
 			key: '9',
 			company: {
 				name: 'compost',
-				logo: 'images/desktop.png',
+				logo: '/images/desktop.png',
 			},
-			members: [ "images/face-1.jpg", "images/face-4.jpg", "images/face-3.jpg", ],
+			members: [ "/images/face-1.jpg", "/images/face-4.jpg", "/images/face-3.jpg", ],
 			budget: 'Desktop',
 			completion: {
 				label: 'Cancelled',
@@ -173,9 +173,9 @@
 			key: '10',
 			company: {
 				name: 'dear120a-mac',
-				logo: 'images/desktop.png',
+				logo: '/images/desktop.png',
 			},
-			members: [ "images/face-1.jpg", "images/face-4.jpg", "images/face-3.jpg", ],
+			members: [ "/images/face-1.jpg", "/images/face-4.jpg", "/images/face-3.jpg", ],
 			budget: 'Desktop',
 			completion: {
 				label: 'Cancelled',

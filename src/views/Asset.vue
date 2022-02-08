@@ -5,7 +5,7 @@
 
 <template>
 	<div>
-
+		<a-spin :spinning="spinning" size="large">
 		<a-row type="flex" :gutter="24">
 
 			<!-- Billing Info Column -->
@@ -65,7 +65,7 @@
 			<!-- / Your Transactions Column -->
 			
 		</a-row>
-
+		</a-spin>
 	</div>
 </template>
 
@@ -77,6 +77,7 @@
 	import CardActiveConnections from "../components/Cards/CardActiveConnections"
 	import CardAssetNotes from "../components/Cards/CardAssetNotes"
 
+	import { getAsset } from "../components/getAsset.script";
 
 
 	// "Invoices" list data.
@@ -122,9 +123,26 @@
 
 				// Associating "Invoices" list data with its corresponding property.
 				invoiceData,
+				spinning: true,
 			
 			}
 		},
+		methods: {
+            async queryAsset() {
+                this.item = {
+                    query: this.$route.params.id,
+                    };
+                const response = await getAsset(this.item);
+                if (response.data.success) {
+					this.spinning = !this.spinning;
+                } else {
+                    this.$router.push({ path: `/assets/?err=a404` });
+                }
+            },
+        },
+		created() {
+            this.queryAsset()
+        },
 	})
 
 </script>

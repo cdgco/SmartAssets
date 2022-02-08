@@ -28,6 +28,9 @@
                         :pagination="false"
                         :loading="loading"
                     >
+                        <span slot="name" slot-scope="name">
+                            <router-link :to="{ path: '/assets/'+name.id, }">{{ name.name }}</router-link>
+                        </span>
                         <span slot="types" slot-scope="types">
                             <p v-for="type in types" :key="type">{{ type.name }}</p>
                         </span>
@@ -106,8 +109,10 @@
 	const columns = [
 		{
 			title: 'NAME',
-			dataIndex: '_source.name',
-            fixed: 'left'
+			dataIndex: '_source',
+            fixed: 'left',
+            width: 200,
+            scopedSlots: { customRender: 'name' },
 		},
 		{
 			title: 'TYPE',

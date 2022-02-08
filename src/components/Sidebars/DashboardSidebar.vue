@@ -13,7 +13,7 @@
 		:class="['ant-layout-sider-' + sidebarColor, 'ant-layout-sider-' + sidebarTheme]"
 		theme="light"
 		:style="{ backgroundColor: 'transparent',}">
-			<div class="brand"><img src="images/LogoMakr-24Dmgq.png" alt=""> <span>SmartAssets</span></div>
+			<div class="brand"><img src="/images/LogoMakr-24Dmgq.png" alt=""> <span>SmartAssets</span></div>
 			<hr>
 
 			<!-- Sidebar Navigation Menu -->
@@ -141,35 +141,34 @@
 		mounted() {		
 			let code = "";
 			let reading = false;
+			if (`${this.$route.name}` != 'Sign-In') {
 				document.addEventListener('keypress', e => {
-					if (`${this.$route.name}` != 'Sign-In') {
-						if (e.key == "Enter") {
-							if (code == "K8A267422") {
-								this.barcodeSuccess();
-							}
-							else {
-								if (code != '') {
-									this.barcodeError();
-								}
-							}
-							code = "";
-						} else {
-							code += e.key;          
+					if (e.key == "Enter") {
+						if (code == "K8A267422") {
+							this.barcodeSuccess();
 						}
+						else {
+							if (code != '') {
+								this.barcodeError();
+							}
+						}
+						code = "";
+					} else {
+						code += e.key;          
+					}
 
-						if(!reading) {
-							reading = true;
-							setTimeout(() => {
-								code = "";
-								reading = false;
-							}, 50);
-						}
+					if(!reading) {
+						reading = true;
+						setTimeout(() => {
+							code = "";
+							reading = false;
+						}, 50);
 					}
 				})
+			}
 		},
 		methods: {
 			barcodeError() {
-
 				this.$toast.error("Barcode Not Found", {
 				position: "bottom-left",
 				timeout: 5000,
@@ -186,7 +185,6 @@
 				});
 			},
 			barcodeSuccess() {
-
 				this.$toast.success("Barcode Found", {
 				position: "bottom-left",
 				timeout: 5000,
@@ -208,6 +206,24 @@
 				// sidebarCollapsedModel: this.sidebarCollapsed,
 			}
 		},
+		created() {
+			if (this.$route.query.err == "a404") {
+				this.$toast.error("Asset Not Found", {
+				position: "bottom-left",
+				timeout: 5000,
+				closeOnClick: true,
+				pauseOnFocusLoss: true,
+				pauseOnHover: false,
+				draggable: false,
+				draggablePercent: 0.6,
+				showCloseButtonOnHover: true,
+				hideProgressBar: false,
+				closeButton: "button",
+				icon: false,
+				rtl: false
+				});
+			}
+		}
 	})
 
 </script>
