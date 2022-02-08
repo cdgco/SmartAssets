@@ -19,7 +19,7 @@
 
 					<!-- Header Page Title -->
 					<div class="ant-page-header-heading">
-						<span class="ant-page-header-heading-title">{{ this.$route.name }} {{ this.$route.params.id }}</span>
+						<span class="ant-page-header-heading-title">{{ this.pageTitle }}</span>
 					</div>
 					<!-- / Header Page Title -->
 
@@ -143,6 +143,10 @@
 				type: Array,
 				default: () => notificationsData,
 			},
+
+			assetTitle: {
+				type: String,
+			},
 		},
 		data() {
 			return {
@@ -154,7 +158,14 @@
 
 				// The wrapper element to attach dropdowns to.
 				wrapper: document.body,
+
+				pageTitle: this.$route.name + " " + this.$route.params.id
 			}
+		},
+		watch: {
+			assetTitle(val) {
+				this.pageTitle = val;
+			},
 		},
 		methods: {
 			resizeEventHandler(){

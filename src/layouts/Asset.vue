@@ -24,6 +24,7 @@
 				<AssetHeader
 					:sidebarCollapsed="sidebarCollapsed"
 					:navbarFixed="navbarFixed"
+					:assetTitle="assetTitle"
 					@toggleSettingsDrawer="toggleSettingsDrawer"
 					@toggleSidebar="toggleSidebar"
 				></AssetHeader>
@@ -31,7 +32,7 @@
 
 				<!-- Page Content -->
 				<a-layout-content>
-					<router-view />
+					<router-view v-on:asset-name="changeTitle"/>
 				</a-layout-content>
 				<!-- / Page Content -->
 
@@ -94,6 +95,8 @@
 
 				// Settings drawer visiblility status.
 				showSettingsDrawer: false,
+
+				assetTitle: ''
 			}
 		},
 		methods: {
@@ -112,6 +115,9 @@
 			updateSidebarColor( value ) {
 				this.sidebarColor = value ;
 			},
+			changeTitle( value ) {
+				this.assetTitle = value ;
+			}
 		},
 		computed: {
 			// Sets layout's element's class based on route's meta data.

@@ -15,8 +15,7 @@
 
 						<!-- Payment Methods Card -->
 						<AssetForm
-							:data="table1Data"
-							:columns="table1Columns"
+							:name="fields.name"
 						></AssetForm>
 						
 						<!-- Payment Methods Card -->
@@ -36,6 +35,15 @@
 				<!-- / Invoices Card -->
 
 			</a-col>
+			<a-col :span="24" :md="8" class="mb-24">
+
+				<!-- Invoices Card -->
+				<CardConnectionMarketplace
+					:data="invoiceData"
+				></CardConnectionMarketplace>
+				<!-- / Invoices Card -->
+
+			</a-col>
 			<!-- / Invoices Column -->
 
 		</a-row>
@@ -44,26 +52,20 @@
 
 			<!-- Billing Information Column -->
 			<a-col :span="24" :md="16" class="mb-24">
-
-				<!-- Billing Information Card -->
-				<CardAssetHistory></CardAssetHistory>
-				<!-- / Billing Information Card -->
-
+				<a-row type="flex" :gutter="24">
+					<!-- Billing Information Card -->
+					<CardAssetHistory></CardAssetHistory>
+					<!-- / Billing Information Card -->
+				</a-row>
+					<a-row type="flex" :gutter="24">
+					<!-- Billing Information Card -->
+					<CardAssetHistory></CardAssetHistory>
+					<!-- / Billing Information Card -->
+				</a-row>
 			</a-col>
 			<!-- Billing Information Column -->
 
-			<!-- Your Transactions Column -->
-			<a-col :span="24" :md="8" class="mb-24">
 
-				<!-- Your Transactions Card -->
-				<CardAssetNotes
-					:data="transactionsData"
-				></CardAssetNotes>
-				<!-- / Your Transactions Card -->
-
-			</a-col>
-			<!-- / Your Transactions Column -->
-			
 		</a-row>
 		</a-spin>
 	</div>
@@ -124,6 +126,10 @@
 				// Associating "Invoices" list data with its corresponding property.
 				invoiceData,
 				spinning: true,
+
+				fields: {
+					name: '',
+				},
 			
 			}
 		},
@@ -135,13 +141,15 @@
                 const response = await getAsset(this.item);
                 if (response.data.success) {
 					this.spinning = !this.spinning;
+					this.fields.name = response.data.result.name
+					this.$emit('asset-name', this.fields.name)
                 } else {
                     this.$router.push({ path: `/assets/?err=a404` });
                 }
             },
         },
 		created() {
-            this.queryAsset()
+			this.queryAsset()
         },
 	})
 
