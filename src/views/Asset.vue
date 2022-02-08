@@ -110,9 +110,12 @@
 			amount: "20",
 		},
 	] ;
-
-
 	export default ({
+		metaInfo () {
+			return {
+			title: this.fields.name
+			}
+		},
 		components: {
 			CardAssetHistory,
 			CardConnectionMarketplace,

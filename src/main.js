@@ -23,6 +23,7 @@ import Toast from "vue-toastification";
 import "./css/toast.css";
 import router from './router'
 import axios from 'axios';
+import VueMeta from 'vue-meta'
 
 // import './plugins/click-away'
 
@@ -31,6 +32,7 @@ import './scss/app.scss';
 import './registerServiceWorker'
 
 Vue.use(Antd);
+Vue.use(VueMeta);
 Vue.use(Toast, {
     transition: "Vue-Toastification__bounce",
     maxToasts: 5,

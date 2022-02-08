@@ -172,6 +172,9 @@
 	];
 
 	export default ({
+		metaInfo: {
+			title: 'Dashboard',
+		},
 		components: {
 			CardBarChart,
 			CardLineChart,

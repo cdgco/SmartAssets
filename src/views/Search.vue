@@ -161,6 +161,13 @@
 	];
 
 	export default ({
+        metaInfo() {
+            var title = (this.$route.params.id && this.$route.params.id != '') ? ': ' + this.$route.params.id : '';
+            var searchString = 'Search' + title;
+            return {
+                title: searchString
+            }
+		},
 		components: {
 			CardSearchResults,
 		},

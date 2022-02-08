@@ -108,6 +108,9 @@
 
 
 	export default ({
+		metaInfo: {
+			title: 'Profile',
+		},
 		components: {
 			CardPlatformSettings,
 			CardProfileInformation,

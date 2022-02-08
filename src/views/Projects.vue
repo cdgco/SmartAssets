@@ -130,6 +130,9 @@
 	];
 
 	export default ({
+		metaInfo: {
+			title: 'Projects',
+		},
 		components: {
 			CardProjectTable2,
 		},

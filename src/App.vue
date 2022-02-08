@@ -7,8 +7,11 @@
 </template>
 
 <script>
-
 	export default ({
+		metaInfo: {
+			title: 'SmartAssets',
+			titleTemplate: 'SmartAssets | %s'
+		},
 		computed: {
 			// Sets components name based on current route's specified layout, defaults to
 			// <layout-default></layout-default> component.

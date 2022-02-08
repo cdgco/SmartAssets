@@ -150,6 +150,9 @@
 	] ;
 
 	export default ({
+		metaInfo: {
+			title: 'Connections',
+		},
 		components: {
 			CardWebhooks,
 			CardConnectionMarketplace,

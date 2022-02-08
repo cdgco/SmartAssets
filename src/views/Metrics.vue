@@ -180,6 +180,9 @@
 	] ;
 
 	export default ({
+		metaInfo: {
+			title: 'Metrics',
+		},
 		components: {
 			CardBarChart,
 			CardLineChart,

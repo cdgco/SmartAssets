@@ -81,6 +81,9 @@
 	}
 
 	export default ({
+		metaInfo: {
+			title: 'Sign In',
+		},
 		data() {
 			return {
 				hasErrors,

@@ -187,6 +187,9 @@
 
 
 	export default ({
+		metaInfo: {
+			title: 'Assets',
+		},
 		components: {
 			CardAssetTable,
 		},
