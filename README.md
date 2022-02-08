@@ -19,3 +19,6 @@ API centric asset management providing easy integration with existing tools.
 7. Run `npm run deploy` to compile the app.
 8. Run `npm run start` to start the server.
 
+# Updating
+1. Run `npm run update`
+
