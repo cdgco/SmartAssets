@@ -51,6 +51,24 @@
                                 {{ tag.name }}
                             </a-tag>
                         </span>
+                        <span slot="action" slot-scope="action">
+                            <a style="padding-right: 10px;"> 
+                                <a-tooltip>
+                                    <template slot="title">
+                                    delete
+                                    </template>
+                                    <a-icon type="delete" />
+                                </a-tooltip>
+                            </a>
+                            <a>
+                                <a-tooltip>
+                                    <template slot="title">
+                                    duplicate
+                                    </template>
+                                    <a-icon type="copy" />
+                                </a-tooltip>
+                            </a>
+                        </span>
                     </a-table>
                 </a-card>
 				<!-- / Projects Table Column -->
@@ -89,6 +107,7 @@
 		{
 			title: 'NAME',
 			dataIndex: '_source.name',
+            fixed: 'left'
 		},
 		{
 			title: 'TYPE',
@@ -127,6 +146,12 @@
 			dataIndex: '_source.tags',
             scopedSlots: { customRender: 'tags' },
 		},
+        {
+            title: 'Action',
+            key: 'operation',
+            fixed: 'right',
+            scopedSlots: { customRender: 'action' },
+        },
         
 	];
 
