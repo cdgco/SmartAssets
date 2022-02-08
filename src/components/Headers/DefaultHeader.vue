@@ -2,9 +2,11 @@
 
 	<!-- Layout Header ( Navbar ) -->
 	<a-layout-header>
-		<router-link to="/dashboard" class="nav-link" @click="e => e.preventDefault()"><div class="header-col header-brand">
-			<h6>SmartAssets</h6>
-		</div></router-link>
+		<router-link to="/dashboard" class="nav-link" @click="e => e.preventDefault()">
+			<div class="header-col header-brand">
+				<h6>{{appName}}</h6>
+			</div>
+		</router-link>
 
 	</a-layout-header>
 	<!-- / Layout Header ( Navbar ) -->
@@ -16,6 +18,7 @@
 	export default ({
 		data() {
 			return {
+				appName: process.env.VUE_APP_NAME
 			}
 		},
 	})

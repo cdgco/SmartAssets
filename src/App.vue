@@ -9,8 +9,8 @@
 <script>
 	export default ({
 		metaInfo: {
-			title: 'SmartAssets',
-			titleTemplate: 'SmartAssets | %s'
+			title: process.env.VUE_APP_NAME,
+			titleTemplate: process.env.VUE_APP_NAME + ' | %s'
 		},
 		computed: {
 			// Sets components name based on current route's specified layout, defaults to

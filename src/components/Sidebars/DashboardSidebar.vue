@@ -13,7 +13,7 @@
 		:class="['ant-layout-sider-' + sidebarColor, 'ant-layout-sider-' + sidebarTheme]"
 		theme="light"
 		:style="{ backgroundColor: 'transparent',}">
-			<div class="brand"><img src="/images/LogoMakr-24Dmgq.png" alt=""> <span>SmartAssets</span></div>
+			<div class="brand"><img src="/images/LogoMakr-24Dmgq.png" alt=""> <span>{{appName}}</span></div>
 			<hr>
 
 			<!-- Sidebar Navigation Menu -->
@@ -204,6 +204,7 @@
 		data() {
 			return {
 				// sidebarCollapsedModel: this.sidebarCollapsed,
+				appName: process.env.VUE_APP_NAME
 			}
 		},
 		created() {
