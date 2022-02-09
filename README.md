@@ -22,3 +22,18 @@ API centric asset management providing easy integration with existing tools.
 # Updating
 1. Run `npm run update`
 
+# Building from source
+SmartAssets is built from source upon install, as well as every time you run `npm run deploy` or `npm run update`
+
+In order to rebuild without running any other actions, run `npm run build`
+
+# Useful Development Resources
+* [Postman](https://www.postman.com/)
+* [MongoDB Compass](https://www.mongodb.com/products/compass)
+* [Kibana](https://www.elastic.co/kibana/)
+* [Swagger Editor](https://swagger.io/tools/swagger-editor/)
+* [Barcode to PC](https://barcodetopc.com/)
+* [Ant Design of Vue Docs](https://www.antdv.com/docs/vue/introduce/)
+* [Elasticsearch Guide](https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html)
+* [Mongoose Docs](https://mongoosejs.com/docs/guide.html)
+* [OpenAPI Docs](https://swagger.io/docs/specification/about/)
