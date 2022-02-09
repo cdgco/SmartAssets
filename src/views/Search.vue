@@ -54,7 +54,7 @@
                                 {{ tag.name }}
                             </a-tag>
                         </span>
-                        <span slot="action" slot-scope="action">
+                        <span slot="action">
                             <a style="padding-right: 10px;"> 
                                 <a-tooltip>
                                     <template slot="title">

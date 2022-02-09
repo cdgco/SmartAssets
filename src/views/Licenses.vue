@@ -158,7 +158,7 @@
 		<p>GNU GENERAL PUBLIC LICENSE<br>
 			Version 2, June 1991<br>
 			<br>
-			Copyright (C) 1989, 1991 Free Software Foundation, Inc., <http://fsf.org/><br>
+			Copyright (C) 1989, 1991 Free Software Foundation, Inc., &lt;http://fsf.org/&gt;<br>
 			51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA<br>
 			Everyone is permitted to copy and distribute verbatim copies of this license document, but changing it is not allowed.<br>
 			<br>

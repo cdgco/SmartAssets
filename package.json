@@ -8,7 +8,8 @@
         "build": "vue-cli-service build",
         "deploy": "npm install && vue-cli-service build",
         "start": "node server.js",
-        "update": "git pull && npm install && vue-cli-service build"
+        "update": "git pull && npm install && vue-cli-service build",
+        "devStart": "vue-cli-service build && node server.js"
     },
     "main": "src/main.js",
     "dependencies": {

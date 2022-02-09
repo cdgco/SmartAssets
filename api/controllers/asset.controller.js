@@ -278,20 +278,31 @@ exports.findAll = (req, res) => {
     } else if (req.query.sort && req.query.sort.toLowerCase() == "desc") {
         dynSort._id = -1;
     }
-
-    Asset.find(dynCondition)
-        .populate("type", "name")
-        .limit(parseInt(req.query.limit) || 0)
-        .skip(parseInt(req.query.skip) || 0)
-        .sort(dynSort)
+    Asset.countDocuments(dynCondition)
         .then(data => {
-            return res.json({
-                "success": true,
-                "code": 200,
-                "errors": [],
-                "messages": [],
-                "result": data
-            });
+            Asset.find(dynCondition)
+                .populate("type", "name")
+                .limit(parseInt(req.query.limit) || 0)
+                .skip(parseInt(req.query.skip) || 0)
+                .sort(dynSort)
+                .then(data1 => {
+                    return res.json({
+                        "success": true,
+                        "code": 200,
+                        "errors": [],
+                        "messages": [],
+                        "result": { count: data, results: data1 }
+                    });
+                })
+                .catch(err => {
+                    return res.json({
+                        "success": false,
+                        "code": 500,
+                        "errors": [err.message || "Some error occurred while retrieving assets."],
+                        "messages": [err.message || "Some error occurred while retrieving assets."],
+                        "result": null
+                    });
+                });
         })
         .catch(err => {
             return res.json({

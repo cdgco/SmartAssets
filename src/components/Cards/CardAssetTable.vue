@@ -4,15 +4,8 @@
 	<a-card :bordered="false" class="header-solid h-full" :bodyStyle="{padding: 0,}">
 		<template #title>
 			<a-row type="flex" align="middle">
-				<a-col :span="24" :md="12">
+				<a-col :span="24">
 					<h6>Assets</h6>			
-				</a-col>
-				<a-col :span="24" :md="12" style="display: flex; align-items: center; justify-content: flex-end">
-					<a-radio-group v-model="projectHeaderBtns" size="small">
-						<a-radio-button value="all">ALL</a-radio-button>
-						<a-radio-button value="online">INCOMING</a-radio-button>
-						<a-radio-button value="stores">OUTGOING</a-radio-button>
-					</a-radio-group>
 				</a-col>
 			</a-row>
 		</template>
@@ -52,6 +45,9 @@
 
 	export default ({
 		props: {
+            query: {
+                type: String
+            },
 			data: {
 				type: Array,
 				default: () => [],
