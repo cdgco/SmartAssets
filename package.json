@@ -3,6 +3,7 @@
     "version": "1.0.0",
     "private": true,
     "description": "A user-friendly asset management system.",
+    "license": "GPL-3.0",
     "scripts": {
         "serve": "vue-cli-service serve --open",
         "build": "vue-cli-service build",
