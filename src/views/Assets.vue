@@ -85,6 +85,7 @@
 					<a-pagination 
                     v-model="current"
                     :total="numResults"
+					:show-total="(total, range) => `${range[0]}-${range[1]} of ${total} items`"
                     show-less-items 
                     :hideOnSinglePage="true"
                     :defaultPageSize="pageSize"
@@ -175,7 +176,7 @@
                 numResults: 0,
                 seconds: 0,
                 current: 1,
-                pageSize: 10,
+                pageSize: 50,
                 countWord : "results"
 			}
 		},
