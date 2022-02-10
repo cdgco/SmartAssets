@@ -124,11 +124,15 @@
 			AssetForm
 		},
 		data() {
+			var jsonToken = localStorage.getItem("user")
+            var rawToken = JSON.parse(jsonToken)
+            var accessToken = rawToken.value.accessToken
 			return {
 
 				// Associating "Invoices" list data with its corresponding property.
 				invoiceData,
 				spinning: true,
+				accessToken: accessToken,
 
 				fields: {
 					name: '',
@@ -140,7 +144,8 @@
             async queryAsset() {
                 this.item = {
                     query: this.$route.params.id,
-                    };
+					token: this.accessToken
+                };
                 const response = await getAsset(this.item);
                 if (response.data.success) {
 					this.spinning = !this.spinning;

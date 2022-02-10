@@ -61,9 +61,17 @@
 				<a-button type="default" style="margin-right: 15px;">
 					Clone
 				</a-button>
-				<a-button type="danger" >
-					Delete
-				</a-button>
+				<a-popconfirm
+					title="Are you sure?"
+					ok-text="Yes"
+					cancel-text="No"
+					@confirm="confirmDelete"
+				>
+					<a-button type="danger" >
+						Delete
+					</a-button>
+				</a-popconfirm>
+				
 			</a-form-item>
   		</a-form>
 	</a-card>
@@ -95,6 +103,10 @@
 			},
 		},
 		methods: {
+			confirmDelete(e) {
+				console.log(e);
+				this.$message.success('Click on Yes');
+			},
 			handleSubmit(e) {
 				e.preventDefault();
 				this.form.validateFields((err, values) => {

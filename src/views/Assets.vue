@@ -168,6 +168,9 @@
 			CardAssetTable,
 		},
 		data() {
+			var jsonToken = localStorage.getItem("user")
+            var rawToken = JSON.parse(jsonToken)
+            var accessToken = rawToken.value.accessToken
 			return {
 				tableData: [],
                 pagination: {},
@@ -177,15 +180,18 @@
                 seconds: 0,
                 current: 1,
                 pageSize: 50,
-                countWord : "results"
+                countWord : "results",
+				accessToken: accessToken,
+
 			}
 		},
 		methods: {
             async queryAsset() {
                 this.item = {
                     page: this.current,
-                    items: this.pageSize
-                    };
+                    items: this.pageSize,
+					token: this.accessToken
+                };
                 this.loading = true;
                 var response = await getAssets(this.item);
                 if (response.data.success) {

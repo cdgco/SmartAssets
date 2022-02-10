@@ -270,6 +270,26 @@ paths:
             application/json:
               schema:
                 type: object
+  /users/token:
+    post:
+      description: Check token validity.
+      security: []  
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+             $ref: '#/components/schemas/Token'
+          application/json:
+            schema:
+             $ref: '#/components/schemas/Token'
+      responses:
+        '200':
+          description: Token Valid
+          content:
+            application/json:
+              schema:
+                type: object
   /users/signin:
     post:
       description: Create a new user.
@@ -331,6 +351,12 @@ components:
           type: string
         published:
           type: boolean
+    Token:
+      required:
+        - Authorization
+      properties:
+        Authorization:
+          type: string
     Login:
       required:
         - username
@@ -345,6 +371,7 @@ components:
         - username
         - email
         - password
+        - role
       properties:
         username:
           type: string
@@ -410,6 +437,11 @@ components:
       type: apiKey
       in: header
       name: X-API-Key
+    BearerAuth:            # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
 
 security:
   - ApiKeyAuth: [] 
+  - BearerAuth: []
+  

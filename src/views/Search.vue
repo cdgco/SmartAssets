@@ -16,7 +16,7 @@
                     <template #title>
                         <a-row type="flex" align="middle">
                             <a-col :span="24">
-                                <h6>Search Results: {{ query }}</h6>
+                                <h6>Search Results{{titleColon}} {{ query }}</h6>
                                 <p>{{numResults}} {{countWord}} ({{seconds}} seconds)</p>			
                             </a-col>
                         </a-row>
@@ -173,6 +173,9 @@
 			CardSearchResults,
 		},
 		data() {
+            var jsonToken = localStorage.getItem("user")
+            var rawToken = JSON.parse(jsonToken)
+            var accessToken = rawToken.value.accessToken
             var query = this.$route.params.id;
 			return {
                 tableData: [],
@@ -184,7 +187,9 @@
                 seconds: 0,
                 current: 1,
                 pageSize: 50,
-                countWord : "results"
+                countWord : "results",
+                titleColon: "",
+                accessToken: accessToken
 			}
 		},
         methods: {
@@ -192,20 +197,21 @@
                 this.item = {
                     query: this.query,
                     page: this.current,
-                    items: this.pageSize
-                    };
+                    items: this.pageSize,
+                    token: this.accessToken
+                };
                 this.loading = true;
                 const response = await search(this.item);
                 if (response.data.success) {
                     this.tableData = response.data.result.hits.hits
                     this.numResults = response.data.result.count
                     this.countWord = (response.data.result.count == 1) ? "result" : "results"
+                    this.titleColon = (response.data.result.count > 0) ? ":" : ""
                     this.seconds = (response.data.result.took / 1000)
                     this.item = {
                         query: ""
                     };
                     this.loading = false;
-                    //this.$router.push("/dashboard");
                 } else {
                     console.log(response.data.errors);
                 }

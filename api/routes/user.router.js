@@ -2,6 +2,8 @@ const { verify_user } = require("../auth");
 const userRouter = require('express').Router();
 const user = require("../controllers/user.controller");
 
+userRouter.post("/token", user.checkToken);
+
 userRouter.post("/signin", user.signin);
 
 userRouter.post("/signup", [

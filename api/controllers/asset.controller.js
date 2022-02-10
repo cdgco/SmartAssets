@@ -209,7 +209,6 @@ exports.create = (req, res) => {
         }
         if (req.body.tags) {
             req.body.tags.forEach(function(tag, index, array) {
-                console.log(tag)
                 Tag.findOneAndUpdate({
                         name: tag
                     }, {
@@ -220,7 +219,6 @@ exports.create = (req, res) => {
                     },
                     function(err, tag) {
                         if (err) {
-                            console.log(err)
                             return res.json({
                                 "success": false,
                                 "code": 500,
@@ -235,7 +233,6 @@ exports.create = (req, res) => {
             })
             asset.save(function(error) {
                 if (error) {
-                    console.log(error)
                     return res.json({
                         "success": false,
                         "code": 500,

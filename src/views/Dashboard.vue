@@ -33,11 +33,67 @@
 			<a-col :span="24" :lg="16" class="mb-24">
 				
 				<!-- Projects Table Card -->
-				<CardAssetTable
-					:data="tableData"
-					:columns="tableColumns"
-					v-if="loaded"
-				></CardAssetTable>
+				<a-card v-if="loaded" :bordered="false" class="header-solid h-full" :bodyStyle="{padding: 0,}">
+                    <template #title>
+                        <a-row type="flex" align="middle">
+                            <a-col :span="24">
+                                <h6>Recent Assets</h6>		
+                            </a-col>
+                        </a-row>
+                    </template>
+                    <a-table
+                        :columns="columns"
+                        :row-key="record => record._id"
+                        :data-source="tableData"
+                        :pagination="false"
+                        :loading="loading"
+                    >
+						<span slot="name" slot-scope="name">
+                            <router-link :to="{ path: '/assets/' + name.id }">{{ name.name }}</router-link>
+                        </span>
+                        <span slot="types" slot-scope="types">
+                            <p v-for="type in types" :key="type">{{ type.name }}</p>
+                        </span>
+                        <span slot="manufacturers" slot-scope="manufacturers">
+                            <p v-for="manufacturer in manufacturers" :key="manufacturer">{{ manufacturer.name }}</p>
+                        </span>
+                        <span slot="suppliers" slot-scope="suppliers">
+                            <p v-for="supplier in suppliers" :key="supplier">{{ supplier.name }}</p>
+                        </span>
+                        <span slot="companies" slot-scope="companies">
+                            <p v-for="company in companies" :key="company">{{ company.name }}</p>
+                        </span>
+                        <span slot="models" slot-scope="models">
+                            <p v-for="model in models" :key="model">{{ model.name }}</p>
+                        </span>
+                        <span slot="tags" slot-scope="tags">
+                            <a-tag
+                                v-for="tag in tags"
+                                :key="tag"
+                            >
+                                {{ tag.name }}
+                            </a-tag>
+                        </span>
+                        <span slot="action">
+                            <a style="padding-right: 10px;"> 
+                                <a-tooltip>
+                                    <template slot="title">
+                                    delete
+                                    </template>
+                                    <a-icon type="delete" />
+                                </a-tooltip>
+                            </a>
+                            <a>
+                                <a-tooltip>
+                                    <template slot="title">
+                                    duplicate
+                                    </template>
+                                    <a-icon type="copy" />
+                                </a-tooltip>
+                            </a>
+                        </span>
+                    </a-table>
+                </a-card>
 				<a-skeleton active v-else/>
 				<!-- / Projects Table Card -->
 				
@@ -74,100 +130,27 @@
 	// Order History card component.
 	import CardEventHistory from '../components/Cards/CardEventHistory' ;
 
+	import { getAssets } from "../components/getAssets.script";
+
 
 	// "Projects" table list of columns and their properties.
-	const tableColumns = [
+	const columns = [
 		{
 			title: 'NAME',
-			dataIndex: 'company',
-			scopedSlots: { customRender: 'company' },
-			width: 300,
-		},
-		{
-			title: 'USERS',
-			dataIndex: 'members',
-			scopedSlots: { customRender: 'members' },
+			dataIndex: 'tableData',
+            fixed: 'left',
+            width: 200,
+            scopedSlots: { customRender: 'name' },
 		},
 		{
 			title: 'TYPE',
-			dataIndex: 'budget',
-			class: 'font-bold text-muted text-sm',
+			dataIndex: 'type',
+            scopedSlots: { customRender: 'types' },
 		},
-	];
-
-	// "Projects" table list of rows and their properties.
-	const tableData = [
-		{
-			key: '1',
-			company: {
-				name: 'owen233-02',
-				logo: 'images/desktop.png',
-			},
-			members: [ "images/face-1.jpg", "images/face-4.jpg", "images/face-2.jpg", "images/face-3.jpg", ],
-			budget: 'Desktop',
-			completion: 60,
-		},
-		{
-			key: '2',
-			company: {
-				name: 'owen233-01',
-				logo: 'images/desktop.png',
-			},
-			members: [ "images/face-4.jpg", "images/face-3.jpg", ],
-			budget: 'Desktop',
-			completion: 10,
-		},
-		{
-			key: '3',
-			company: {
-				name: 'coe-support-xps',
-				logo: 'images/laptop.png',
-			},
-			members: [ "images/face-1.jpg", "images/face-2.jpg", "images/face-3.jpg", ],
-			budget: 'Laptop',
-			completion: {
-				label: '100',
-				status: 'success',
-				value: 100,
-			},
-		},
-		{
-			key: '4',
-			company: {
-				name: 'grep',
-				logo: 'images/desktop.png',
-			},
-			members: [ "images/face-1.jpg", "images/face-2.jpg", ],
-			budget: 'Desktop',
-			completion: {
-				label: '100',
-				status: 'success',
-				value: 100,
-			},
-		},
-		{
-			key: '5',
-			company: {
-				name: 'chmod',
-				logo: 'images/desktop.png',
-			},
-			members: [ "images/face-1.jpg", "images/face-4.jpg", "images/face-2.jpg", "images/face-3.jpg", ],
-			budget: 'Desktop',
-			completion: 80,
-		},
-		{
-			key: '6',
-			company: {
-				name: 'echo',
-				logo: 'images/desktop.png',
-			},
-			members: [ "images/face-1.jpg", "images/face-4.jpg", "images/face-3.jpg", ],
-			budget: 'Desktop',
-			completion: {
-				label: 'Cancelled',
-				status: 'exception',
-				value: 100,
-			},
+        {
+			title: 'TAGS',
+			dataIndex: 'tags',
+            scopedSlots: { customRender: 'tags' },
 		},
 	];
 
@@ -182,23 +165,50 @@
 			CardEventHistory
 		},
 		data() {
+			var jsonToken = localStorage.getItem("user")
+            var rawToken = JSON.parse(jsonToken)
+            var accessToken = rawToken.value.accessToken
 			return {
-
-				// Associating table data with its corresponding property.
-				tableData,
-
-				// Associating table columns with its corresponding property.
-				tableColumns,
-				loaded : true
+				tableData: [],
+                loading: false,
+                columns,
+				loaded : true,
+				accessToken: accessToken
 			}
 		},
 		methods: {
 			async loading() {
 				this.loaded = true
+			},
+			async queryAsset() {
+                this.item = {
+                    page: 1,
+                    items: 7,
+					token: this.accessToken
+                    };
+                this.loading = true;
+                var response = await getAssets(this.item);
+                if (response.data.success) {
+					response.data.result.results.forEach(singleResult => {
+						singleResult.tableData = {
+							name: singleResult.name,
+							id: singleResult._id
+						}
+					})
+                    this.tableData = response.data.result.results
+                    this.item = {
+                        page: "",
+						items: "",
+                    };
+                    this.loading = false;
+                } else {
+                    console.log(response.data.errors);
+                }
 			}
 
 		},
 		 created() {
+			this.queryAsset()
 			setTimeout(this.loading, 1000);
 		}
 	})

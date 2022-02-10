@@ -7,6 +7,7 @@ const morgan = require("morgan");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const { auth_jwt_token } = require("./auth");
+var jwt = require("jsonwebtoken");
 
 const allowlist = ['127.0.0.1']
 
@@ -59,7 +60,7 @@ apiKeys.set('790168d5-bc87-404a-aded-6664887c1d8d', {
 
 const apiSpec = path.join(__dirname, 'api.yaml');
 
-apiRouter.use('/api/spec', express.static(apiSpec));
+apiRouter.use('/spec', express.static(apiSpec));
 
 apiRouter.use(
     OpenApiValidator.middleware({
@@ -72,11 +73,40 @@ apiRouter.use(
                     if (apiKeys.has(req.get('X-API-KEY'))) {
                         return true;
                     }
+                },
+                BearerAuth: (req, scopes, schema) => {
+                    var parts = req.get('Authorization').split(' ');
+                    if (parts.length === 2) {
+                        if (/^Bearer$/i.test(parts[0])) {
+                            return true
+                        } else return false
+                    } else return false
+
                 }
             }
         }
-    }),
-);
+    }), );
+
+apiRouter.use('/', function(req, res, next) {
+    var token = req.get('Authorization');
+    if (token) {
+        jwt.verify(token.split(' ')[1], process.env.JWT_SECRET, (err, decoded) => {
+            if (err) {
+                return res.json({
+                    "success": false,
+                    "code": 401,
+                    "errors": ["Invalid Bearer Token"],
+                    "messages": ["Invalid Bearer Token"],
+                    "result": null
+                });
+            } else {
+                next();
+            }
+        });
+    } else {
+        next();
+    }
+});
 
 const db = require("./models/");
 db.mongoose
@@ -102,7 +132,7 @@ Role.estimatedDocumentCount((err, count) => {
 
 const userRouter = require('./routes/user.router.js') // user authentication
 
-apiRouter.use('/api/users', userRouter, function(req, res, next) {
+apiRouter.use('/users', userRouter, function(req, res, next) {
     res.header(
         "Access-Control-Allow-Headers",
         "x-access-token, Origin, Content-Type, Accept"
@@ -111,9 +141,12 @@ apiRouter.use('/api/users', userRouter, function(req, res, next) {
 })
 
 const assetRouter = require('./routes/asset.router.js');
-apiRouter.use('/api/assets', assetRouter);
+const { truncate } = require('fs');
+apiRouter.use('/assets', assetRouter);
 
-apiRouter.get('/api/', function(req, res, next) {
+
+
+apiRouter.get('/', function(req, res, next) {
     res.json({
         "success": true,
         "code": 200,

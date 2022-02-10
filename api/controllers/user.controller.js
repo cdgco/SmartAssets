@@ -1,10 +1,55 @@
-const crypto = require('crypto');
 const db = require("../models");
 const User = db.users;
 const Role = db.roles;
 
 var jwt = require("jsonwebtoken");
 var bcrypt = require("bcryptjs");
+var fs = require('fs');
+
+exports.checkToken = (req, res) => {
+    var parts = req.body.Authorization.split(' ');
+    console.log(parts)
+    if (parts.length === 2) {
+        if (/^Bearer$/i.test(parts[0])) {
+            jwt.verify(parts[1], process.env.JWT_SECRET, (err, decoded) => {
+                if (err) {
+                    return res.json({
+                        "success": false,
+                        "code": 403,
+                        "errors": ["Invalid Bearer Token"],
+                        "messages": ["Invalid Bearer Token"],
+                        "result": null
+                    });
+                } else {
+                    return res.json({
+                        "success": true,
+                        "code": 200,
+                        "errors": null,
+                        "messages": ["Valid Bearer Token"],
+                        "result": null
+                    });
+                }
+            });
+        } else {
+            return res.json({
+                "success": false,
+                "code": 403,
+                "errors": ["Invalid Bearer Token"],
+                "messages": ["Invalid Bearer Token"],
+                "result": null
+            });
+        }
+    } else {
+        return res.json({
+            "success": false,
+            "code": 403,
+            "errors": ["Invalid Bearer Token"],
+            "messages": ["Invalid Bearer Token"],
+            "result": null
+        });
+    }
+
+};
 
 exports.signup = (req, res) => {
     const user = new User({
@@ -158,19 +203,8 @@ exports.signin = (req, res) => {
                 });
             }
 
-            const { privateKey, publicKey } = crypto.generateKeyPairSync('ec', {
-                namedCurve: 'sect239k1'
-            });
-
-            // generate a signature of the payload
-            const sign = crypto.createSign('SHA256');
-            sign.write(`${user}`);
-            sign.end();
-            var signature = sign.sign(privateKey, 'hex');
-
-
             // sign username
-            var token = jwt.sign({ id: user.id }, signature, {
+            var token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
                 expiresIn: 86400 // 24 hours
             });
 
@@ -186,8 +220,7 @@ exports.signin = (req, res) => {
                 "messages": [],
                 "result": {
                     id: user._id,
-                    accessToken: token, // access token
-                    signature: signature // signature
+                    accessToken: token,
                 }
             });
         });
