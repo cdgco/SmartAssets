@@ -76,37 +76,17 @@ apiRouter.use(
                 },
                 BearerAuth: (req, scopes, schema) => {
                     var parts = req.get('Authorization').split(' ');
-                    if (parts.length === 2) {
-                        if (/^Bearer$/i.test(parts[0])) {
+                    if (parts.length === 2 && /^Bearer$/i.test(parts[0])) {
+                        try {
+                            jwt.verify(parts[1], process.env.JWT_SECRET)
                             return true
-                        } else return false
+                        } catch (ex) { return false }
                     } else return false
 
                 }
             }
         }
     }), );
-
-apiRouter.use('/', function(req, res, next) {
-    var token = req.get('Authorization');
-    if (token) {
-        jwt.verify(token.split(' ')[1], process.env.JWT_SECRET, (err, decoded) => {
-            if (err) {
-                return res.json({
-                    "success": false,
-                    "code": 401,
-                    "errors": ["Invalid Bearer Token"],
-                    "messages": ["Invalid Bearer Token"],
-                    "result": null
-                });
-            } else {
-                next();
-            }
-        });
-    } else {
-        next();
-    }
-});
 
 const db = require("./models/");
 db.mongoose

@@ -126,7 +126,7 @@
 		data() {
 			var jsonToken = localStorage.getItem("user")
             var rawToken = JSON.parse(jsonToken)
-            var accessToken = rawToken.value.accessToken
+            var accessToken = rawToken.accessToken
 			return {
 
 				// Associating "Invoices" list data with its corresponding property.

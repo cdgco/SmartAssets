@@ -7,48 +7,116 @@ var bcrypt = require("bcryptjs");
 var fs = require('fs');
 
 exports.checkToken = (req, res) => {
-    var parts = req.body.Authorization.split(' ');
-    console.log(parts)
-    if (parts.length === 2) {
-        if (/^Bearer$/i.test(parts[0])) {
-            jwt.verify(parts[1], process.env.JWT_SECRET, (err, decoded) => {
-                if (err) {
-                    return res.json({
-                        "success": false,
-                        "code": 403,
-                        "errors": ["Invalid Bearer Token"],
-                        "messages": ["Invalid Bearer Token"],
-                        "result": null
-                    });
-                } else {
+    if (req.body.token && req.body.refresh) {
+        jwt.verify(req.body.token, process.env.JWT_SECRET, (err, decoded) => {
+            if (err && err.name == "TokenExpiredError") { // If token is expired
+                jwt.verify(req.body.refresh, process.env.JWT_SECRET, (refreshErr, decodedRefresh) => {
+                    if (refreshErr) { // If refresh token is invalid
+                        return res.json({
+                            "success": false,
+                            "code": 403,
+                            "errors": [refreshErr],
+                            "messages": ["Invalid Bearer Token"],
+                            "result": null
+                        });
+                    } else if (Math.floor(new Date().getTime() / 1000.0) > decodedRefresh.sessionStart + 31556926) { // If max expiry passed
+                        return res.json({
+                            "success": false,
+                            "code": 403,
+                            "errors": ["Token Expired"],
+                            "messages": ["Token Expired"],
+                            "result": null
+                        });
+                    } else { // If refresh valid and within max expiry
+                        var accessToken = jwt.sign({ id: decodedRefresh.id }, process.env.JWT_SECRET, {
+                            expiresIn: 900
+                        });
+
+                        var expireTime = (decodedRefresh.rememberme) ? 2629743 : 86400
+
+                        var refreshToken = jwt.sign({ id: decodedRefresh.id, rememberme: decodedRefresh.rememberme, sessionStart: decodedRefresh.sessionStart }, process.env.JWT_SECRET, {
+                            expiresIn: expireTime
+                        });
+                        return res.json({
+                            "success": true,
+                            "code": 200,
+                            "errors": [],
+                            "messages": [],
+                            "result": {
+                                id: decodedRefresh.id,
+                                accessToken: accessToken,
+                                refreshToken: refreshToken
+                            }
+                        });
+                    }
+                })
+            } else if (err) { // If token is invalid
+                return res.json({
+                    "success": false,
+                    "code": 403,
+                    "errors": [err],
+                    "messages": ["Invalid Bearer Token"],
+                    "result": null
+                });
+            } else {
+                // If token is valid and was issued within 5 minutes, return same token
+                if (Math.floor(new Date().getTime() / 1000.0) < decoded.iat + 300) {
                     return res.json({
                         "success": true,
                         "code": 200,
-                        "errors": null,
-                        "messages": ["Valid Bearer Token"],
-                        "result": null
+                        "errors": [],
+                        "messages": [],
+                        "result": {
+                            id: decoded.id,
+                            accessToken: req.body.token,
+                            refreshToken: req.body.refresh
+                        }
                     });
+                } else { // If token and refresh token valid and issued 5+ min ago, extend token if within maxexpiry
+                    jwt.verify(req.body.refresh, process.env.JWT_SECRET, (refreshErr, decodedRefresh) => {
+                        if (refreshErr) { // If refresh token is invalid
+                            return res.json({
+                                "success": false,
+                                "code": 403,
+                                "errors": [refreshErr],
+                                "messages": ["Invalid Bearer Token"],
+                                "result": null
+                            });
+                        } else if (Math.floor(new Date().getTime() / 1000.0) > decodedRefresh.sessionStart + 31556926) { // If max expiry passed
+                            return res.json({
+                                "success": false,
+                                "code": 403,
+                                "errors": ["Token Expired"],
+                                "messages": ["Token Expired"],
+                                "result": null
+                            });
+                        } else { // If refresh valid and within max expiry
+                            var accessToken = jwt.sign({ id: decodedRefresh.id }, process.env.JWT_SECRET, {
+                                expiresIn: 900
+                            });
+
+                            var expireTime = (decodedRefresh.rememberme) ? 2629743 : 86400
+
+                            var refreshToken = jwt.sign({ id: decodedRefresh.id, rememberme: decodedRefresh.rememberme, sessionStart: decodedRefresh.sessionStart }, process.env.JWT_SECRET, {
+                                expiresIn: expireTime
+                            });
+                            return res.json({
+                                "success": true,
+                                "code": 200,
+                                "errors": [],
+                                "messages": [],
+                                "result": {
+                                    id: decodedRefresh.id,
+                                    accessToken: accessToken,
+                                    refreshToken: refreshToken
+                                }
+                            });
+                        }
+                    })
                 }
-            });
-        } else {
-            return res.json({
-                "success": false,
-                "code": 403,
-                "errors": ["Invalid Bearer Token"],
-                "messages": ["Invalid Bearer Token"],
-                "result": null
-            });
-        }
-    } else {
-        return res.json({
-            "success": false,
-            "code": 403,
-            "errors": ["Invalid Bearer Token"],
-            "messages": ["Invalid Bearer Token"],
-            "result": null
+            }
         });
     }
-
 };
 
 exports.signup = (req, res) => {
@@ -203,9 +271,14 @@ exports.signin = (req, res) => {
                 });
             }
 
-            // sign username
-            var token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-                expiresIn: 86400 // 24 hours
+            var accessToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+                expiresIn: 900
+            });
+
+            var expireTime = (req.body.rememberme) ? 2629743 : 86400
+
+            var refreshToken = jwt.sign({ id: user.id, rememberme: req.body.rememberme, sessionStart: Math.floor(new Date().getTime() / 1000.0) }, process.env.JWT_SECRET, {
+                expiresIn: expireTime
             });
 
             var authorities = [];
@@ -220,7 +293,8 @@ exports.signin = (req, res) => {
                 "messages": [],
                 "result": {
                     id: user._id,
-                    accessToken: token,
+                    accessToken: accessToken,
+                    refreshToken: refreshToken
                 }
             });
         });

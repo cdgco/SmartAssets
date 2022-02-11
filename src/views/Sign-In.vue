@@ -123,21 +123,22 @@
 			async submit(values) {
 				this.item = {
 					username: values.userName,
-					password: values.password
+					password: values.password,
+					rememberme: this.rememberMe
 					};
 				this.loading = true;
 				const response = await login(this.item);
 				if (response.data.success) {
 					const jwt = {
-						value: response.data.result,
-						expiry: Math.floor(new Date().getTime()/1000.0) + ((values.remember) ? 2629743 : 7200),
-						maxexpiry: Math.floor(new Date().getTime()/1000.0) + 31556926,
-						remember: values.remember
+						id: response.data.result.id,
+						accessToken: response.data.result.accessToken,
+						refreshToken: response.data.result.refreshToken
 					}
 					localStorage.setItem("user", JSON.stringify(jwt));
 					this.item = {
 						username: "",
-						password: ""
+						password: "",
+						rememberme: ""
 					};
 					this.loading = false;
 					this.$router.push("/dashboard");

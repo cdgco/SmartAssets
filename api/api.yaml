@@ -353,9 +353,12 @@ components:
           type: boolean
     Token:
       required:
-        - Authorization
+        - token
+        - refresh
       properties:
-        Authorization:
+        token:
+          type: string
+        refresh:
           type: string
     Login:
       required:

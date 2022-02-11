@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import axios from 'axios'
-const jwt = require("jsonwebtoken");
 
 Vue.use(VueRouter)
 const handleAuth = (to, from, next) => {
@@ -10,30 +9,28 @@ const handleAuth = (to, from, next) => {
         next({ name: 'Sign-In' })
     } else {
         var item = JSON.parse(itemStr)
-        const now = Math.floor(new Date().getTime() / 1000.0)
-            // compare the expiry time of the item with the current time
-        if (now > item.expiry || now > item.maxexpiry) {
-            localStorage.removeItem("user")
-            next({ name: 'Sign-In' })
-        } else {
-            axios.post(process.env.VUE_APP_API_URL + "/users/token", {
-                    Authorization: 'Bearer ' + item.value.accessToken
-                })
-                .then(function(response) {
-                    if (response.data.success) {
-                        item.expiry = now + ((item.remember) ? 2629743 : 7200)
-                        localStorage.setItem("user", JSON.stringify(item));
-                        next()
-                    } else {
-                        localStorage.removeItem("user")
-                        next({ name: 'Sign-In' })
+        axios.post(process.env.VUE_APP_API_URL + "/users/token", {
+                token: item.accessToken,
+                refresh: item.refreshToken
+            })
+            .then(function(response) {
+                if (response.data.success) {
+                    const jwt = {
+                        id: response.data.result.id,
+                        accessToken: response.data.result.accessToken,
+                        refreshToken: response.data.result.refreshToken
                     }
-                })
-                .catch(function(error) {
+                    localStorage.setItem("user", JSON.stringify(jwt));
+                    next()
+                } else {
                     localStorage.removeItem("user")
                     next({ name: 'Sign-In' })
-                });
-        }
+                }
+            })
+            .catch(function(error) {
+                localStorage.removeItem("user")
+                next({ name: 'Sign-In' })
+            });
     }
 }
 
