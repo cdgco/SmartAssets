@@ -5,9 +5,9 @@ Open Source Asset Management software built with NodeJS, Vue, Express, MonogoDB 
 API centric asset management providing easy integration with existing tools.
 
 # Requirements
-1. MongoDB
-2. Elasticsearch 7.x
-3. NodeJS / NPM
+1. [MongoDB](https://docs.mongodb.com/manual/administration/install-community/)
+2. [Elasticsearch 7.x](https://www.elastic.co/downloads/elasticsearch)
+3. [NodeJS / NPM](https://nodejs.org/)
 
 # Installation
 1. Install MongoDB and Elasticsearch
