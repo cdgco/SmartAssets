@@ -203,6 +203,9 @@
                 this.loading = true;
                 const response = await search(this.item);
                 if (response.data.success) {
+                    if (response.data.messages[0] == "exact-match") {
+                        this.$router.push("/assets/" +response.data.result.hits.hits[0]._id);
+                    }
                     this.tableData = response.data.result.hits.hits
                     this.numResults = response.data.result.count
                     this.countWord = (response.data.result.count == 1) ? "result" : "results"

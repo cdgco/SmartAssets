@@ -625,7 +625,7 @@ exports.nativeSearch = (req, res) => {
                         "success": true,
                         "code": 200,
                         "errors": [],
-                        "messages": [],
+                        "messages": ["exact-match"],
                         "result": {
                             "timed_out": false,
                             "hits": {

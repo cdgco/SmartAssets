@@ -112,6 +112,7 @@
 </template>
 
 <script>
+import { getAsset } from "../getAsset.script";
 
 	export default ({
 		props: {
@@ -144,13 +145,13 @@
 			if (`${this.$route.name}` != 'Sign-In') {
 				document.addEventListener('keypress', e => {
 					if (e.key == "Enter") {
-						if (code == "K8A267422") {
-							this.barcodeSuccess();
-						}
-						else {
-							if (code != '') {
-								this.barcodeError();
-							}
+						if (code != '') {
+							var curCode = code
+							this.queryAsset(curCode).then((response) => {
+								if (response) this.$router.push("/assets/" +curCode);
+								else this.barcodeError();
+								curCode = ''
+							})
 						}
 						code = "";
 					} else {
@@ -162,12 +163,21 @@
 						setTimeout(() => {
 							code = "";
 							reading = false;
-						}, 50);
+						}, 20);
 					}
 				})
 			}
 		},
 		methods: {
+			async queryAsset(assetCode) {
+                this.item = {
+                    query: assetCode,
+					token: this.accessToken
+                };
+                const response = await getAsset(this.item);
+                if (response.data.success) return true
+                else return false
+            },
 			barcodeError() {
 				this.$toast.error("Barcode Not Found", {
 				position: "bottom-left",
@@ -202,9 +212,13 @@
 			}
 		},
 		data() {
+			var jsonToken = localStorage.getItem("user")
+            var rawToken = JSON.parse(jsonToken)
+            var accessToken = rawToken.accessToken
 			return {
 				// sidebarCollapsedModel: this.sidebarCollapsed,
-				appName: process.env.VUE_APP_NAME
+				appName: process.env.VUE_APP_NAME,
+				accessToken: accessToken,
 			}
 		},
 		created() {
