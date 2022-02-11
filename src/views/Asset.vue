@@ -27,24 +27,25 @@
 			
 			<!-- Invoices Column -->
 			<a-col :span="24" :md="8" class="mb-24">
-
-				<!-- Invoices Card -->
-				<CardConnectionMarketplace
-					:data="invoiceData"
-				></CardConnectionMarketplace>
-				<!-- / Invoices Card -->
-
+				<a-row>
+					<!-- Invoices Card -->
+					<CardConnectionMarketplace
+						:data="invoiceData"
+					></CardConnectionMarketplace>
+					<!-- / Invoices Card -->
+				</a-row>
+				<br>
+				<a-row>
+					<a-card :bordered="false" class="header-solid h-full" :bodyStyle="{padding: 0,}">
+						<template #title>
+							<h6 class="font-semibold m-0">Asset Tag</h6>
+						</template>
+						<a-row class="card-footer" type="flex" justify="center" align="top">
+							<img id="barcode"/>
+						</a-row>
+					</a-card>
+				</a-row>
 			</a-col>
-			<a-col :span="24" :md="8" class="mb-24">
-
-				<!-- Invoices Card -->
-				<CardConnectionMarketplace
-					:data="invoiceData"
-				></CardConnectionMarketplace>
-				<!-- / Invoices Card -->
-
-			</a-col>
-			<!-- / Invoices Column -->
 
 		</a-row>
 
@@ -52,16 +53,14 @@
 
 			<!-- Billing Information Column -->
 			<a-col :span="24" :md="16" class="mb-24">
-				<a-row type="flex" :gutter="24">
 					<!-- Billing Information Card -->
 					<CardAssetHistory></CardAssetHistory>
 					<!-- / Billing Information Card -->
-				</a-row>
-					<a-row type="flex" :gutter="24">
+			</a-col>
+			<a-col :span="24" :md="8" class="mb-24">
 					<!-- Billing Information Card -->
 					<CardAssetHistory></CardAssetHistory>
 					<!-- / Billing Information Card -->
-				</a-row>
 			</a-col>
 			<!-- Billing Information Column -->
 
@@ -73,6 +72,7 @@
 
 <script>
 	import AssetForm from '../components/Cards/AssetForm' ;
+	var JsBarcode = require('jsbarcode');
 	
 	import CardAssetHistory from "../components/Cards/CardAssetHistory"
 	import CardConnectionMarketplace from "../components/Cards/CardConnectionMarketplace"
@@ -151,6 +151,12 @@
 					this.spinning = !this.spinning;
 					this.fields.name = response.data.result.name
 					this.$emit('asset-name', this.fields.name)
+					JsBarcode("#barcode", response.data.result._id, {
+						format: "CODE128",
+						lineColor: "#262626",
+						width:5,
+						height:50
+					});
                 } else {
                     this.$router.push({ path: `/assets/?err=a404` });
                 }
