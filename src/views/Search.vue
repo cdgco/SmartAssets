@@ -46,6 +46,9 @@
                         <span slot="models" slot-scope="models">
                             <p v-for="model in models" :key="model">{{ model.name }}</p>
                         </span>
+                        <span slot="locations" slot-scope="locations">
+                            <p v-for="location in locations" :key="location">{{ location.name }}</p>
+                        </span>
                         <span slot="tags" slot-scope="tags">
                             <a-tag
                                 v-for="tag in tags"
@@ -146,6 +149,7 @@
 		{
 			title: 'LOCATION',
 			dataIndex: '_source.location',
+            scopedSlots: { customRender: 'locations' },
 		},
         {
 			title: 'TAGS',
@@ -207,6 +211,7 @@
                         this.$router.push("/assets/" +response.data.result.hits.hits[0]._id);
                     }
                     this.tableData = response.data.result.hits.hits
+                    console.log(this.tableData)
                     this.numResults = response.data.result.count
                     this.countWord = (response.data.result.count == 1) ? "result" : "results"
                     this.titleColon = (response.data.result.count > 0) ? ":" : ""

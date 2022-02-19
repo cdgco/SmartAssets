@@ -45,6 +45,9 @@
                         <span slot="models" slot-scope="models">
                             <p v-for="model in models" :key="model">{{ model.name }}</p>
                         </span>
+                        <span slot="locations" slot-scope="locations">
+                            <p v-for="location in locations" :key="location">{{ location.name }}</p>
+                        </span>
                         <span slot="tags" slot-scope="tags">
                             <a-tag
                                 v-for="tag in tags"
@@ -154,6 +157,7 @@
 		{
 			title: 'LOCATION',
 			dataIndex: 'location',
+            scopedSlots: { customRender: 'locations' },
 		},
         {
 			title: 'TAGS',
