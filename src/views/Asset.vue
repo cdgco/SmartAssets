@@ -175,7 +175,7 @@
 					this.fields.supplier = (response.data.result.supplier[0]) ? response.data.result.supplier[0].name : ''
 					this.fields.company = (response.data.result.company[0]) ? response.data.result.company[0].name : ''
 					this.$emit('asset-name', this.fields.name)
-					var barcodeData = (response.data.result._id.length == 1) ? "0" + response.data.result._id : response.data.result._id;
+					var barcodeData = (String(response.data.result._id.length) == 1) ? "0" + response.data.result._id : response.data.result._id;
 					JsBarcode("#barcode", barcodeData, {
 						format: "CODE128",
 						lineColor: "#262626",
