@@ -1864,7 +1864,7 @@ exports.findAll = (req, res) => {
                 .populate("type")
                 .populate("company")
                 .populate("location")
-                .populate("model")
+                .populate("assetModel")
                 .populate("supplier")
                 .populate("tags")
                 .limit(parseInt(req.query.limit) || 0)
@@ -1909,7 +1909,7 @@ exports.findOne = (req, res) => {
         .populate("type")
         .populate("company")
         .populate("location")
-        .populate("model")
+        .populate("assetModel")
         .populate("supplier")
         .populate("tags")
         .then(data => {
@@ -2043,7 +2043,7 @@ exports.search = (req, res) => {
             .populate("type")
             .populate("company")
             .populate("location")
-            .populate("model")
+            .populate("assetModel")
             .populate("supplier")
             .populate("tags")
             .then(data => {
@@ -2167,7 +2167,7 @@ exports.nativeSearch = (req, res) => {
             .populate("type")
             .populate("company")
             .populate("location")
-            .populate("model")
+            .populate("assetModel")
             .populate("supplier")
             .populate("tags")
             .then(data => {
