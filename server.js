@@ -3,6 +3,7 @@ const path = require('path');
 var https = require('https');
 var http = require('http');
 var crypto = require('crypto');
+var bcrypt = require("bcryptjs");
 var fs = require('fs');
 const history = require('connect-history-api-fallback')
 var app = express();
@@ -10,6 +11,8 @@ require('dotenv').config()
 const { Client } = require('@elastic/elasticsearch')
 const elasticConfig = require("./elastic.config.js");
 const dbConfig = require("./db.config.js");
+const db = require("./api/models");
+const User = db.users;
 const elasticClient = new Client({
     node: elasticConfig.protocol + "://" + elasticConfig.host + ":" + elasticConfig.port,
     auth: {
@@ -42,18 +45,27 @@ if (process.argv[2] != 'skipKeyCycle') {
     });
 } else {
     fs.readFile("jwt.key", (err, signature) => {
-        // if any error
-        if (err) {
-            console.error(err);
-        }
+        if (err) console.error(err);
         process.env.JWT_SECRET = signature.toString();
-
     });
 }
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.text());
 app.use(express.json());
+
+User.countDocuments({})
+    .then(data => {
+        if (data == 0) {
+            const userPass = crypto.randomUUID();
+            const user = new User({
+                username: "admin",
+                password: bcrypt.hashSync(userPass, 8)
+            });
+            user.save();
+            console.log("\nAdmin Username: admin\nAdmin Password: " + userPass)
+        }
+    })
 
 elasticClient.indices.exists({ index: dbConfig.dbName }, (err, results) => {
     if (!results.body) {

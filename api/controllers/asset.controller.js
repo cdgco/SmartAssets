@@ -1,11 +1,12 @@
 const db = require("../models");
 const Asset = db.assets;
 const Type = db.type;
+const Location = db.location;
 const Manufacturer = db.manufacturer;
 const Company = db.company;
 const Model = db.model;
 const Supplier = db.supplier;
-const Tag = db.tag;
+const Tags = db.tags;
 const { Client } = require('@elastic/elasticsearch')
 const elasticConfig = require("../../elastic.config.js");
 const elasticClient = new Client({
@@ -16,240 +17,1821 @@ const elasticClient = new Client({
     }
 })
 
+function returnErr(err) {
+    return {
+        "success": false,
+        "code": 500,
+        "errors": [err],
+        "messages": [err],
+        "result": null
+    };
+}
+
+function returnSuccess(asset) {
+    return {
+        "success": true,
+        "code": 200,
+        "errors": null,
+        "messages": null,
+        "result": asset
+    };
+}
+
 // Create and Save a new asset
 exports.create = (req, res) => {
 
     const asset = new Asset({
         name: req.body.name,
         quantity: req.body.quantity ? req.body.quantity : "",
-        location: req.body.location ? req.body.location : "",
         serial: req.body.serial ? req.body.serial : "",
         customFields: req.body.customFields ? req.body.customFields : "",
     });
 
+    // Save Initial Asset
     asset.save((err, asset) => {
-        if (err) {
-            return res.json({
-                "success": false,
-                "code": 500,
-                "errors": [err],
-                "messages": [err],
-                "result": null
-            });
-        }
-        if (req.body.type) {
-            Type.findOneAndUpdate({
-                    name: req.body.type
-                }, {
-                    name: req.body.type
-                }, {
-                    new: true,
-                    upsert: true
-                },
+        if (err) return res.json(returnErr(err))
+        else if (req.body.type) { // If Asset has type
+            Type.findOneAndUpdate({ name: req.body.type }, { name: req.body.type }, { new: true, upsert: true },
                 function(err, type) {
-                    if (err) {
-                        return res.json({
-                            "success": false,
-                            "code": 500,
-                            "errors": [err],
-                            "messages": [err],
-                            "result": null
-                        });
-                    } else {
+                    if (err) return res.json(returnErr(err))
+                    else {
                         asset.type.push(type);
-                        asset.save(function(error) {
-                            if (error) {
-                                return res.json({
-                                    "success": false,
-                                    "code": 500,
-                                    "errors": [error || "Some error occurred while creating the assets."],
-                                    "messages": [error || "Some error occurred while creating the assets."],
-                                    "result": null
+                        if (req.body.manufacturer) { // If asset has manufacturer
+                            Manufacturer.findOneAndUpdate({ name: req.body.manufacturer }, { name: req.body.manufacturer }, { new: true, upsert: true },
+                                function(err, manufacturer) {
+                                    if (err) return res.json(returnErr(err))
+                                    else {
+                                        asset.manufacturer.push(manufacturer);
+                                        if (req.body.company) { // If asset has company
+                                            Company.findOneAndUpdate({ name: req.body.company }, { name: req.body.company }, { new: true, upsert: true },
+                                                function(err, company) {
+                                                    if (err) return res.json(returnErr(err))
+                                                    else {
+                                                        asset.company.push(company);
+                                                        if (req.body.model) { // If asset has model
+                                                            Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true },
+                                                                function(err, model) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    else {
+                                                                        asset.model.push(model);
+                                                                        if (req.body.supplier) { // If asset has supplier
+                                                                            Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                                                                function(err, supplier) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        asset.supplier.push(supplier);
+                                                                                        if (req.body.location) { // If asset has location
+                                                                                            Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                                                                function(err, location) {
+                                                                                                    if (err) return res.json(returnErr(err))
+                                                                                                    else {
+                                                                                                        asset.location.push(location);
+                                                                                                        if (req.body.tags) { // If asset has tags
+                                                                                                            req.body.tags.forEach(function(tag, index, array) {
+                                                                                                                Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                                                    function(err, tag) {
+                                                                                                                        if (err) return res.json(returnErr(err))
+                                                                                                                        else {
+                                                                                                                            asset.tags.push(tag);
+                                                                                                                            if (index === array.length - 1) {
+                                                                                                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                                                return res.json(returnSuccess(asset))
+                                                                                                                            }
+                                                                                                                        }
+                                                                                                                    });
+                                                                                                            })
+                                                                                                        } else { // If asset has no tags
+                                                                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                            return res.json(returnSuccess(asset))
+                                                                                                        }
+                                                                                                    }
+                                                                                                });
+                                                                                        } else { // If asset has no location
+                                                                                            if (req.body.tags) { // If asset has tags
+                                                                                                req.body.tags.forEach(function(tag, index, array) {
+                                                                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                                        function(err, tag) {
+                                                                                                            if (err) return res.json(returnErr(err))
+                                                                                                            else {
+                                                                                                                asset.tags.push(tag);
+                                                                                                                if (index === array.length - 1) {
+                                                                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                                    return res.json(returnSuccess(asset))
+                                                                                                                }
+                                                                                                            }
+                                                                                                        });
+                                                                                                })
+                                                                                            } else { // If asset has no tags
+                                                                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                return res.json(returnSuccess(asset))
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                });
+                                                                        } else { // If asset has no supplier
+                                                                            if (req.body.location) { // If asset has location
+                                                                                Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                                                    function(err, location) {
+                                                                                        if (err) return res.json(returnErr(err))
+                                                                                        else {
+                                                                                            asset.location.push(location);
+                                                                                            if (req.body.tags) { // If asset has tags
+                                                                                                req.body.tags.forEach(function(tag, index, array) {
+                                                                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                                        function(err, tag) {
+                                                                                                            if (err) return res.json(returnErr(err))
+                                                                                                            else {
+                                                                                                                asset.tags.push(tag);
+                                                                                                                if (index === array.length - 1) {
+                                                                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                                    return res.json(returnSuccess(asset))
+                                                                                                                }
+                                                                                                            }
+                                                                                                        });
+                                                                                                })
+                                                                                            } else { // If asset has no tags
+                                                                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                return res.json(returnSuccess(asset))
+                                                                                            }
+                                                                                        }
+                                                                                    });
+                                                                            } else { // If asset has no location
+                                                                                if (req.body.tags) { // If asset has tags
+                                                                                    req.body.tags.forEach(function(tag, index, array) {
+                                                                                        Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                            function(err, tag) {
+                                                                                                if (err) return res.json(returnErr(err))
+                                                                                                else {
+                                                                                                    asset.tags.push(tag);
+                                                                                                    if (index === array.length - 1) {
+                                                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                        return res.json(returnSuccess(asset))
+                                                                                                    }
+                                                                                                }
+                                                                                            });
+                                                                                    })
+                                                                                } else { // If asset has no tags
+                                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                                    return res.json(returnSuccess(asset))
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                });
+                                                        } else { // If asset has no model
+                                                            if (req.body.supplier) { // If asset has supplier
+                                                                Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                                                    function(err, supplier) {
+                                                                        if (err) return res.json(returnErr(err))
+                                                                        else {
+                                                                            asset.supplier.push(supplier);
+                                                                            if (req.body.location) { // If asset has location
+                                                                                Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                                                    function(err, location) {
+                                                                                        if (err) return res.json(returnErr(err))
+                                                                                        else {
+                                                                                            asset.location.push(location);
+                                                                                            if (req.body.tags) { // If asset has tags
+                                                                                                req.body.tags.forEach(function(tag, index, array) {
+                                                                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                                        function(err, tag) {
+                                                                                                            if (err) return res.json(returnErr(err))
+                                                                                                            else {
+                                                                                                                asset.tags.push(tag);
+                                                                                                                if (index === array.length - 1) {
+                                                                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                                    return res.json(returnSuccess(asset))
+                                                                                                                }
+                                                                                                            }
+                                                                                                        });
+                                                                                                })
+                                                                                            } else { // If asset has no tags
+                                                                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                return res.json(returnSuccess(asset))
+                                                                                            }
+                                                                                        }
+                                                                                    });
+                                                                            } else { // If asset has no location
+                                                                                if (req.body.tags) { // If asset has tags
+                                                                                    req.body.tags.forEach(function(tag, index, array) {
+                                                                                        Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                            function(err, tag) {
+                                                                                                if (err) return res.json(returnErr(err))
+                                                                                                else {
+                                                                                                    asset.tags.push(tag);
+                                                                                                    if (index === array.length - 1) {
+                                                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                        return res.json(returnSuccess(asset))
+                                                                                                    }
+                                                                                                }
+                                                                                            });
+                                                                                    })
+                                                                                } else { // If asset has no tags
+                                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                                    return res.json(returnSuccess(asset))
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    });
+                                                            } else { // If asset has no supplier
+                                                                if (req.body.location) { // If asset has location
+                                                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                                        function(err, location) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            else {
+                                                                                asset.location.push(location);
+                                                                                if (req.body.tags) { // If asset has tags
+                                                                                    req.body.tags.forEach(function(tag, index, array) {
+                                                                                        Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                            function(err, tag) {
+                                                                                                if (err) return res.json(returnErr(err))
+                                                                                                else {
+                                                                                                    asset.tags.push(tag);
+                                                                                                    if (index === array.length - 1) {
+                                                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                        return res.json(returnSuccess(asset))
+                                                                                                    }
+                                                                                                }
+                                                                                            });
+                                                                                    })
+                                                                                } else { // If asset has no tags
+                                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                                    return res.json(returnSuccess(asset))
+                                                                                }
+                                                                            }
+                                                                        });
+                                                                } else { // If asset has no location
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        asset.tags.push(tag);
+                                                                                        if (index === array.length - 1) {
+                                                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                                                            return res.json(returnSuccess(asset))
+                                                                                        }
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If asset has no tags
+                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                        return res.json(returnSuccess(asset))
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                });
+                                        } else { // If asset has no company
+                                            if (req.body.model) { // If asset has model
+                                                Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true },
+                                                    function(err, model) {
+                                                        if (err) return res.json(returnErr(err))
+                                                        else {
+                                                            asset.model.push(model);
+                                                            if (req.body.supplier) { // If asset has supplier
+                                                                Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                                                    function(err, supplier) {
+                                                                        if (err) return res.json(returnErr(err))
+                                                                        else {
+                                                                            asset.supplier.push(supplier);
+                                                                            if (req.body.location) { // If asset has location
+                                                                                Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                                                    function(err, location) {
+                                                                                        if (err) return res.json(returnErr(err))
+                                                                                        else {
+                                                                                            asset.location.push(location);
+                                                                                            if (req.body.tags) { // If asset has tags
+                                                                                                req.body.tags.forEach(function(tag, index, array) {
+                                                                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                                        function(err, tag) {
+                                                                                                            if (err) return res.json(returnErr(err))
+                                                                                                            else {
+                                                                                                                asset.tags.push(tag);
+                                                                                                                if (index === array.length - 1) {
+                                                                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                                    return res.json(returnSuccess(asset))
+                                                                                                                }
+                                                                                                            }
+                                                                                                        });
+                                                                                                })
+                                                                                            } else { // If asset has no tags
+                                                                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                return res.json(returnSuccess(asset))
+                                                                                            }
+                                                                                        }
+                                                                                    });
+                                                                            } else { // If asset has no location
+                                                                                if (req.body.tags) { // If asset has tags
+                                                                                    req.body.tags.forEach(function(tag, index, array) {
+                                                                                        Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                            function(err, tag) {
+                                                                                                if (err) return res.json(returnErr(err))
+                                                                                                else {
+                                                                                                    asset.tags.push(tag);
+                                                                                                    if (index === array.length - 1) {
+                                                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                        return res.json(returnSuccess(asset))
+                                                                                                    }
+                                                                                                }
+                                                                                            });
+                                                                                    })
+                                                                                } else { // If asset has no tags
+                                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                                    return res.json(returnSuccess(asset))
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    });
+                                                            } else { // If asset has no supplier
+                                                                if (req.body.location) { // If asset has location
+                                                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                                        function(err, location) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            else {
+                                                                                asset.location.push(location);
+                                                                                if (req.body.tags) { // If asset has tags
+                                                                                    req.body.tags.forEach(function(tag, index, array) {
+                                                                                        Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                            function(err, tag) {
+                                                                                                if (err) return res.json(returnErr(err))
+                                                                                                else {
+                                                                                                    asset.tags.push(tag);
+                                                                                                    if (index === array.length - 1) {
+                                                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                        return res.json(returnSuccess(asset))
+                                                                                                    }
+                                                                                                }
+                                                                                            });
+                                                                                    })
+                                                                                } else { // If asset has no tags
+                                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                                    return res.json(returnSuccess(asset))
+                                                                                }
+                                                                            }
+                                                                        });
+                                                                } else { // If asset has no location
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        asset.tags.push(tag);
+                                                                                        if (index === array.length - 1) {
+                                                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                                                            return res.json(returnSuccess(asset))
+                                                                                        }
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If asset has no tags
+                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                        return res.json(returnSuccess(asset))
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    });
+                                            } else { // If asset has no model
+                                                if (req.body.supplier) { // If asset has supplier
+                                                    Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                                        function(err, supplier) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                asset.supplier.push(supplier);
+                                                                if (req.body.location) { // If asset has location
+                                                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                                        function(err, location) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            else {
+                                                                                asset.location.push(location);
+                                                                                if (req.body.tags) { // If asset has tags
+                                                                                    req.body.tags.forEach(function(tag, index, array) {
+                                                                                        Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                            function(err, tag) {
+                                                                                                if (err) return res.json(returnErr(err))
+                                                                                                else {
+                                                                                                    asset.tags.push(tag);
+                                                                                                    if (index === array.length - 1) {
+                                                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                        return res.json(returnSuccess(asset))
+                                                                                                    }
+                                                                                                }
+                                                                                            });
+                                                                                    })
+                                                                                } else { // If asset has no tags
+                                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                                    return res.json(returnSuccess(asset))
+                                                                                }
+                                                                            }
+                                                                        });
+                                                                } else { // If asset has no location
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        asset.tags.push(tag);
+                                                                                        if (index === array.length - 1) {
+                                                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                                                            return res.json(returnSuccess(asset))
+                                                                                        }
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If asset has no tags
+                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                        return res.json(returnSuccess(asset))
+                                                                    }
+                                                                }
+                                                            }
+                                                        });
+                                                } else { // If asset has no supplier
+                                                    if (req.body.location) { // If asset has location
+                                                        Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                            function(err, location) {
+                                                                if (err) return res.json(returnErr(err))
+                                                                else {
+                                                                    asset.location.push(location);
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        asset.tags.push(tag);
+                                                                                        if (index === array.length - 1) {
+                                                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                                                            return res.json(returnSuccess(asset))
+                                                                                        }
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If asset has no tags
+                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                        return res.json(returnSuccess(asset))
+                                                                    }
+                                                                }
+                                                            });
+                                                    } else { // If asset has no location
+                                                        if (req.body.tags) { // If asset has tags
+                                                            req.body.tags.forEach(function(tag, index, array) {
+                                                                Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                    function(err, tag) {
+                                                                        if (err) return res.json(returnErr(err))
+                                                                        else {
+                                                                            asset.tags.push(tag);
+                                                                            if (index === array.length - 1) {
+                                                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                                                return res.json(returnSuccess(asset))
+                                                                            }
+                                                                        }
+                                                                    });
+                                                            })
+                                                        } else { // If asset has no tags
+                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                            return res.json(returnSuccess(asset))
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 });
+                        } else { // If asset has no manufacturer
+                            if (req.body.company) { // If asset has company
+                                Company.findOneAndUpdate({ name: req.body.company }, { name: req.body.company }, { new: true, upsert: true },
+                                    function(err, company) {
+                                        if (err) return res.json(returnErr(err))
+                                        else {
+                                            asset.company.push(company);
+                                            if (req.body.model) { // If asset has model
+                                                Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true },
+                                                    function(err, model) {
+                                                        if (err) return res.json(returnErr(err))
+                                                        else {
+                                                            asset.model.push(model);
+                                                            if (req.body.supplier) { // If asset has supplier
+                                                                Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                                                    function(err, supplier) {
+                                                                        if (err) return res.json(returnErr(err))
+                                                                        else {
+                                                                            asset.supplier.push(supplier);
+                                                                            if (req.body.location) { // If asset has location
+                                                                                Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                                                    function(err, location) {
+                                                                                        if (err) return res.json(returnErr(err))
+                                                                                        else {
+                                                                                            asset.location.push(location);
+                                                                                            if (req.body.tags) { // If asset has tags
+                                                                                                req.body.tags.forEach(function(tag, index, array) {
+                                                                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                                        function(err, tag) {
+                                                                                                            if (err) return res.json(returnErr(err))
+                                                                                                            else {
+                                                                                                                asset.tags.push(tag);
+                                                                                                                if (index === array.length - 1) {
+                                                                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                                    return res.json(returnSuccess(asset))
+                                                                                                                }
+                                                                                                            }
+                                                                                                        });
+                                                                                                })
+                                                                                            } else { // If asset has no tags
+                                                                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                return res.json(returnSuccess(asset))
+                                                                                            }
+                                                                                        }
+                                                                                    });
+                                                                            } else { // If asset has no location
+                                                                                if (req.body.tags) { // If asset has tags
+                                                                                    req.body.tags.forEach(function(tag, index, array) {
+                                                                                        Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                            function(err, tag) {
+                                                                                                if (err) return res.json(returnErr(err))
+                                                                                                else {
+                                                                                                    asset.tags.push(tag);
+                                                                                                    if (index === array.length - 1) {
+                                                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                        return res.json(returnSuccess(asset))
+                                                                                                    }
+                                                                                                }
+                                                                                            });
+                                                                                    })
+                                                                                } else { // If asset has no tags
+                                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                                    return res.json(returnSuccess(asset))
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    });
+                                                            } else { // If asset has no supplier
+                                                                if (req.body.location) { // If asset has location
+                                                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                                        function(err, location) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            else {
+                                                                                asset.location.push(location);
+                                                                                if (req.body.tags) { // If asset has tags
+                                                                                    req.body.tags.forEach(function(tag, index, array) {
+                                                                                        Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                            function(err, tag) {
+                                                                                                if (err) return res.json(returnErr(err))
+                                                                                                else {
+                                                                                                    asset.tags.push(tag);
+                                                                                                    if (index === array.length - 1) {
+                                                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                        return res.json(returnSuccess(asset))
+                                                                                                    }
+                                                                                                }
+                                                                                            });
+                                                                                    })
+                                                                                } else { // If asset has no tags
+                                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                                    return res.json(returnSuccess(asset))
+                                                                                }
+                                                                            }
+                                                                        });
+                                                                } else { // If asset has no location
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        asset.tags.push(tag);
+                                                                                        if (index === array.length - 1) {
+                                                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                                                            return res.json(returnSuccess(asset))
+                                                                                        }
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If asset has no tags
+                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                        return res.json(returnSuccess(asset))
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    });
+                                            } else { // If asset has no model
+                                                if (req.body.supplier) { // If asset has supplier
+                                                    Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                                        function(err, supplier) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                asset.supplier.push(supplier);
+                                                                if (req.body.location) { // If asset has location
+                                                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                                        function(err, location) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            else {
+                                                                                asset.location.push(location);
+                                                                                if (req.body.tags) { // If asset has tags
+                                                                                    req.body.tags.forEach(function(tag, index, array) {
+                                                                                        Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                            function(err, tag) {
+                                                                                                if (err) return res.json(returnErr(err))
+                                                                                                else {
+                                                                                                    asset.tags.push(tag);
+                                                                                                    if (index === array.length - 1) {
+                                                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                        return res.json(returnSuccess(asset))
+                                                                                                    }
+                                                                                                }
+                                                                                            });
+                                                                                    })
+                                                                                } else { // If asset has no tags
+                                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                                    return res.json(returnSuccess(asset))
+                                                                                }
+                                                                            }
+                                                                        });
+                                                                } else { // If asset has no location
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        asset.tags.push(tag);
+                                                                                        if (index === array.length - 1) {
+                                                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                                                            return res.json(returnSuccess(asset))
+                                                                                        }
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If asset has no tags
+                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                        return res.json(returnSuccess(asset))
+                                                                    }
+                                                                }
+                                                            }
+                                                        });
+                                                } else { // If asset has no supplier
+                                                    if (req.body.location) { // If asset has location
+                                                        Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                            function(err, location) {
+                                                                if (err) return res.json(returnErr(err))
+                                                                else {
+                                                                    asset.location.push(location);
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        asset.tags.push(tag);
+                                                                                        if (index === array.length - 1) {
+                                                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                                                            return res.json(returnSuccess(asset))
+                                                                                        }
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If asset has no tags
+                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                        return res.json(returnSuccess(asset))
+                                                                    }
+                                                                }
+                                                            });
+                                                    } else { // If asset has no location
+                                                        if (req.body.tags) { // If asset has tags
+                                                            req.body.tags.forEach(function(tag, index, array) {
+                                                                Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                    function(err, tag) {
+                                                                        if (err) return res.json(returnErr(err))
+                                                                        else {
+                                                                            asset.tags.push(tag);
+                                                                            if (index === array.length - 1) {
+                                                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                                                return res.json(returnSuccess(asset))
+                                                                            }
+                                                                        }
+                                                                    });
+                                                            })
+                                                        } else { // If asset has no tags
+                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                            return res.json(returnSuccess(asset))
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    });
+                            } else { // If asset has no compnany
+                                if (req.body.model) { // If asset has model
+                                    Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true },
+                                        function(err, model) {
+                                            if (err) return res.json(returnErr(err))
+                                            else {
+                                                asset.model.push(model);
+                                                if (req.body.supplier) { // If asset has supplier
+                                                    Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                                        function(err, supplier) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                asset.supplier.push(supplier);
+                                                                if (req.body.location) { // If asset has location
+                                                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                                        function(err, location) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            else {
+                                                                                asset.location.push(location);
+                                                                                if (req.body.tags) { // If asset has tags
+                                                                                    req.body.tags.forEach(function(tag, index, array) {
+                                                                                        Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                            function(err, tag) {
+                                                                                                if (err) return res.json(returnErr(err))
+                                                                                                else {
+                                                                                                    asset.tags.push(tag);
+                                                                                                    if (index === array.length - 1) {
+                                                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                        return res.json(returnSuccess(asset))
+                                                                                                    }
+                                                                                                }
+                                                                                            });
+                                                                                    })
+                                                                                } else { // If asset has no tags
+                                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                                    return res.json(returnSuccess(asset))
+                                                                                }
+                                                                            }
+                                                                        });
+                                                                } else { // If asset has no location
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        asset.tags.push(tag);
+                                                                                        if (index === array.length - 1) {
+                                                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                                                            return res.json(returnSuccess(asset))
+                                                                                        }
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If asset has no tags
+                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                        return res.json(returnSuccess(asset))
+                                                                    }
+                                                                }
+                                                            }
+                                                        });
+                                                } else { // If asset has no supplier
+                                                    if (req.body.location) { // If asset has location
+                                                        Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                            function(err, location) {
+                                                                if (err) return res.json(returnErr(err))
+                                                                else {
+                                                                    asset.location.push(location);
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        asset.tags.push(tag);
+                                                                                        if (index === array.length - 1) {
+                                                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                                                            return res.json(returnSuccess(asset))
+                                                                                        }
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If asset has no tags
+                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                        return res.json(returnSuccess(asset))
+                                                                    }
+                                                                }
+                                                            });
+                                                    } else { // If asset has no location
+                                                        if (req.body.tags) { // If asset has tags
+                                                            req.body.tags.forEach(function(tag, index, array) {
+                                                                Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                    function(err, tag) {
+                                                                        if (err) return res.json(returnErr(err))
+                                                                        else {
+                                                                            asset.tags.push(tag);
+                                                                            if (index === array.length - 1) {
+                                                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                                                return res.json(returnSuccess(asset))
+                                                                            }
+                                                                        }
+                                                                    });
+                                                            })
+                                                        } else { // If asset has no tags
+                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                            return res.json(returnSuccess(asset))
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        });
+                                } else { // If asset has no model
+                                    if (req.body.supplier) { // If asset has supplier
+                                        Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                            function(err, supplier) {
+                                                if (err) return res.json(returnErr(err))
+                                                else {
+                                                    asset.supplier.push(supplier);
+                                                    if (req.body.location) { // If asset has location
+                                                        Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                            function(err, location) {
+                                                                if (err) return res.json(returnErr(err))
+                                                                else {
+                                                                    asset.location.push(location);
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        asset.tags.push(tag);
+                                                                                        if (index === array.length - 1) {
+                                                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                                                            return res.json(returnSuccess(asset))
+                                                                                        }
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If asset has no tags
+                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                        return res.json(returnSuccess(asset))
+                                                                    }
+                                                                }
+                                                            });
+                                                    } else { // If asset has no location
+                                                        if (req.body.tags) { // If asset has tags
+                                                            req.body.tags.forEach(function(tag, index, array) {
+                                                                Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                    function(err, tag) {
+                                                                        if (err) return res.json(returnErr(err))
+                                                                        else {
+                                                                            asset.tags.push(tag);
+                                                                            if (index === array.length - 1) {
+                                                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                                                return res.json(returnSuccess(asset))
+                                                                            }
+                                                                        }
+                                                                    });
+                                                            })
+                                                        } else { // If asset has no tags
+                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                            return res.json(returnSuccess(asset))
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                    } else { // If asset has no supplier
+                                        if (req.body.location) { // If asset has location
+                                            Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                function(err, location) {
+                                                    if (err) return res.json(returnErr(err))
+                                                    else {
+                                                        asset.location.push(location);
+                                                        if (req.body.tags) { // If asset has tags
+                                                            req.body.tags.forEach(function(tag, index, array) {
+                                                                Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                    function(err, tag) {
+                                                                        if (err) return res.json(returnErr(err))
+                                                                        else {
+                                                                            asset.tags.push(tag);
+                                                                            if (index === array.length - 1) {
+                                                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                                                return res.json(returnSuccess(asset))
+                                                                            }
+                                                                        }
+                                                                    });
+                                                            })
+                                                        } else { // If asset has no tags
+                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                            return res.json(returnSuccess(asset))
+                                                        }
+                                                    }
+                                                });
+                                        } else { // If asset has no location
+                                            if (req.body.tags) { // If asset has tags
+                                                req.body.tags.forEach(function(tag, index, array) {
+                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                        function(err, tag) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                asset.tags.push(tag);
+                                                                if (index === array.length - 1) {
+                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                    return res.json(returnSuccess(asset))
+                                                                }
+                                                            }
+                                                        });
+                                                })
+                                            } else { // If asset has no tags
+                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                return res.json(returnSuccess(asset))
+                                            }
+                                        }
+                                    }
+                                }
                             }
-                        });
+                        }
                     }
                 });
-        }
-        if (req.body.manufacturer) {
-            Manufacturer.findOneAndUpdate({
-                    name: req.body.manufacturer
-                }, {
-                    name: req.body.manufacturer
-                }, {
-                    new: true,
-                    upsert: true
-                },
-                function(err, manufacturer) {
-                    if (err) {
-                        return res.json({
-                            "success": false,
-                            "code": 500,
-                            "errors": [err],
-                            "messages": [err],
-                            "result": null
-                        });
-                    } else {
-                        asset.manufacturer.push(manufacturer);
-                        asset.save(function(error) {
-                            if (error) {
-                                return res.json({
-                                    "success": false,
-                                    "code": 500,
-                                    "errors": [error || "Some error occurred while creating the assets."],
-                                    "messages": [error || "Some error occurred while creating the assets."],
-                                    "result": null
-                                });
+        } else { // If asset has no type
+            if (req.body.manufacturer) { // If asset has manufacturer
+                Manufacturer.findOneAndUpdate({ name: req.body.manufacturer }, { name: req.body.manufacturer }, { new: true, upsert: true },
+                    function(err, manufacturer) {
+                        if (err) return res.json(returnErr(err))
+                        else {
+                            asset.manufacturer.push(manufacturer);
+                            if (req.body.company) { // If asset has company
+                                Company.findOneAndUpdate({ name: req.body.company }, { name: req.body.company }, { new: true, upsert: true },
+                                    function(err, company) {
+                                        if (err) return res.json(returnErr(err))
+                                        else {
+                                            asset.company.push(company);
+                                            if (req.body.model) { // If asset has model
+                                                Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true },
+                                                    function(err, model) {
+                                                        if (err) return res.json(returnErr(err))
+                                                        else {
+                                                            asset.model.push(model);
+                                                            if (req.body.supplier) { // If asset has supplier
+                                                                Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                                                    function(err, supplier) {
+                                                                        if (err) return res.json(returnErr(err))
+                                                                        else {
+                                                                            asset.supplier.push(supplier);
+                                                                            if (req.body.location) { // If asset has location
+                                                                                Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                                                    function(err, location) {
+                                                                                        if (err) return res.json(returnErr(err))
+                                                                                        else {
+                                                                                            asset.location.push(location);
+                                                                                            if (req.body.tags) { // If asset has tags
+                                                                                                req.body.tags.forEach(function(tag, index, array) {
+                                                                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                                        function(err, tag) {
+                                                                                                            if (err) return res.json(returnErr(err))
+                                                                                                            else {
+                                                                                                                asset.tags.push(tag);
+                                                                                                                if (index === array.length - 1) {
+                                                                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                                    return res.json(returnSuccess(asset))
+                                                                                                                }
+                                                                                                            }
+                                                                                                        });
+                                                                                                })
+                                                                                            } else { // If asset has no tags
+                                                                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                return res.json(returnSuccess(asset))
+                                                                                            }
+                                                                                        }
+                                                                                    });
+                                                                            } else { // If asset has no location
+                                                                                if (req.body.tags) { // If asset has tags
+                                                                                    req.body.tags.forEach(function(tag, index, array) {
+                                                                                        Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                            function(err, tag) {
+                                                                                                if (err) return res.json(returnErr(err))
+                                                                                                else {
+                                                                                                    asset.tags.push(tag);
+                                                                                                    if (index === array.length - 1) {
+                                                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                        return res.json(returnSuccess(asset))
+                                                                                                    }
+                                                                                                }
+                                                                                            });
+                                                                                    })
+                                                                                } else { // If asset has no tags
+                                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                                    return res.json(returnSuccess(asset))
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    });
+                                                            } else { // If asset has no supplier
+                                                                if (req.body.location) { // If asset has location
+                                                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                                        function(err, location) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            else {
+                                                                                asset.location.push(location);
+                                                                                if (req.body.tags) { // If asset has tags
+                                                                                    req.body.tags.forEach(function(tag, index, array) {
+                                                                                        Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                            function(err, tag) {
+                                                                                                if (err) return res.json(returnErr(err))
+                                                                                                else {
+                                                                                                    asset.tags.push(tag);
+                                                                                                    if (index === array.length - 1) {
+                                                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                        return res.json(returnSuccess(asset))
+                                                                                                    }
+                                                                                                }
+                                                                                            });
+                                                                                    })
+                                                                                } else { // If asset has no tags
+                                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                                    return res.json(returnSuccess(asset))
+                                                                                }
+                                                                            }
+                                                                        });
+                                                                } else { // If asset has no location
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        asset.tags.push(tag);
+                                                                                        if (index === array.length - 1) {
+                                                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                                                            return res.json(returnSuccess(asset))
+                                                                                        }
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If asset has no tags
+                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                        return res.json(returnSuccess(asset))
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    });
+                                            } else { // If asset has no model
+                                                if (req.body.supplier) { // If asset has supplier
+                                                    Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                                        function(err, supplier) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                asset.supplier.push(supplier);
+                                                                if (req.body.location) { // If asset has location
+                                                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                                        function(err, location) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            else {
+                                                                                asset.location.push(location);
+                                                                                if (req.body.tags) { // If asset has tags
+                                                                                    req.body.tags.forEach(function(tag, index, array) {
+                                                                                        Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                            function(err, tag) {
+                                                                                                if (err) return res.json(returnErr(err))
+                                                                                                else {
+                                                                                                    asset.tags.push(tag);
+                                                                                                    if (index === array.length - 1) {
+                                                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                        return res.json(returnSuccess(asset))
+                                                                                                    }
+                                                                                                }
+                                                                                            });
+                                                                                    })
+                                                                                } else { // If asset has no tags
+                                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                                    return res.json(returnSuccess(asset))
+                                                                                }
+                                                                            }
+                                                                        });
+                                                                } else { // If asset has no location
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        asset.tags.push(tag);
+                                                                                        if (index === array.length - 1) {
+                                                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                                                            return res.json(returnSuccess(asset))
+                                                                                        }
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If asset has no tags
+                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                        return res.json(returnSuccess(asset))
+                                                                    }
+                                                                }
+                                                            }
+                                                        });
+                                                } else { // If asset has no supplier
+                                                    if (req.body.location) { // If asset has location
+                                                        Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                            function(err, location) {
+                                                                if (err) return res.json(returnErr(err))
+                                                                else {
+                                                                    asset.location.push(location);
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        asset.tags.push(tag);
+                                                                                        if (index === array.length - 1) {
+                                                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                                                            return res.json(returnSuccess(asset))
+                                                                                        }
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If asset has no tags
+                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                        return res.json(returnSuccess(asset))
+                                                                    }
+                                                                }
+                                                            });
+                                                    } else { // If asset has no location
+                                                        if (req.body.tags) { // If asset has tags
+                                                            req.body.tags.forEach(function(tag, index, array) {
+                                                                Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                    function(err, tag) {
+                                                                        if (err) return res.json(returnErr(err))
+                                                                        else {
+                                                                            asset.tags.push(tag);
+                                                                            if (index === array.length - 1) {
+                                                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                                                return res.json(returnSuccess(asset))
+                                                                            }
+                                                                        }
+                                                                    });
+                                                            })
+                                                        } else { // If asset has no tags
+                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                            return res.json(returnSuccess(asset))
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    });
+                            } else { // If asset has no company
+                                if (req.body.model) { // If asset has model
+                                    Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true },
+                                        function(err, model) {
+                                            if (err) return res.json(returnErr(err))
+                                            else {
+                                                asset.model.push(model);
+                                                if (req.body.supplier) { // If asset has supplier
+                                                    Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                                        function(err, supplier) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                asset.supplier.push(supplier);
+                                                                if (req.body.location) { // If asset has location
+                                                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                                        function(err, location) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            else {
+                                                                                asset.location.push(location);
+                                                                                if (req.body.tags) { // If asset has tags
+                                                                                    req.body.tags.forEach(function(tag, index, array) {
+                                                                                        Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                            function(err, tag) {
+                                                                                                if (err) return res.json(returnErr(err))
+                                                                                                else {
+                                                                                                    asset.tags.push(tag);
+                                                                                                    if (index === array.length - 1) {
+                                                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                        return res.json(returnSuccess(asset))
+                                                                                                    }
+                                                                                                }
+                                                                                            });
+                                                                                    })
+                                                                                } else { // If asset has no tags
+                                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                                    return res.json(returnSuccess(asset))
+                                                                                }
+                                                                            }
+                                                                        });
+                                                                } else { // If asset has no location
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        asset.tags.push(tag);
+                                                                                        if (index === array.length - 1) {
+                                                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                                                            return res.json(returnSuccess(asset))
+                                                                                        }
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If asset has no tags
+                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                        return res.json(returnSuccess(asset))
+                                                                    }
+                                                                }
+                                                            }
+                                                        });
+                                                } else { // If asset has no supplier
+                                                    if (req.body.location) { // If asset has location
+                                                        Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                            function(err, location) {
+                                                                if (err) return res.json(returnErr(err))
+                                                                else {
+                                                                    asset.location.push(location);
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        asset.tags.push(tag);
+                                                                                        if (index === array.length - 1) {
+                                                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                                                            return res.json(returnSuccess(asset))
+                                                                                        }
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If asset has no tags
+                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                        return res.json(returnSuccess(asset))
+                                                                    }
+                                                                }
+                                                            });
+                                                    } else { // If asset has no location
+                                                        if (req.body.tags) { // If asset has tags
+                                                            req.body.tags.forEach(function(tag, index, array) {
+                                                                Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                    function(err, tag) {
+                                                                        if (err) return res.json(returnErr(err))
+                                                                        else {
+                                                                            asset.tags.push(tag);
+                                                                            if (index === array.length - 1) {
+                                                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                                                return res.json(returnSuccess(asset))
+                                                                            }
+                                                                        }
+                                                                    });
+                                                            })
+                                                        } else { // If asset has no tags
+                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                            return res.json(returnSuccess(asset))
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        });
+                                } else { // If asset has no model
+                                    if (req.body.supplier) { // If asset has supplier
+                                        Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                            function(err, supplier) {
+                                                if (err) return res.json(returnErr(err))
+                                                else {
+                                                    asset.supplier.push(supplier);
+                                                    if (req.body.location) { // If asset has location
+                                                        Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                            function(err, location) {
+                                                                if (err) return res.json(returnErr(err))
+                                                                else {
+                                                                    asset.location.push(location);
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        asset.tags.push(tag);
+                                                                                        if (index === array.length - 1) {
+                                                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                                                            return res.json(returnSuccess(asset))
+                                                                                        }
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If asset has no tags
+                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                        return res.json(returnSuccess(asset))
+                                                                    }
+                                                                }
+                                                            });
+                                                    } else { // If asset has no location
+                                                        if (req.body.tags) { // If asset has tags
+                                                            req.body.tags.forEach(function(tag, index, array) {
+                                                                Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                    function(err, tag) {
+                                                                        if (err) return res.json(returnErr(err))
+                                                                        else {
+                                                                            asset.tags.push(tag);
+                                                                            if (index === array.length - 1) {
+                                                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                                                return res.json(returnSuccess(asset))
+                                                                            }
+                                                                        }
+                                                                    });
+                                                            })
+                                                        } else { // If asset has no tags
+                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                            return res.json(returnSuccess(asset))
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                    } else { // If asset has no supplier
+                                        if (req.body.location) { // If asset has location
+                                            Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                function(err, location) {
+                                                    if (err) return res.json(returnErr(err))
+                                                    else {
+                                                        asset.location.push(location);
+                                                        if (req.body.tags) { // If asset has tags
+                                                            req.body.tags.forEach(function(tag, index, array) {
+                                                                Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                    function(err, tag) {
+                                                                        if (err) return res.json(returnErr(err))
+                                                                        else {
+                                                                            asset.tags.push(tag);
+                                                                            if (index === array.length - 1) {
+                                                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                                                return res.json(returnSuccess(asset))
+                                                                            }
+                                                                        }
+                                                                    });
+                                                            })
+                                                        } else { // If asset has no tags
+                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                            return res.json(returnSuccess(asset))
+                                                        }
+                                                    }
+                                                });
+                                        } else { // If asset has no location
+                                            if (req.body.tags) { // If asset has tags
+                                                req.body.tags.forEach(function(tag, index, array) {
+                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                        function(err, tag) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                asset.tags.push(tag);
+                                                                if (index === array.length - 1) {
+                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                    return res.json(returnSuccess(asset))
+                                                                }
+                                                            }
+                                                        });
+                                                })
+                                            } else { // If asset has no tags
+                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                return res.json(returnSuccess(asset))
+                                            }
+                                        }
+                                    }
+                                }
                             }
-                        });
-                    }
-                });
-        }
-        if (req.body.supplier) {
-            Supplier.findOneAndUpdate({
-                    name: req.body.supplier
-                }, {
-                    name: req.body.supplier
-                }, {
-                    new: true,
-                    upsert: true
-                },
-                function(err, supplier) {
-                    if (err) {
-                        return res.json({
-                            "success": false,
-                            "code": 500,
-                            "errors": [err],
-                            "messages": [err],
-                            "result": null
-                        });
-                    } else {
-                        asset.supplier.push(supplier);
-                        asset.save(function(error) {
-                            if (error) {
-                                return res.json({
-                                    "success": false,
-                                    "code": 500,
-                                    "errors": [error || "Some error occurred while creating the assets."],
-                                    "messages": [error || "Some error occurred while creating the assets."],
-                                    "result": null
-                                });
-                            }
-                        });
-                    }
-                });
-        }
-        if (req.body.company) {
-            Company.findOneAndUpdate({
-                    name: req.body.company
-                }, {
-                    name: req.body.company
-                }, {
-                    new: true,
-                    upsert: true
-                },
-                function(err, company) {
-                    if (err) {
-                        return res.json({
-                            "success": false,
-                            "code": 500,
-                            "errors": [err],
-                            "messages": [err],
-                            "result": null
-                        });
-                    } else {
-                        asset.company.push(company);
-                        asset.save(function(error) {
-                            if (error) {
-                                return res.json({
-                                    "success": false,
-                                    "code": 500,
-                                    "errors": [error || "Some error occurred while creating the assets."],
-                                    "messages": [error || "Some error occurred while creating the assets."],
-                                    "result": null
-                                });
-                            }
-                        });
-                    }
-                });
-        }
-        if (req.body.model) {
-            Model.findOneAndUpdate({
-                    name: req.body.model
-                }, {
-                    name: req.body.model
-                }, {
-                    new: true,
-                    upsert: true
-                },
-                function(err, model) {
-                    if (err) {
-                        return res.json({
-                            "success": false,
-                            "code": 500,
-                            "errors": [err],
-                            "messages": [err],
-                            "result": null
-                        });
-                    } else {
-                        asset.assetModel.push(model);
-                        asset.save(function(error) {
-                            if (error) {
-                                return res.json({
-                                    "success": false,
-                                    "code": 500,
-                                    "errors": [error || "Some error occurred while creating the assets."],
-                                    "messages": [error || "Some error occurred while creating the assets."],
-                                    "result": null
-                                });
-                            }
-                        });
-                    }
-                });
-        }
-        if (req.body.tags) {
-            req.body.tags.forEach(function(tag, index, array) {
-                Tag.findOneAndUpdate({
-                        name: tag
-                    }, {
-                        name: tag
-                    }, {
-                        new: true,
-                        upsert: true
-                    },
-                    function(err, tag) {
-                        if (err) {
-                            return res.json({
-                                "success": false,
-                                "code": 500,
-                                "errors": [err],
-                                "messages": [err],
-                                "result": null
-                            });
-                        } else {
-                            asset.tags.push(tag);
                         }
                     });
-            })
-            asset.save(function(error) {
-                if (error) {
-                    return res.json({
-                        "success": false,
-                        "code": 500,
-                        "errors": [error || "Some error occurred while creating the assets."],
-                        "messages": [error || "Some error occurred while creating the assets."],
-                        "result": null
-                    });
+            } else { // If asset has no manufacturer
+                if (req.body.company) { // If asset has company
+                    Company.findOneAndUpdate({ name: req.body.company }, { name: req.body.company }, { new: true, upsert: true },
+                        function(err, company) {
+                            if (err) return res.json(returnErr(err))
+                            else {
+                                asset.company.push(company);
+                                if (req.body.model) { // If asset has model
+                                    Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true },
+                                        function(err, model) {
+                                            if (err) return res.json(returnErr(err))
+                                            else {
+                                                asset.model.push(model);
+                                                if (req.body.supplier) { // If asset has supplier
+                                                    Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                                        function(err, supplier) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                asset.supplier.push(supplier);
+                                                                if (req.body.location) { // If asset has location
+                                                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                                        function(err, location) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            else {
+                                                                                asset.location.push(location);
+                                                                                if (req.body.tags) { // If asset has tags
+                                                                                    req.body.tags.forEach(function(tag, index, array) {
+                                                                                        Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                            function(err, tag) {
+                                                                                                if (err) return res.json(returnErr(err))
+                                                                                                else {
+                                                                                                    asset.tags.push(tag);
+                                                                                                    if (index === array.length - 1) {
+                                                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                                                        return res.json(returnSuccess(asset))
+                                                                                                    }
+                                                                                                }
+                                                                                            });
+                                                                                    })
+                                                                                } else { // If asset has no tags
+                                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                                    return res.json(returnSuccess(asset))
+                                                                                }
+                                                                            }
+                                                                        });
+                                                                } else { // If asset has no location
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        asset.tags.push(tag);
+                                                                                        if (index === array.length - 1) {
+                                                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                                                            return res.json(returnSuccess(asset))
+                                                                                        }
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If asset has no tags
+                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                        return res.json(returnSuccess(asset))
+                                                                    }
+                                                                }
+                                                            }
+                                                        });
+                                                } else { // If asset has no supplier
+                                                    if (req.body.location) { // If asset has location
+                                                        Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                            function(err, location) {
+                                                                if (err) return res.json(returnErr(err))
+                                                                else {
+                                                                    asset.location.push(location);
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        asset.tags.push(tag);
+                                                                                        if (index === array.length - 1) {
+                                                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                                                            return res.json(returnSuccess(asset))
+                                                                                        }
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If asset has no tags
+                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                        return res.json(returnSuccess(asset))
+                                                                    }
+                                                                }
+                                                            });
+                                                    } else { // If asset has no location
+                                                        if (req.body.tags) { // If asset has tags
+                                                            req.body.tags.forEach(function(tag, index, array) {
+                                                                Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                    function(err, tag) {
+                                                                        if (err) return res.json(returnErr(err))
+                                                                        else {
+                                                                            asset.tags.push(tag);
+                                                                            if (index === array.length - 1) {
+                                                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                                                return res.json(returnSuccess(asset))
+                                                                            }
+                                                                        }
+                                                                    });
+                                                            })
+                                                        } else { // If asset has no tags
+                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                            return res.json(returnSuccess(asset))
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        });
+                                } else { // If asset has no model
+                                    if (req.body.supplier) { // If asset has supplier
+                                        Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                            function(err, supplier) {
+                                                if (err) return res.json(returnErr(err))
+                                                else {
+                                                    asset.supplier.push(supplier);
+                                                    if (req.body.location) { // If asset has location
+                                                        Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                            function(err, location) {
+                                                                if (err) return res.json(returnErr(err))
+                                                                else {
+                                                                    asset.location.push(location);
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        asset.tags.push(tag);
+                                                                                        if (index === array.length - 1) {
+                                                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                                                            return res.json(returnSuccess(asset))
+                                                                                        }
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If asset has no tags
+                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                        return res.json(returnSuccess(asset))
+                                                                    }
+                                                                }
+                                                            });
+                                                    } else { // If asset has no location
+                                                        if (req.body.tags) { // If asset has tags
+                                                            req.body.tags.forEach(function(tag, index, array) {
+                                                                Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                    function(err, tag) {
+                                                                        if (err) return res.json(returnErr(err))
+                                                                        else {
+                                                                            asset.tags.push(tag);
+                                                                            if (index === array.length - 1) {
+                                                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                                                return res.json(returnSuccess(asset))
+                                                                            }
+                                                                        }
+                                                                    });
+                                                            })
+                                                        } else { // If asset has no tags
+                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                            return res.json(returnSuccess(asset))
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                    } else { // If asset has no supplier
+                                        if (req.body.location) { // If asset has location
+                                            Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                function(err, location) {
+                                                    if (err) return res.json(returnErr(err))
+                                                    else {
+                                                        asset.location.push(location);
+                                                        if (req.body.tags) { // If asset has tags
+                                                            req.body.tags.forEach(function(tag, index, array) {
+                                                                Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                    function(err, tag) {
+                                                                        if (err) return res.json(returnErr(err))
+                                                                        else {
+                                                                            asset.tags.push(tag);
+                                                                            if (index === array.length - 1) {
+                                                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                                                return res.json(returnSuccess(asset))
+                                                                            }
+                                                                        }
+                                                                    });
+                                                            })
+                                                        } else { // If asset has no tags
+                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                            return res.json(returnSuccess(asset))
+                                                        }
+                                                    }
+                                                });
+                                        } else { // If asset has no location
+                                            if (req.body.tags) { // If asset has tags
+                                                req.body.tags.forEach(function(tag, index, array) {
+                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                        function(err, tag) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                asset.tags.push(tag);
+                                                                if (index === array.length - 1) {
+                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                    return res.json(returnSuccess(asset))
+                                                                }
+                                                            }
+                                                        });
+                                                })
+                                            } else { // If asset has no tags
+                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                return res.json(returnSuccess(asset))
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                } else { // If asset has no company
+                    if (req.body.model) { // If asset has model
+                        Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true },
+                            function(err, model) {
+                                if (err) return res.json(returnErr(err))
+                                else {
+                                    asset.model.push(model);
+                                    if (req.body.supplier) { // If asset has supplier
+                                        Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                            function(err, supplier) {
+                                                if (err) return res.json(returnErr(err))
+                                                else {
+                                                    asset.supplier.push(supplier);
+                                                    if (req.body.location) { // If asset has location
+                                                        Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                            function(err, location) {
+                                                                if (err) return res.json(returnErr(err))
+                                                                else {
+                                                                    asset.location.push(location);
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        asset.tags.push(tag);
+                                                                                        if (index === array.length - 1) {
+                                                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                                                            return res.json(returnSuccess(asset))
+                                                                                        }
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If asset has no tags
+                                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                                        return res.json(returnSuccess(asset))
+                                                                    }
+                                                                }
+                                                            });
+                                                    } else { // If asset has no location
+                                                        if (req.body.tags) { // If asset has tags
+                                                            req.body.tags.forEach(function(tag, index, array) {
+                                                                Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                    function(err, tag) {
+                                                                        if (err) return res.json(returnErr(err))
+                                                                        else {
+                                                                            asset.tags.push(tag);
+                                                                            if (index === array.length - 1) {
+                                                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                                                return res.json(returnSuccess(asset))
+                                                                            }
+                                                                        }
+                                                                    });
+                                                            })
+                                                        } else { // If asset has no tags
+                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                            return res.json(returnSuccess(asset))
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                    } else { // If asset has no supplier
+                                        if (req.body.location) { // If asset has location
+                                            Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                function(err, location) {
+                                                    if (err) return res.json(returnErr(err))
+                                                    else {
+                                                        asset.location.push(location);
+                                                        if (req.body.tags) { // If asset has tags
+                                                            req.body.tags.forEach(function(tag, index, array) {
+                                                                Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                    function(err, tag) {
+                                                                        if (err) return res.json(returnErr(err))
+                                                                        else {
+                                                                            asset.tags.push(tag);
+                                                                            if (index === array.length - 1) {
+                                                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                                                return res.json(returnSuccess(asset))
+                                                                            }
+                                                                        }
+                                                                    });
+                                                            })
+                                                        } else { // If asset has no tags
+                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                            return res.json(returnSuccess(asset))
+                                                        }
+                                                    }
+                                                });
+                                        } else { // If asset has no location
+                                            if (req.body.tags) { // If asset has tags
+                                                req.body.tags.forEach(function(tag, index, array) {
+                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                        function(err, tag) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                asset.tags.push(tag);
+                                                                if (index === array.length - 1) {
+                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                    return res.json(returnSuccess(asset))
+                                                                }
+                                                            }
+                                                        });
+                                                })
+                                            } else { // If asset has no tags
+                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                return res.json(returnSuccess(asset))
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                    } else { // If asset has no model
+                        if (req.body.supplier) { // If asset has supplier
+                            Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                function(err, supplier) {
+                                    if (err) return res.json(returnErr(err))
+                                    else {
+                                        asset.supplier.push(supplier);
+                                        if (req.body.location) { // If asset has location
+                                            Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                function(err, location) {
+                                                    if (err) return res.json(returnErr(err))
+                                                    else {
+                                                        asset.location.push(location);
+                                                        if (req.body.tags) { // If asset has tags
+                                                            req.body.tags.forEach(function(tag, index, array) {
+                                                                Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                    function(err, tag) {
+                                                                        if (err) return res.json(returnErr(err))
+                                                                        else {
+                                                                            asset.tags.push(tag);
+                                                                            if (index === array.length - 1) {
+                                                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                                                return res.json(returnSuccess(asset))
+                                                                            }
+                                                                        }
+                                                                    });
+                                                            })
+                                                        } else { // If asset has no tags
+                                                            asset.save(function(error) { if (error) returnErr(error) });
+                                                            return res.json(returnSuccess(asset))
+                                                        }
+                                                    }
+                                                });
+                                        } else { // If asset has no location
+                                            if (req.body.tags) { // If asset has tags
+                                                req.body.tags.forEach(function(tag, index, array) {
+                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                        function(err, tag) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                asset.tags.push(tag);
+                                                                if (index === array.length - 1) {
+                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                    return res.json(returnSuccess(asset))
+                                                                }
+                                                            }
+                                                        });
+                                                })
+                                            } else { // If asset has no tags
+                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                return res.json(returnSuccess(asset))
+                                            }
+                                        }
+                                    }
+                                });
+                        } else { // If asset has no supplier
+                            if (req.body.location) { // If asset has location
+                                Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                    function(err, location) {
+                                        if (err) return res.json(returnErr(err))
+                                        else {
+                                            asset.location.push(location);
+                                            if (req.body.tags) { // If asset has tags
+                                                req.body.tags.forEach(function(tag, index, array) {
+                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                        function(err, tag) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                asset.tags.push(tag);
+                                                                if (index === array.length - 1) {
+                                                                    asset.save(function(error) { if (error) returnErr(error) });
+                                                                    return res.json(returnSuccess(asset))
+                                                                }
+                                                            }
+                                                        });
+                                                })
+                                            } else { // If asset has no tags
+                                                asset.save(function(error) { if (error) returnErr(error) });
+                                                return res.json(returnSuccess(asset))
+                                            }
+                                        }
+                                    });
+                            } else { // If asset has no location
+                                if (req.body.tags) { // If asset has tags
+                                    req.body.tags.forEach(function(tag, index, array) {
+                                        Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                            function(err, tag) {
+                                                if (err) return res.json(returnErr(err))
+                                                else {
+                                                    asset.tags.push(tag);
+                                                    if (index === array.length - 1) {
+                                                        asset.save(function(error) { if (error) returnErr(error) });
+                                                        return res.json(returnSuccess(asset))
+                                                    }
+                                                }
+                                            });
+                                    })
+                                } else { // If asset has no tags
+                                    asset.save(function(error) { if (error) returnErr(error) });
+                                    return res.json(returnSuccess(asset))
+                                }
+                            }
+                        }
+                    }
                 }
-            });
+            }
         }
-        return res.json({
-            "success": true,
-            "code": 200,
-            "errors": [],
-            "messages": [],
-            "result": null
-        });
     })
 }
 

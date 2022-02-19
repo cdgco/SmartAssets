@@ -10,7 +10,10 @@ module.exports = mongoose => {
             unique: true,
         },
         quantity: String,
-        location: String,
+        location: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Location"
+        }],
         type: [{
             type: mongoose.Schema.Types.ObjectId,
             ref: "Type"
@@ -34,7 +37,7 @@ module.exports = mongoose => {
         }],
         tags: [{
             type: mongoose.Schema.Types.ObjectId,
-            ref: "Tag"
+            ref: "Tags"
         }],
         customFields: {}
     }, {

@@ -149,7 +149,7 @@ import { getAsset } from "../getAsset.script";
 							var curCode = code
 							this.queryAsset(curCode).then((response) => {
 								if (response) this.$router.push("/assets/" +curCode);
-								else this.barcodeError();
+								else this.$router.push("/search/" +curCode);
 								curCode = ''
 							})
 						}

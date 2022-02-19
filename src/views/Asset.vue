@@ -151,7 +151,8 @@
 					this.spinning = !this.spinning;
 					this.fields.name = response.data.result.name
 					this.$emit('asset-name', this.fields.name)
-					JsBarcode("#barcode", response.data.result._id, {
+					var barcodeData = (response.data.result._id.length == 1) ? "0" + response.data.result._id : response.data.result._id;
+					JsBarcode("#barcode", barcodeData, {
 						format: "CODE128",
 						lineColor: "#262626",
 						width:5,

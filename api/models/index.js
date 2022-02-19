@@ -12,7 +12,8 @@ db.company = require("./company.model.js")(mongoose);
 db.manufacturer = require("./manufacturer.model.js")(mongoose);
 db.model = require("./model.model.js")(mongoose);
 db.supplier = require("./supplier.model.js")(mongoose);
-db.tag = require("./tag.model.js")(mongoose);
+db.tags = require("./tags.model.js")(mongoose);
+db.location = require("./location.model.js")(mongoose);
 db.type = require("./type.model.js")(mongoose);
 
 module.exports = db;
