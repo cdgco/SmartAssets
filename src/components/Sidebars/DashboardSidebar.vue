@@ -112,7 +112,7 @@
 </template>
 
 <script>
-import { getAsset } from "../getAsset.script";
+import { getAsset } from "../asset.script";
 
 	export default ({
 		props: {

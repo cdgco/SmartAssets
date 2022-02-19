@@ -87,7 +87,7 @@
 	import CardActiveConnections from "../components/Cards/CardActiveConnections"
 	import CardAssetNotes from "../components/Cards/CardAssetNotes"
 
-	import { getAsset } from "../components/getAsset.script";
+	import { getAsset } from "../components/asset.script";
 
 
 	// "Invoices" list data.

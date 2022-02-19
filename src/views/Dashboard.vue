@@ -130,7 +130,7 @@
 	// Order History card component.
 	import CardEventHistory from '../components/Cards/CardEventHistory' ;
 
-	import { getAssets } from "../components/getAssets.script";
+	import { getAssets } from "../components/asset.script";
 
 
 	// "Projects" table list of columns and their properties.

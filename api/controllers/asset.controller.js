@@ -21,8 +21,8 @@ function returnErr(err) {
     return {
         "success": false,
         "code": 500,
-        "errors": [err],
-        "messages": [err],
+        "errors": err,
+        "messages": err,
         "result": null
     };
 }
@@ -73,7 +73,7 @@ exports.create = (req, res) => {
                                                                 function(err, model) {
                                                                     if (err) return res.json(returnErr(err))
                                                                     else {
-                                                                        asset.model.push(model);
+                                                                        asset.assetModel.push(model);
                                                                         if (req.body.supplier) { // If asset has supplier
                                                                             Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
                                                                                 function(err, supplier) {
@@ -290,7 +290,7 @@ exports.create = (req, res) => {
                                                     function(err, model) {
                                                         if (err) return res.json(returnErr(err))
                                                         else {
-                                                            asset.model.push(model);
+                                                            asset.assetModel.push(model);
                                                             if (req.body.supplier) { // If asset has supplier
                                                                 Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
                                                                     function(err, supplier) {
@@ -514,7 +514,7 @@ exports.create = (req, res) => {
                                                     function(err, model) {
                                                         if (err) return res.json(returnErr(err))
                                                         else {
-                                                            asset.model.push(model);
+                                                            asset.assetModel.push(model);
                                                             if (req.body.supplier) { // If asset has supplier
                                                                 Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
                                                                     function(err, supplier) {
@@ -731,7 +731,7 @@ exports.create = (req, res) => {
                                         function(err, model) {
                                             if (err) return res.json(returnErr(err))
                                             else {
-                                                asset.model.push(model);
+                                                asset.assetModel.push(model);
                                                 if (req.body.supplier) { // If asset has supplier
                                                     Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
                                                         function(err, supplier) {
@@ -962,7 +962,7 @@ exports.create = (req, res) => {
                                                     function(err, model) {
                                                         if (err) return res.json(returnErr(err))
                                                         else {
-                                                            asset.model.push(model);
+                                                            asset.assetModel.push(model);
                                                             if (req.body.supplier) { // If asset has supplier
                                                                 Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
                                                                     function(err, supplier) {
@@ -1179,7 +1179,7 @@ exports.create = (req, res) => {
                                         function(err, model) {
                                             if (err) return res.json(returnErr(err))
                                             else {
-                                                asset.model.push(model);
+                                                asset.assetModel.push(model);
                                                 if (req.body.supplier) { // If asset has supplier
                                                     Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
                                                         function(err, supplier) {
@@ -1403,7 +1403,7 @@ exports.create = (req, res) => {
                                         function(err, model) {
                                             if (err) return res.json(returnErr(err))
                                             else {
-                                                asset.model.push(model);
+                                                asset.assetModel.push(model);
                                                 if (req.body.supplier) { // If asset has supplier
                                                     Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
                                                         function(err, supplier) {
@@ -1620,7 +1620,7 @@ exports.create = (req, res) => {
                             function(err, model) {
                                 if (err) return res.json(returnErr(err))
                                 else {
-                                    asset.model.push(model);
+                                    asset.assetModel.push(model);
                                     if (req.body.supplier) { // If asset has supplier
                                         Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
                                             function(err, supplier) {

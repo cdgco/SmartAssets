@@ -103,7 +103,7 @@
 
 	// "Projects" table component.
 	import CardAssetTable from '../components/Cards/CardAssetTable' ;
-	import { getAssets } from "../components/getAssets.script";
+	import { getAssets } from "../components/asset.script";
 
 
 	// "Projects" table list of columns and their properties.

@@ -77,7 +77,7 @@
 	import { login } from "../components/auth.script";
 
 	function hasErrors(fieldsError) {
-	return Object.keys(fieldsError).some(field => fieldsError[field]);
+		return Object.keys(fieldsError).some(field => fieldsError[field]);
 	}
 
 	export default ({
