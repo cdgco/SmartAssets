@@ -14,20 +14,80 @@
 					<a-col :span="24" class="mb-24">
 
 						<!-- Payment Methods Card -->
-						<AssetForm
-							:name="fields.name"
-							:type="fields.type"
-							:manufacturer="fields.manufacturer"
-							:model="fields.model"
-							:quantity="fields.quantity"
-							:serial="fields.serial"
-							:location="fields.location"
-							:supplier="fields.supplier"
-							:company="fields.company"
-						></AssetForm>
-						
-						<!-- Payment Methods Card -->
-
+						<a-card :bordered="false" class="header-solid h-full" :bodyStyle="{padding: 0,}">
+							<br>
+							<a-form :form="form" :label-col="{ span: 5 }" :wrapper-col="{ span: 12 }" :hideRequiredMark="true" @submit="handleSubmit">
+								<a-row>
+									<a-form-item label="Name">
+										<a-input id="name"
+											v-decorator="['name', { rules: [{ required: true, message: 'Asset name is required' }] }]"
+										/>
+									</a-form-item>
+								</a-row>
+								<a-row>
+									<a-form-item label="Type">
+										<a-input id="type" v-decorator="['type']"/>
+									</a-form-item>
+								</a-row>
+								<a-row>
+										<a-form-item label="Manufacturer">
+											<a-input id="manufacturer" v-decorator="['manufacturer']"/>
+										</a-form-item>
+										</a-row>
+								<a-row>
+									
+										<a-form-item label="Model">
+											<a-input id="model" v-decorator="['model']"/>
+										</a-form-item>
+									</a-row>
+								<a-row>
+										<a-form-item label="Quantity">
+											<a-input-number id="quantity" :min="0" v-decorator="['quantity']"/>
+										</a-form-item>
+									</a-row>
+								<a-row>
+										<a-form-item label="Serial">
+											<a-input id="serial" v-decorator="['serial']"/>
+										</a-form-item>
+									</a-row>
+								<a-row>
+										<a-form-item label="Location">
+											<a-input id="location" v-decorator="['location']"/>
+										</a-form-item>
+								</a-row>
+								<a-row>
+										<a-form-item label="Supplier">
+											<a-input id="supplier" v-decorator="['supplier']"/>
+										</a-form-item>
+									</a-row>
+								<a-row>
+										<a-form-item label="Company">
+											<a-input id="company" v-decorator="['company']"/>
+										</a-form-item>
+								</a-row>
+								
+								
+								<a-form-item :wrapper-col="{ span: 12, offset: 5 }">
+									<a-button type="primary" html-type="submit" style="margin-right: 15px;">
+										Submit
+									</a-button>
+									<a-button type="default" style="margin-right: 15px;">
+										Clone
+									</a-button>
+									<a-popconfirm
+										title="Are you sure?"
+										ok-text="Yes"
+										cancel-text="No"
+										@confirm="confirmDelete"
+									>
+										<a-button type="danger" >
+											Delete
+										</a-button>
+									</a-popconfirm>
+									
+								</a-form-item>
+							</a-form>
+						</a-card>
 					</a-col>
 				</a-row>
 			</a-col>
@@ -87,7 +147,7 @@
 	import CardActiveConnections from "../components/Cards/CardActiveConnections"
 	import CardAssetNotes from "../components/Cards/CardAssetNotes"
 
-	import { getAsset } from "../components/asset.script";
+	import { getAsset, deleteAsset } from "../components/asset.script";
 
 
 	// "Invoices" list data.
@@ -136,27 +196,29 @@
             var rawToken = JSON.parse(jsonToken)
             var accessToken = rawToken.accessToken
 			return {
+				formLayout: 'horizontal',
+				form: this.$form.createForm(this, { name: 'coordinated'}),
 
 				// Associating "Invoices" list data with its corresponding property.
 				invoiceData,
 				spinning: true,
 				accessToken: accessToken,
+				assetId: '',
 
 				fields: {
 					name: '',
-					type: '',
-					manufacturer: '',
-					model: '',
-					quantity: '',
-					serial: '',
-					location: '',
-					supplier: '',
-					company: '',
+					id: ''
 				},
 			
 			}
 		},
 		methods: {
+			error(message) {
+				this.$error({
+					title: 'Failed to delete asset',
+					content: message,
+				});
+			},
             async queryAsset() {
                 this.item = {
                     query: this.$route.params.id,
@@ -166,14 +228,16 @@
                 if (response.data.success) {
 					this.spinning = !this.spinning;
 					this.fields.name = response.data.result.name
-					this.fields.type = (response.data.result.type[0]) ? response.data.result.type[0].name : ''
-					this.fields.manufacturer = (response.data.result.manufacturer[0]) ? response.data.result.manufacturer[0].name : ''
-					this.fields.model = (response.data.result.assetModel[0]) ? response.data.result.assetModel[0].name : ''
-					this.fields.quantity = (response.data.result.quantity) ? response.data.result.quantity : ''
-					this.fields.serial = (response.data.result.serial) ? response.data.result.serial : ''
-					this.fields.location = (response.data.result.location[0]) ? response.data.result.location[0].name : ''
-					this.fields.supplier = (response.data.result.supplier[0]) ? response.data.result.supplier[0].name : ''
-					this.fields.company = (response.data.result.company[0]) ? response.data.result.company[0].name : ''
+					this.fields.id = response.data.result._id
+					this.form.setFieldsValue({ name: response.data.result.name })
+					this.form.setFieldsValue({ type: (response.data.result.type[0]) ? response.data.result.type[0].name : '' })
+					this.form.setFieldsValue({ manufacturer: (response.data.result.manufacturer[0]) ? response.data.result.manufacturer[0].name : '' })
+					this.form.setFieldsValue({ model: (response.data.result.assetModel[0]) ? response.data.result.assetModel[0].name : '' })
+					this.form.setFieldsValue({ quantity: (response.data.result.quantity) ? response.data.result.quantity : '' })
+					this.form.setFieldsValue({ serial: (response.data.result.serial) ? response.data.result.serial : '' })
+					this.form.setFieldsValue({ location: (response.data.result.location[0]) ? response.data.result.location[0].name : '' })
+					this.form.setFieldsValue({ supplier: (response.data.result.supplier[0]) ? response.data.result.supplier[0].name : '' })
+					this.form.setFieldsValue({ company: (response.data.result.company[0]) ? response.data.result.company[0].name : '' })
 					this.$emit('asset-name', this.fields.name)
 					var barcodeData = (String(response.data.result._id).length == 1) ? "0" + response.data.result._id : response.data.result._id;
 					JsBarcode("#barcode", barcodeData, {
@@ -186,6 +250,26 @@
                     this.$router.push({ path: `/assets/?err=a404` });
                 }
             },
+			async confirmDelete() {
+				 this.item = {
+                    id: this.$route.params.id,
+					token: this.accessToken
+                };
+                const response = await deleteAsset(this.item);
+                if (response.data.success) {
+					this.$router.push({ path: `/assets/?msg=deleted` });
+                } else {
+                    this.error(response.data.errors.errors.name.message)
+                }
+			},
+			handleSubmit(e) {
+				e.preventDefault();
+				this.form.validateFields((err, values) => {
+					if (!err) {
+					// console.log('Received values of form: ', values);
+					}
+				});
+			}
         },
 		created() {
 			this.queryAsset()

@@ -151,18 +151,7 @@
 			},
 		},
 		methods: {
-			confirmDelete(e) {
-				console.log(e);
-				this.$message.success('Click on Yes');
-			},
-			handleSubmit(e) {
-				e.preventDefault();
-				this.form.validateFields((err, values) => {
-					if (!err) {
-					// console.log('Received values of form: ', values);
-					}
-				});
-			}
+			
 		},
 	};
 

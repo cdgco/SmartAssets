@@ -53,15 +53,23 @@
                                 {{ tag.name }}
                             </a-tag>
                         </span>
-                        <span slot="action">
-                            <a style="padding-right: 10px;"> 
-                                <a-tooltip>
-                                    <template slot="title">
-                                    delete
-                                    </template>
-                                    <a-icon type="delete" />
-                                </a-tooltip>
-                            </a>
+                        <span slot="action" slot-scope="action">
+                            <a-popconfirm
+                                title="Are you sure?"
+                                ok-text="Yes"
+                                cancel-text="No"
+                                @confirm="confirmDelete(action.id)"
+                            >
+                                    <a style="padding-right: 10px;"> 
+                                    <a-tooltip>
+                                        <template slot="title">
+                                        delete
+                                        </template>
+                                        <a-icon type="delete" />
+                                    </a-tooltip>
+                                </a>
+                            </a-popconfirm>
+                           
                             <a>
                                 <a-tooltip>
                                     <template slot="title">
@@ -103,7 +111,7 @@
 
 	// "Projects" table component.
 	import CardAssetTable from '../components/Cards/CardAssetTable' ;
-	import { getAssets } from "../components/asset.script";
+	import { getAssets, deleteAsset } from "../components/asset.script";
 
 
 	// "Projects" table list of columns and their properties.
@@ -156,6 +164,7 @@
             title: 'Action',
             key: 'operation',
             fixed: 'right',
+            dataIndex: 'tableData',
             scopedSlots: { customRender: 'action' },
         },
 	];
@@ -186,6 +195,25 @@
 			}
 		},
 		methods: {
+            error(message) {
+				this.$error({
+					title: 'Failed to delete asset',
+					content: message,
+				});
+			},
+            async confirmDelete(id) {
+				 this.item = {
+                    id: id,
+					token: this.accessToken
+                };
+                const response = await deleteAsset(this.item);
+                if (response.data.success) {
+                    this.queryAsset()
+                    this.$message.success('Asset Deleted Successfuly');
+                } else {
+                    this.error(response.data.errors[0])
+                }
+			},
             async queryAsset() {
                 this.item = {
                     page: this.current,

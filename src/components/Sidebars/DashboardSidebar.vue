@@ -223,7 +223,7 @@ import { getAsset } from "../asset.script";
 		},
 		created() {
 			if (this.$route.query.err == "a404") {
-				this.$toast.error("Asset Not Found", {
+				this.$toast.error("Not Found", {
 				position: "bottom-left",
 				timeout: 5000,
 				closeOnClick: true,
@@ -234,9 +234,12 @@ import { getAsset } from "../asset.script";
 				showCloseButtonOnHover: true,
 				hideProgressBar: false,
 				closeButton: "button",
-				icon: false,
+				icon: true,
 				rtl: false
 				});
+			}
+			if (this.$route.query.msg == "deleted") {
+				this.$message.success('Asset Deleted Successfuly');
 			}
 		}
 	})
