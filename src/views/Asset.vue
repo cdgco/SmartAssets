@@ -16,6 +16,14 @@
 						<!-- Payment Methods Card -->
 						<AssetForm
 							:name="fields.name"
+							:type="fields.type"
+							:manufacturer="fields.manufacturer"
+							:model="fields.model"
+							:quantity="fields.quantity"
+							:serial="fields.serial"
+							:location="fields.location"
+							:supplier="fields.supplier"
+							:company="fields.company"
 						></AssetForm>
 						
 						<!-- Payment Methods Card -->
@@ -136,6 +144,14 @@
 
 				fields: {
 					name: '',
+					type: '',
+					manufacturer: '',
+					model: '',
+					quantity: '',
+					serial: '',
+					location: '',
+					supplier: '',
+					company: '',
 				},
 			
 			}
@@ -150,6 +166,14 @@
                 if (response.data.success) {
 					this.spinning = !this.spinning;
 					this.fields.name = response.data.result.name
+					this.fields.type = (response.data.result.type[0]) ? response.data.result.type[0].name : ''
+					this.fields.manufacturer = (response.data.result.manufacturer[0]) ? response.data.result.manufacturer[0].name : ''
+					this.fields.model = (response.data.result.assetModel[0]) ? response.data.result.assetModel[0].name : ''
+					this.fields.quantity = (response.data.result.quantity) ? response.data.result.quantity : ''
+					this.fields.serial = (response.data.result.serial) ? response.data.result.serial : ''
+					this.fields.location = (response.data.result.location[0]) ? response.data.result.location[0].name : ''
+					this.fields.supplier = (response.data.result.supplier[0]) ? response.data.result.supplier[0].name : ''
+					this.fields.company = (response.data.result.company[0]) ? response.data.result.company[0].name : ''
 					this.$emit('asset-name', this.fields.name)
 					var barcodeData = (response.data.result._id.length == 1) ? "0" + response.data.result._id : response.data.result._id;
 					JsBarcode("#barcode", barcodeData, {

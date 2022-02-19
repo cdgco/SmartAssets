@@ -1860,7 +1860,13 @@ exports.findAll = (req, res) => {
     Asset.countDocuments(dynCondition)
         .then(data => {
             Asset.find(dynCondition)
-                .populate("type", "name")
+                .populate("manufacturer")
+                .populate("type")
+                .populate("company")
+                .populate("location")
+                .populate("model")
+                .populate("supplier")
+                .populate("tags")
                 .limit(parseInt(req.query.limit) || 0)
                 .skip(parseInt(req.query.skip) || 0)
                 .sort(dynSort)
@@ -1899,6 +1905,13 @@ exports.findOne = (req, res) => {
     const id = req.params.id;
 
     Asset.findById(id)
+        .populate("manufacturer")
+        .populate("type")
+        .populate("company")
+        .populate("location")
+        .populate("model")
+        .populate("supplier")
+        .populate("tags")
         .then(data => {
             if (!data) {
                 return res.json({
@@ -2026,6 +2039,13 @@ exports.search = (req, res) => {
     var searchCount = 0;
     if (!isNaN(req.query.q)) {
         Asset.findById(req.query.q)
+            .populate("manufacturer")
+            .populate("type")
+            .populate("company")
+            .populate("location")
+            .populate("model")
+            .populate("supplier")
+            .populate("tags")
             .then(data => {
                 if (!data) {
                     Asset.esCount({
@@ -2143,6 +2163,13 @@ exports.nativeSearch = (req, res) => {
     var searchCount = 0;
     if (!isNaN(req.query.q)) {
         Asset.findById(req.query.q)
+            .populate("manufacturer")
+            .populate("type")
+            .populate("company")
+            .populate("location")
+            .populate("model")
+            .populate("supplier")
+            .populate("tags")
             .then(data => {
                 if (!data) {
                     elasticClient.count({

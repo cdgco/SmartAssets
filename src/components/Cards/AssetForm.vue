@@ -13,43 +13,43 @@
 			</a-row>
 			<a-row>
 				<a-form-item label="Type">
-					<a-input id="type"/>
+					<a-input id="type" v-decorator="['type']"/>
 				</a-form-item>
 			</a-row>
 			<a-row>
 					<a-form-item label="Manufacturer">
-						<a-input id="manufacturer"/>
+						<a-input id="manufacturer" v-decorator="['manufacturer']"/>
 					</a-form-item>
 					</a-row>
 			<a-row>
 				
 					<a-form-item label="Model">
-						<a-input id="model"/>
+						<a-input id="model" v-decorator="['model']"/>
 					</a-form-item>
 				</a-row>
 			<a-row>
 					<a-form-item label="Quantity">
-						<a-input-number id="quantity" :min="0" />
+						<a-input-number id="quantity" :min="0" v-decorator="['quantity']"/>
 					</a-form-item>
 				</a-row>
 			<a-row>
 					<a-form-item label="Serial">
-						<a-input id="serial" />
+						<a-input id="serial" v-decorator="['serial']"/>
 					</a-form-item>
 				</a-row>
 			<a-row>
 					<a-form-item label="Location">
-						<a-input id="location"/>
+						<a-input id="location" v-decorator="['location']"/>
 					</a-form-item>
 			</a-row>
 			<a-row>
 					<a-form-item label="Supplier">
-						<a-input id="supplier"/>
+						<a-input id="supplier" v-decorator="['supplier']"/>
 					</a-form-item>
 				</a-row>
 			<a-row>
 					<a-form-item label="Company">
-						<a-input id="company"/>
+						<a-input id="company" v-decorator="['company']"/>
 					</a-form-item>
 			</a-row>
 			
@@ -82,7 +82,7 @@
 <script>
 
 	export default {
-		props: ['name'],
+		props: ['name', 'type', 'manufacturer', 'model', 'quantity', 'serial', 'location', 'supplier', 'company'],
 		data() {
 			return {
 			formLayout: 'horizontal',
@@ -92,6 +92,30 @@
 						name: this.$form.createFormField({
 							value: this.name.value,
 						}),
+						type: this.$form.createFormField({
+							value: this.type.value,
+						}),
+						manufacturer: this.$form.createFormField({
+							value: this.manufacturer.value,
+						}),
+						model: this.$form.createFormField({
+							value: this.model.value,
+						}),
+						quantity: this.$form.createFormField({
+							value: this.quantity.value,
+						}),
+						serial: this.$form.createFormField({
+							value: this.serial.value,
+						}),
+						location: this.$form.createFormField({
+							value: this.location.value,
+						}),
+						supplier: this.$form.createFormField({
+							value: this.supplier.value,
+						}),
+						company: this.$form.createFormField({
+							value: this.company.value,
+						}),
 					}; 
 				}, 
 				}),
@@ -100,6 +124,30 @@
 		watch: {
 			name(val) {
 				this.form.setFieldsValue({ name: val });
+			},
+			type(val) {
+				this.form.setFieldsValue({ type: val });
+			},
+			manufacturer(val) {
+				this.form.setFieldsValue({ manufacturer: val });
+			},
+			model(val) {
+				this.form.setFieldsValue({ model: val });
+			},
+			quantity(val) {
+				this.form.setFieldsValue({ quantity: val });
+			},
+			serial(val) {
+				this.form.setFieldsValue({ serial: val });
+			},
+			location(val) {
+				this.form.setFieldsValue({ location: val });
+			},
+			supplier(val) {
+				this.form.setFieldsValue({ supplier: val });
+			},
+			company(val) {
+				this.form.setFieldsValue({ company: val });
 			},
 		},
 		methods: {
