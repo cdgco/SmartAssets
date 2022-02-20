@@ -5,5 +5,5 @@ module.exports = mongoose => {
             name: String,
         }, { timestamps: false })
     );
-    return Location
+    return Location;
 };
