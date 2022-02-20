@@ -2431,7 +2431,7 @@ exports.nativeSearch = (req, res) => {
                                 multi_match: {
                                     query: req.query.q,
                                     fuzziness: 4,
-                                    fields: ["name", "location", "serial", "assetModel", "tags", "customFields"],
+                                    fields: ["name", "location.name", "type.name", "manufacturer.name", "assetModel.name", "tags", "customFields"],
                                     lenient: true
                                 }
                             }
@@ -2456,7 +2456,7 @@ exports.nativeSearch = (req, res) => {
                                     multi_match: {
                                         query: req.query.q,
                                         fuzziness: 4,
-                                        fields: ["name", "location", "serial", "assetModel", "tags", "customFields"],
+                                        fields: ["name", "location.name", "type.name", "manufacturer.name", "assetModel.name", "tags", "customFields"],
                                         lenient: true
                                     }
                                 }
@@ -2525,7 +2525,7 @@ exports.nativeSearch = (req, res) => {
                     multi_match: {
                         query: req.query.q,
                         fuzziness: 4,
-                        fields: ["name", "location", "serial", "assetModel", "tags", "customFields"],
+                        fields: ["name", "location.name", "type.name", "manufacturer.name", "assetModel.name", "tags", "customFields"],
                         lenient: true
                     }
                 }
@@ -2550,7 +2550,7 @@ exports.nativeSearch = (req, res) => {
                         multi_match: {
                             query: req.query.q,
                             fuzziness: 4,
-                            fields: ["name", "location", "serial", "assetModel", "tags", "customFields"],
+                            fields: ["name", "location.name", "type.name", "manufacturer.name", "assetModel.name", "tags", "customFields"],
                             lenient: true
                         }
                     }
