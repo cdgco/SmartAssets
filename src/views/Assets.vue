@@ -31,22 +31,22 @@
                             <router-link :to="{ path: '/assets/' + name.id }">{{ name.name }}</router-link>
                         </span>
                         <span slot="types" slot-scope="types">
-                            <p v-for="type in types" :key="type">{{ type.name }}</p>
+                            <span v-for="type in types" :key="type">{{ type.name }}</span>
                         </span>
                         <span slot="manufacturers" slot-scope="manufacturers">
-                            <p v-for="manufacturer in manufacturers" :key="manufacturer">{{ manufacturer.name }}</p>
+                            <span v-for="manufacturer in manufacturers" :key="manufacturer">{{ manufacturer.name }}</span>
                         </span>
                         <span slot="suppliers" slot-scope="suppliers">
-                            <p v-for="supplier in suppliers" :key="supplier">{{ supplier.name }}</p>
+                            <span v-for="supplier in suppliers" :key="supplier">{{ supplier.name }}</span>
                         </span>
                         <span slot="companies" slot-scope="companies">
-                            <p v-for="company in companies" :key="company">{{ company.name }}</p>
+                            <span v-for="company in companies" :key="company">{{ company.name }}</span>
                         </span>
                         <span slot="models" slot-scope="models">
-                            <p v-for="model in models" :key="model">{{ model.name }}</p>
+                            <span v-for="model in models" :key="model">{{ model.name }}</span>
                         </span>
                         <span slot="locations" slot-scope="locations">
-                            <p v-for="location in locations" :key="location">{{ location.name }}</p>
+                            <span v-for="location in locations" :key="location">{{ location.name }}</span>
                         </span>
                         <span slot="tags" slot-scope="tags">
                             <a-tag

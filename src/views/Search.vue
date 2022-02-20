@@ -32,22 +32,22 @@
                             <router-link :to="{ path: '/assets/'+name.id, }">{{ name.name }}</router-link>
                         </span>
                         <span slot="types" slot-scope="types">
-                            <p v-for="type in types" :key="type">{{ type.name }}</p>
+                            <span v-for="type in types" :key="type">{{ type.name }}</span>
                         </span>
                         <span slot="manufacturers" slot-scope="manufacturers">
-                            <p v-for="manufacturer in manufacturers" :key="manufacturer">{{ manufacturer.name }}</p>
+                            <span v-for="manufacturer in manufacturers" :key="manufacturer">{{ manufacturer.name }}</span>
                         </span>
                         <span slot="suppliers" slot-scope="suppliers">
-                            <p v-for="supplier in suppliers" :key="supplier">{{ supplier.name }}</p>
+                            <span v-for="supplier in suppliers" :key="supplier">{{ supplier.name }}</span>
                         </span>
                         <span slot="companies" slot-scope="companies">
-                            <p v-for="company in companies" :key="company">{{ company.name }}</p>
+                            <span v-for="company in companies" :key="company">{{ company.name }}</span>
                         </span>
                         <span slot="models" slot-scope="models">
-                            <p v-for="model in models" :key="model">{{ model.name }}</p>
+                            <span v-for="model in models" :key="model">{{ model.name }}</span>
                         </span>
                         <span slot="locations" slot-scope="locations">
-                            <p v-for="location in locations" :key="location">{{ location.name }}</p>
+                            <span v-for="location in locations" :key="location">{{ location.name }}</span>
                         </span>
                         <span slot="tags" slot-scope="tags">
                             <a-tag
@@ -57,32 +57,35 @@
                                 {{ tag.name }}
                             </a-tag>
                         </span>
-                        <span slot="action">
-                            <a style="padding-right: 10px;"> 
-                                <a-tooltip>
-                                    <template slot="title">
-                                    delete
-                                    </template>
-                                    <a-icon type="delete" />
-                                </a-tooltip>
-                            </a>
-                            <a>
-                                <a-tooltip>
-                                    <template slot="title">
-                                    duplicate
-                                    </template>
-                                    <a-icon type="copy" />
-                                </a-tooltip>
-                            </a>
+                        <span slot="action" slot-scope="action">
+                            <a-popconfirm
+                                v-if="tableData.length"
+                                title="Are you sure?"
+                                ok-text="Yes"
+                                cancel-text="No"
+                                @confirm="confirmDelete(action)"
+                            >
+                                <a style="padding-right: 10px;"> 
+                                    <a-tooltip>
+                                        <template slot="title">
+                                        delete
+                                        </template>
+                                        <a-icon type="delete" />
+                                    </a-tooltip>
+                                </a>
+                            </a-popconfirm>
+                            <a v-if="tableData.length">
+                                    <a-tooltip>
+                                        <template slot="title">
+                                        duplicate
+                                        </template>
+                                        <a-icon type="copy" />
+                                    </a-tooltip>
+                                </a>
                         </span>
                     </a-table>
                 </a-card>
-				<!-- / Projects Table Column -->
-
 			</a-col>
-			<!-- / Projects Table Column -->
-            
-
 		</a-row>
         <a-row type="flex" align="middle" style="justify-content:center; margin:3%">
 				<a-col :span="24">
@@ -108,6 +111,7 @@
 	// "Projects" table component.
 	import CardSearchResults from '../components/Cards/CardSearchResults' ;
     import { search } from "../components/search.script";
+    import { deleteAsset } from "../components/asset.script";
 	
 	// "Projects" table list of columns and their properties.
 	const columns = [
@@ -158,8 +162,8 @@
 		},
         {
             title: 'Action',
-            key: 'operation',
             fixed: 'right',
+            dataIndex: '_source.id',
             scopedSlots: { customRender: 'action' },
         },
         
@@ -197,6 +201,26 @@
 			}
 		},
         methods: {
+            error(message) {
+				this.$error({
+					title: 'Failed to delete asset',
+					content: message,
+				});
+			},
+            async confirmDelete(id) {
+				 this.item = {
+                    id: id,
+					token: this.accessToken
+                };
+                const response = await deleteAsset(this.item);
+                if (response.data.success) {
+                    this.$message.success('Asset Deleted Successfuly');
+                    const dataSource = this.tableData;
+                    this.tableData = dataSource.filter(item => item._id != id);
+                } else {
+                    this.error(response.data.errors[0])
+                }
+			},
             async querySearch() {
                 this.item = {
                     query: this.query,
@@ -211,7 +235,6 @@
                         this.$router.push("/assets/" +response.data.result.hits.hits[0]._id);
                     }
                     this.tableData = response.data.result.hits.hits
-                    console.log(this.tableData)
                     this.numResults = response.data.result.count
                     this.countWord = (response.data.result.count == 1) ? "result" : "results"
                     this.titleColon = (response.data.result.count > 0) ? ":" : ""
