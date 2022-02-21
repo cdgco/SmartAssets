@@ -9,6 +9,7 @@ const Supplier = db.supplier;
 const Tags = db.tags;
 const { Client } = require('@elastic/elasticsearch')
 const elasticConfig = require("../../elastic.config.js");
+const { type } = require("../models");
 const elasticClient = new Client({
     node: elasticConfig.protocol + "://" + elasticConfig.host + ":" + elasticConfig.port,
     auth: {
@@ -2194,11 +2195,8 @@ exports.findOne = (req, res) => {
         });
 };
 
-// Update a asset identified by the id in the request
-exports.update = (req, res) => {
-    const id = req.params.id;
-
-    Asset.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
+function updateAsset(id, dynUpdate, res) {
+    Asset.findByIdAndUpdate(id, dynUpdate, { useFindAndModify: false })
         .then(data => {
             if (!data) {
                 return res.json({
@@ -2227,6 +2225,1482 @@ exports.update = (req, res) => {
                 "result": null
             });
         });
+}
+
+// tags
+// Update a asset identified by the id in the request
+exports.update = (req, res) => {
+    const id = req.params.id;
+    var dynUpdate = {}
+    if (req.body.name) { dynUpdate.name = req.body.name }
+    if (req.body.quantity) { dynUpdate.quantity = req.body.quantity }
+    if (req.body.serial) { dynUpdate.serial = req.body.serial }
+
+    if (req.body.type) { // If type updated
+        Type.findOneAndUpdate({ name: req.body.type }, { name: req.body.type }, { new: true, upsert: true },
+            function(err, data) {
+                if (err) return res.json(returnErr(err))
+                dynUpdate.type = [data._id]
+                if (req.body.manufacturer) { // If manufacturer updated
+                    Manufacturer.findOneAndUpdate({ name: req.body.manufacturer }, { name: req.body.manufacturer }, { new: true, upsert: true },
+                        function(err, data) {
+                            if (err) return res.json(returnErr(err))
+                            dynUpdate.manufacturer = [data._id]
+                            if (req.body.company) { // If company updated
+                                Company.findOneAndUpdate({ name: req.body.company }, { name: req.body.company }, { new: true, upsert: true },
+                                    function(err, data) {
+                                        if (err) return res.json(returnErr(err))
+                                        dynUpdate.company = [data._id]
+                                        if (req.body.model) { // If model updated
+                                            Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true },
+                                                function(err, data) {
+                                                    if (err) return res.json(returnErr(err))
+                                                    dynUpdate.assetModel = [data._id]
+                                                    if (req.body.supplier) { // If suppleir updated
+                                                        Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                                            function(err, data) {
+                                                                if (err) return res.json(returnErr(err))
+                                                                dynUpdate.supplier = [data._id]
+                                                                if (req.body.location) { // If location updated
+                                                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                                        function(err, data) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            dynUpdate.location = [data._id]
+                                                                            if (req.body.tags) { // If asset has tags
+                                                                                dynUpdate.tags = []
+                                                                                req.body.tags.forEach(function(tag, index, array) {
+                                                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                        function(err, tag) {
+                                                                                            if (err) return res.json(returnErr(err))
+                                                                                            else {
+                                                                                                dynUpdate.tags.push(tag);
+                                                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                                            }
+                                                                                        });
+                                                                                })
+                                                                            } else { // If tags not updated
+                                                                                updateAsset(id, dynUpdate, res)
+                                                                            }
+                                                                        });
+                                                                } else { // If location not updated
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        dynUpdate.tags = []
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        dynUpdate.tags.push(tag);
+                                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If tags not updated
+                                                                        updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                }
+                                                            });
+                                                    } else { // If supplier not updated
+                                                        if (req.body.location) { // If location updated
+                                                            Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                                function(err, data) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    dynUpdate.location = [data._id]
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        dynUpdate.tags = []
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        dynUpdate.tags.push(tag);
+                                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If tags not updated
+                                                                        updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                });
+                                                        } else { // If location not updated
+                                                            if (req.body.tags) { // If asset has tags
+                                                                dynUpdate.tags = []
+                                                                req.body.tags.forEach(function(tag, index, array) {
+                                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                        function(err, tag) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            else {
+                                                                                dynUpdate.tags.push(tag);
+                                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                            }
+                                                                        });
+                                                                })
+                                                            } else { // If tags not updated
+                                                                updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        }
+                                                    }
+                                                });
+                                        } else { // If model not updated
+                                            if (req.body.supplier) { // If suppleir updated
+                                                Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                                    function(err, data) {
+                                                        if (err) return res.json(returnErr(err))
+                                                        dynUpdate.supplier = [data._id]
+                                                        if (req.body.location) { // If location updated
+                                                            Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                                function(err, data) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    dynUpdate.location = [data._id]
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        dynUpdate.tags = []
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        dynUpdate.tags.push(tag);
+                                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If tags not updated
+                                                                        updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                });
+                                                        } else { // If location not updated
+                                                            if (req.body.tags) { // If asset has tags
+                                                                dynUpdate.tags = []
+                                                                req.body.tags.forEach(function(tag, index, array) {
+                                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                        function(err, tag) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            else {
+                                                                                dynUpdate.tags.push(tag);
+                                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                            }
+                                                                        });
+                                                                })
+                                                            } else { // If tags not updated
+                                                                updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        }
+                                                    });
+                                            } else { // If supplier not updated
+                                                if (req.body.location) { // If location updated
+                                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                        function(err, data) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            dynUpdate.location = [data._id]
+                                                            if (req.body.tags) { // If asset has tags
+                                                                dynUpdate.tags = []
+                                                                req.body.tags.forEach(function(tag, index, array) {
+                                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                        function(err, tag) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            else {
+                                                                                dynUpdate.tags.push(tag);
+                                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                            }
+                                                                        });
+                                                                })
+                                                            } else { // If tags not updated
+                                                                updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        });
+                                                } else { // If location not updated
+                                                    if (req.body.tags) { // If asset has tags
+                                                        dynUpdate.tags = []
+                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                function(err, tag) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    else {
+                                                                        dynUpdate.tags.push(tag);
+                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                });
+                                                        })
+                                                    } else { // If tags not updated
+                                                        updateAsset(id, dynUpdate, res)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    });
+                            } else { // If company not updated
+                                if (req.body.model) { // If model updated
+                                    Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true },
+                                        function(err, data) {
+                                            if (err) return res.json(returnErr(err))
+                                            dynUpdate.assetModel = [data._id]
+                                            if (req.body.supplier) { // If suppleir updated
+                                                Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                                    function(err, data) {
+                                                        if (err) return res.json(returnErr(err))
+                                                        dynUpdate.supplier = [data._id]
+                                                        if (req.body.location) { // If location updated
+                                                            Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                                function(err, data) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    dynUpdate.location = [data._id]
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        dynUpdate.tags = []
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        dynUpdate.tags.push(tag);
+                                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If tags not updated
+                                                                        updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                });
+                                                        } else { // If location not updated
+                                                            if (req.body.tags) { // If asset has tags
+                                                                dynUpdate.tags = []
+                                                                req.body.tags.forEach(function(tag, index, array) {
+                                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                        function(err, tag) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            else {
+                                                                                dynUpdate.tags.push(tag);
+                                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                            }
+                                                                        });
+                                                                })
+                                                            } else { // If tags not updated
+                                                                updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        }
+                                                    });
+                                            } else { // If supplier not updated
+                                                if (req.body.location) { // If location updated
+                                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                        function(err, data) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            dynUpdate.location = [data._id]
+                                                            if (req.body.tags) { // If asset has tags
+                                                                dynUpdate.tags = []
+                                                                req.body.tags.forEach(function(tag, index, array) {
+                                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                        function(err, tag) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            else {
+                                                                                dynUpdate.tags.push(tag);
+                                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                            }
+                                                                        });
+                                                                })
+                                                            } else { // If tags not updated
+                                                                updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        });
+                                                } else { // If location not updated
+                                                    if (req.body.tags) { // If asset has tags
+                                                        dynUpdate.tags = []
+                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                function(err, tag) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    else {
+                                                                        dynUpdate.tags.push(tag);
+                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                });
+                                                        })
+                                                    } else { // If tags not updated
+                                                        updateAsset(id, dynUpdate, res)
+                                                    }
+                                                }
+                                            }
+                                        });
+                                } else { // If model not updated
+                                    if (req.body.supplier) { // If suppleir updated
+                                        Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                            function(err, data) {
+                                                if (err) return res.json(returnErr(err))
+                                                dynUpdate.supplier = [data._id]
+                                                if (req.body.location) { // If location updated
+                                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                        function(err, data) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            dynUpdate.location = [data._id]
+                                                            if (req.body.tags) { // If asset has tags
+                                                                dynUpdate.tags = []
+                                                                req.body.tags.forEach(function(tag, index, array) {
+                                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                        function(err, tag) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            else {
+                                                                                dynUpdate.tags.push(tag);
+                                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                            }
+                                                                        });
+                                                                })
+                                                            } else { // If tags not updated
+                                                                updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        });
+                                                } else { // If location not updated
+                                                    if (req.body.tags) { // If asset has tags
+                                                        dynUpdate.tags = []
+                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                function(err, tag) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    else {
+                                                                        dynUpdate.tags.push(tag);
+                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                });
+                                                        })
+                                                    } else { // If tags not updated
+                                                        updateAsset(id, dynUpdate, res)
+                                                    }
+                                                }
+                                            });
+                                    } else { // If supplier not updated
+                                        if (req.body.location) { // If location updated
+                                            Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                function(err, data) {
+                                                    if (err) return res.json(returnErr(err))
+                                                    dynUpdate.location = [data._id]
+                                                    if (req.body.tags) { // If asset has tags
+                                                        dynUpdate.tags = []
+                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                function(err, tag) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    else {
+                                                                        dynUpdate.tags.push(tag);
+                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                });
+                                                        })
+                                                    } else { // If tags not updated
+                                                        updateAsset(id, dynUpdate, res)
+                                                    }
+                                                });
+                                        } else { // If location not updated
+                                            if (req.body.tags) { // If asset has tags
+                                                dynUpdate.tags = []
+                                                req.body.tags.forEach(function(tag, index, array) {
+                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                        function(err, tag) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                dynUpdate.tags.push(tag);
+                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        });
+                                                })
+                                            } else { // If tags not updated
+                                                updateAsset(id, dynUpdate, res)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                } else { // If manufacturer not updated
+                    if (req.body.company) { // If company updated
+                        Company.findOneAndUpdate({ name: req.body.company }, { name: req.body.company }, { new: true, upsert: true },
+                            function(err, data) {
+                                if (err) return res.json(returnErr(err))
+                                dynUpdate.company = [data._id]
+                                if (req.body.model) { // If model updated
+                                    Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true },
+                                        function(err, data) {
+                                            if (err) return res.json(returnErr(err))
+                                            dynUpdate.assetModel = [data._id]
+                                            if (req.body.supplier) { // If suppleir updated
+                                                Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                                    function(err, data) {
+                                                        if (err) return res.json(returnErr(err))
+                                                        dynUpdate.supplier = [data._id]
+                                                        if (req.body.location) { // If location updated
+                                                            Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                                function(err, data) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    dynUpdate.location = [data._id]
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        dynUpdate.tags = []
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        dynUpdate.tags.push(tag);
+                                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If tags not updated
+                                                                        updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                });
+                                                        } else { // If location not updated
+                                                            if (req.body.tags) { // If asset has tags
+                                                                dynUpdate.tags = []
+                                                                req.body.tags.forEach(function(tag, index, array) {
+                                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                        function(err, tag) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            else {
+                                                                                dynUpdate.tags.push(tag);
+                                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                            }
+                                                                        });
+                                                                })
+                                                            } else { // If tags not updated
+                                                                updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        }
+                                                    });
+                                            } else { // If supplier not updated
+                                                if (req.body.location) { // If location updated
+                                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                        function(err, data) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            dynUpdate.location = [data._id]
+                                                            if (req.body.tags) { // If asset has tags
+                                                                dynUpdate.tags = []
+                                                                req.body.tags.forEach(function(tag, index, array) {
+                                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                        function(err, tag) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            else {
+                                                                                dynUpdate.tags.push(tag);
+                                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                            }
+                                                                        });
+                                                                })
+                                                            } else { // If tags not updated
+                                                                updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        });
+                                                } else { // If location not updated
+                                                    if (req.body.tags) { // If asset has tags
+                                                        dynUpdate.tags = []
+                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                function(err, tag) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    else {
+                                                                        dynUpdate.tags.push(tag);
+                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                });
+                                                        })
+                                                    } else { // If tags not updated
+                                                        updateAsset(id, dynUpdate, res)
+                                                    }
+                                                }
+                                            }
+                                        });
+                                } else { // If model not updated
+                                    if (req.body.supplier) { // If suppleir updated
+                                        Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                            function(err, data) {
+                                                if (err) return res.json(returnErr(err))
+                                                dynUpdate.supplier = [data._id]
+                                                if (req.body.location) { // If location updated
+                                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                        function(err, data) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            dynUpdate.location = [data._id]
+                                                            if (req.body.tags) { // If asset has tags
+                                                                dynUpdate.tags = []
+                                                                req.body.tags.forEach(function(tag, index, array) {
+                                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                        function(err, tag) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            else {
+                                                                                dynUpdate.tags.push(tag);
+                                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                            }
+                                                                        });
+                                                                })
+                                                            } else { // If tags not updated
+                                                                updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        });
+                                                } else { // If location not updated
+                                                    if (req.body.tags) { // If asset has tags
+                                                        dynUpdate.tags = []
+                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                function(err, tag) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    else {
+                                                                        dynUpdate.tags.push(tag);
+                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                });
+                                                        })
+                                                    } else { // If tags not updated
+                                                        updateAsset(id, dynUpdate, res)
+                                                    }
+                                                }
+                                            });
+                                    } else { // If supplier not updated
+                                        if (req.body.location) { // If location updated
+                                            Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                function(err, data) {
+                                                    if (err) return res.json(returnErr(err))
+                                                    dynUpdate.location = [data._id]
+                                                    if (req.body.tags) { // If asset has tags
+                                                        dynUpdate.tags = []
+                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                function(err, tag) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    else {
+                                                                        dynUpdate.tags.push(tag);
+                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                });
+                                                        })
+                                                    } else { // If tags not updated
+                                                        updateAsset(id, dynUpdate, res)
+                                                    }
+                                                });
+                                        } else { // If location not updated
+                                            if (req.body.tags) { // If asset has tags
+                                                dynUpdate.tags = []
+                                                req.body.tags.forEach(function(tag, index, array) {
+                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                        function(err, tag) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                dynUpdate.tags.push(tag);
+                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        });
+                                                })
+                                            } else { // If tags not updated
+                                                updateAsset(id, dynUpdate, res)
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                    } else { // If company not updated
+                        if (req.body.model) { // If model updated
+                            Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true },
+                                function(err, data) {
+                                    if (err) return res.json(returnErr(err))
+                                    dynUpdate.assetModel = [data._id]
+                                    if (req.body.supplier) { // If suppleir updated
+                                        Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                            function(err, data) {
+                                                if (err) return res.json(returnErr(err))
+                                                dynUpdate.supplier = [data._id]
+                                                if (req.body.location) { // If location updated
+                                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                        function(err, data) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            dynUpdate.location = [data._id]
+                                                            if (req.body.tags) { // If asset has tags
+                                                                dynUpdate.tags = []
+                                                                req.body.tags.forEach(function(tag, index, array) {
+                                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                        function(err, tag) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            else {
+                                                                                dynUpdate.tags.push(tag);
+                                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                            }
+                                                                        });
+                                                                })
+                                                            } else { // If tags not updated
+                                                                updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        });
+                                                } else { // If location not updated
+                                                    if (req.body.tags) { // If asset has tags
+                                                        dynUpdate.tags = []
+                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                function(err, tag) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    else {
+                                                                        dynUpdate.tags.push(tag);
+                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                });
+                                                        })
+                                                    } else { // If tags not updated
+                                                        updateAsset(id, dynUpdate, res)
+                                                    }
+                                                }
+                                            });
+                                    } else { // If supplier not updated
+                                        if (req.body.location) { // If location updated
+                                            Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                function(err, data) {
+                                                    if (err) return res.json(returnErr(err))
+                                                    dynUpdate.location = [data._id]
+                                                    if (req.body.tags) { // If asset has tags
+                                                        dynUpdate.tags = []
+                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                function(err, tag) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    else {
+                                                                        dynUpdate.tags.push(tag);
+                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                });
+                                                        })
+                                                    } else { // If tags not updated
+                                                        updateAsset(id, dynUpdate, res)
+                                                    }
+                                                });
+                                        } else { // If location not updated
+                                            if (req.body.tags) { // If asset has tags
+                                                dynUpdate.tags = []
+                                                req.body.tags.forEach(function(tag, index, array) {
+                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                        function(err, tag) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                dynUpdate.tags.push(tag);
+                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        });
+                                                })
+                                            } else { // If tags not updated
+                                                updateAsset(id, dynUpdate, res)
+                                            }
+                                        }
+                                    }
+                                });
+                        } else { // If model not updated
+                            if (req.body.supplier) { // If suppleir updated
+                                Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                    function(err, data) {
+                                        if (err) return res.json(returnErr(err))
+                                        dynUpdate.supplier = [data._id]
+                                        if (req.body.location) { // If location updated
+                                            Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                function(err, data) {
+                                                    if (err) return res.json(returnErr(err))
+                                                    dynUpdate.location = [data._id]
+                                                    if (req.body.tags) { // If asset has tags
+                                                        dynUpdate.tags = []
+                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                function(err, tag) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    else {
+                                                                        dynUpdate.tags.push(tag);
+                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                });
+                                                        })
+                                                    } else { // If tags not updated
+                                                        updateAsset(id, dynUpdate, res)
+                                                    }
+                                                });
+                                        } else { // If location not updated
+                                            if (req.body.tags) { // If asset has tags
+                                                dynUpdate.tags = []
+                                                req.body.tags.forEach(function(tag, index, array) {
+                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                        function(err, tag) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                dynUpdate.tags.push(tag);
+                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        });
+                                                })
+                                            } else { // If tags not updated
+                                                updateAsset(id, dynUpdate, res)
+                                            }
+                                        }
+                                    });
+                            } else { // If supplier not updated
+                                if (req.body.location) { // If location updated
+                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                        function(err, data) {
+                                            if (err) return res.json(returnErr(err))
+                                            dynUpdate.location = [data._id]
+                                            if (req.body.tags) { // If asset has tags
+                                                dynUpdate.tags = []
+                                                req.body.tags.forEach(function(tag, index, array) {
+                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                        function(err, tag) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                dynUpdate.tags.push(tag);
+                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        });
+                                                })
+                                            } else { // If tags not updated
+                                                updateAsset(id, dynUpdate, res)
+                                            }
+                                        });
+                                } else { // If location not updated
+                                    if (req.body.tags) { // If asset has tags
+                                        dynUpdate.tags = []
+                                        req.body.tags.forEach(function(tag, index, array) {
+                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                function(err, tag) {
+                                                    if (err) return res.json(returnErr(err))
+                                                    else {
+                                                        dynUpdate.tags.push(tag);
+                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                    }
+                                                });
+                                        })
+                                    } else { // If tags not updated
+                                        updateAsset(id, dynUpdate, res)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+            });
+    } else { // If type not updated
+        if (req.body.manufacturer) { // If manufacturer updated
+            Manufacturer.findOneAndUpdate({ name: req.body.manufacturer }, { name: req.body.manufacturer }, { new: true, upsert: true },
+                function(err, data) {
+                    if (err) return res.json(returnErr(err))
+                    dynUpdate.manufacturer = [data._id]
+                    if (req.body.company) { // If company updated
+                        Company.findOneAndUpdate({ name: req.body.company }, { name: req.body.company }, { new: true, upsert: true },
+                            function(err, data) {
+                                if (err) return res.json(returnErr(err))
+                                dynUpdate.company = [data._id]
+                                if (req.body.model) { // If model updated
+                                    Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true },
+                                        function(err, data) {
+                                            if (err) return res.json(returnErr(err))
+                                            dynUpdate.assetModel = [data._id]
+                                            if (req.body.supplier) { // If suppleir updated
+                                                Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                                    function(err, data) {
+                                                        if (err) return res.json(returnErr(err))
+                                                        dynUpdate.supplier = [data._id]
+                                                        if (req.body.location) { // If location updated
+                                                            Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                                function(err, data) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    dynUpdate.location = [data._id]
+                                                                    if (req.body.tags) { // If asset has tags
+                                                                        dynUpdate.tags = []
+                                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                                function(err, tag) {
+                                                                                    if (err) return res.json(returnErr(err))
+                                                                                    else {
+                                                                                        dynUpdate.tags.push(tag);
+                                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                                    }
+                                                                                });
+                                                                        })
+                                                                    } else { // If tags not updated
+                                                                        updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                });
+                                                        } else { // If location not updated
+                                                            if (req.body.tags) { // If asset has tags
+                                                                dynUpdate.tags = []
+                                                                req.body.tags.forEach(function(tag, index, array) {
+                                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                        function(err, tag) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            else {
+                                                                                dynUpdate.tags.push(tag);
+                                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                            }
+                                                                        });
+                                                                })
+                                                            } else { // If tags not updated
+                                                                updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        }
+                                                    });
+                                            } else { // If supplier not updated
+                                                if (req.body.location) { // If location updated
+                                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                        function(err, data) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            dynUpdate.location = [data._id]
+                                                            if (req.body.tags) { // If asset has tags
+                                                                dynUpdate.tags = []
+                                                                req.body.tags.forEach(function(tag, index, array) {
+                                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                        function(err, tag) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            else {
+                                                                                dynUpdate.tags.push(tag);
+                                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                            }
+                                                                        });
+                                                                })
+                                                            } else { // If tags not updated
+                                                                updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        });
+                                                } else { // If location not updated
+                                                    if (req.body.tags) { // If asset has tags
+                                                        dynUpdate.tags = []
+                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                function(err, tag) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    else {
+                                                                        dynUpdate.tags.push(tag);
+                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                });
+                                                        })
+                                                    } else { // If tags not updated
+                                                        updateAsset(id, dynUpdate, res)
+                                                    }
+                                                }
+                                            }
+                                        });
+                                } else { // If model not updated
+                                    if (req.body.supplier) { // If suppleir updated
+                                        Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                            function(err, data) {
+                                                if (err) return res.json(returnErr(err))
+                                                dynUpdate.supplier = [data._id]
+                                                if (req.body.location) { // If location updated
+                                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                        function(err, data) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            dynUpdate.location = [data._id]
+                                                            if (req.body.tags) { // If asset has tags
+                                                                dynUpdate.tags = []
+                                                                req.body.tags.forEach(function(tag, index, array) {
+                                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                        function(err, tag) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            else {
+                                                                                dynUpdate.tags.push(tag);
+                                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                            }
+                                                                        });
+                                                                })
+                                                            } else { // If tags not updated
+                                                                updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        });
+                                                } else { // If location not updated
+                                                    if (req.body.tags) { // If asset has tags
+                                                        dynUpdate.tags = []
+                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                function(err, tag) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    else {
+                                                                        dynUpdate.tags.push(tag);
+                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                });
+                                                        })
+                                                    } else { // If tags not updated
+                                                        updateAsset(id, dynUpdate, res)
+                                                    }
+                                                }
+                                            });
+                                    } else { // If supplier not updated
+                                        if (req.body.location) { // If location updated
+                                            Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                function(err, data) {
+                                                    if (err) return res.json(returnErr(err))
+                                                    dynUpdate.location = [data._id]
+                                                    if (req.body.tags) { // If asset has tags
+                                                        dynUpdate.tags = []
+                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                function(err, tag) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    else {
+                                                                        dynUpdate.tags.push(tag);
+                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                });
+                                                        })
+                                                    } else { // If tags not updated
+                                                        updateAsset(id, dynUpdate, res)
+                                                    }
+                                                });
+                                        } else { // If location not updated
+                                            if (req.body.tags) { // If asset has tags
+                                                dynUpdate.tags = []
+                                                req.body.tags.forEach(function(tag, index, array) {
+                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                        function(err, tag) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                dynUpdate.tags.push(tag);
+                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        });
+                                                })
+                                            } else { // If tags not updated
+                                                updateAsset(id, dynUpdate, res)
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                    } else { // If company not updated
+                        if (req.body.model) { // If model updated
+                            Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true },
+                                function(err, data) {
+                                    if (err) return res.json(returnErr(err))
+                                    dynUpdate.assetModel = [data._id]
+                                    if (req.body.supplier) { // If suppleir updated
+                                        Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                            function(err, data) {
+                                                if (err) return res.json(returnErr(err))
+                                                dynUpdate.supplier = [data._id]
+                                                if (req.body.location) { // If location updated
+                                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                        function(err, data) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            dynUpdate.location = [data._id]
+                                                            if (req.body.tags) { // If asset has tags
+                                                                dynUpdate.tags = []
+                                                                req.body.tags.forEach(function(tag, index, array) {
+                                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                        function(err, tag) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            else {
+                                                                                dynUpdate.tags.push(tag);
+                                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                            }
+                                                                        });
+                                                                })
+                                                            } else { // If tags not updated
+                                                                updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        });
+                                                } else { // If location not updated
+                                                    if (req.body.tags) { // If asset has tags
+                                                        dynUpdate.tags = []
+                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                function(err, tag) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    else {
+                                                                        dynUpdate.tags.push(tag);
+                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                });
+                                                        })
+                                                    } else { // If tags not updated
+                                                        updateAsset(id, dynUpdate, res)
+                                                    }
+                                                }
+                                            });
+                                    } else { // If supplier not updated
+                                        if (req.body.location) { // If location updated
+                                            Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                function(err, data) {
+                                                    if (err) return res.json(returnErr(err))
+                                                    dynUpdate.location = [data._id]
+                                                    if (req.body.tags) { // If asset has tags
+                                                        dynUpdate.tags = []
+                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                function(err, tag) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    else {
+                                                                        dynUpdate.tags.push(tag);
+                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                });
+                                                        })
+                                                    } else { // If tags not updated
+                                                        updateAsset(id, dynUpdate, res)
+                                                    }
+                                                });
+                                        } else { // If location not updated
+                                            if (req.body.tags) { // If asset has tags
+                                                dynUpdate.tags = []
+                                                req.body.tags.forEach(function(tag, index, array) {
+                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                        function(err, tag) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                dynUpdate.tags.push(tag);
+                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        });
+                                                })
+                                            } else { // If tags not updated
+                                                updateAsset(id, dynUpdate, res)
+                                            }
+                                        }
+                                    }
+                                });
+                        } else { // If model not updated
+                            if (req.body.supplier) { // If suppleir updated
+                                Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                    function(err, data) {
+                                        if (err) return res.json(returnErr(err))
+                                        dynUpdate.supplier = [data._id]
+                                        if (req.body.location) { // If location updated
+                                            Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                function(err, data) {
+                                                    if (err) return res.json(returnErr(err))
+                                                    dynUpdate.location = [data._id]
+                                                    if (req.body.tags) { // If asset has tags
+                                                        dynUpdate.tags = []
+                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                function(err, tag) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    else {
+                                                                        dynUpdate.tags.push(tag);
+                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                });
+                                                        })
+                                                    } else { // If tags not updated
+                                                        updateAsset(id, dynUpdate, res)
+                                                    }
+                                                });
+                                        } else { // If location not updated
+                                            if (req.body.tags) { // If asset has tags
+                                                dynUpdate.tags = []
+                                                req.body.tags.forEach(function(tag, index, array) {
+                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                        function(err, tag) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                dynUpdate.tags.push(tag);
+                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        });
+                                                })
+                                            } else { // If tags not updated
+                                                updateAsset(id, dynUpdate, res)
+                                            }
+                                        }
+                                    });
+                            } else { // If supplier not updated
+                                if (req.body.location) { // If location updated
+                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                        function(err, data) {
+                                            if (err) return res.json(returnErr(err))
+                                            dynUpdate.location = [data._id]
+                                            if (req.body.tags) { // If asset has tags
+                                                dynUpdate.tags = []
+                                                req.body.tags.forEach(function(tag, index, array) {
+                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                        function(err, tag) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                dynUpdate.tags.push(tag);
+                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        });
+                                                })
+                                            } else { // If tags not updated
+                                                updateAsset(id, dynUpdate, res)
+                                            }
+                                        });
+                                } else { // If location not updated
+                                    if (req.body.tags) { // If asset has tags
+                                        dynUpdate.tags = []
+                                        req.body.tags.forEach(function(tag, index, array) {
+                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                function(err, tag) {
+                                                    if (err) return res.json(returnErr(err))
+                                                    else {
+                                                        dynUpdate.tags.push(tag);
+                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                    }
+                                                });
+                                        })
+                                    } else { // If tags not updated
+                                        updateAsset(id, dynUpdate, res)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+        } else { // If manufacturer not updated
+            if (req.body.company) { // If company updated
+                Company.findOneAndUpdate({ name: req.body.company }, { name: req.body.company }, { new: true, upsert: true },
+                    function(err, data) {
+                        if (err) return res.json(returnErr(err))
+                        dynUpdate.company = [data._id]
+                        if (req.body.model) { // If model updated
+                            Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true },
+                                function(err, data) {
+                                    if (err) return res.json(returnErr(err))
+                                    dynUpdate.assetModel = [data._id]
+                                    if (req.body.supplier) { // If suppleir updated
+                                        Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                            function(err, data) {
+                                                if (err) return res.json(returnErr(err))
+                                                dynUpdate.supplier = [data._id]
+                                                if (req.body.location) { // If location updated
+                                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                        function(err, data) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            dynUpdate.location = [data._id]
+                                                            if (req.body.tags) { // If asset has tags
+                                                                dynUpdate.tags = []
+                                                                req.body.tags.forEach(function(tag, index, array) {
+                                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                        function(err, tag) {
+                                                                            if (err) return res.json(returnErr(err))
+                                                                            else {
+                                                                                dynUpdate.tags.push(tag);
+                                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                            }
+                                                                        });
+                                                                })
+                                                            } else { // If tags not updated
+                                                                updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        });
+                                                } else { // If location not updated
+                                                    if (req.body.tags) { // If asset has tags
+                                                        dynUpdate.tags = []
+                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                function(err, tag) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    else {
+                                                                        dynUpdate.tags.push(tag);
+                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                });
+                                                        })
+                                                    } else { // If tags not updated
+                                                        updateAsset(id, dynUpdate, res)
+                                                    }
+                                                }
+                                            });
+                                    } else { // If supplier not updated
+                                        if (req.body.location) { // If location updated
+                                            Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                function(err, data) {
+                                                    if (err) return res.json(returnErr(err))
+                                                    dynUpdate.location = [data._id]
+                                                    if (req.body.tags) { // If asset has tags
+                                                        dynUpdate.tags = []
+                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                function(err, tag) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    else {
+                                                                        dynUpdate.tags.push(tag);
+                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                });
+                                                        })
+                                                    } else { // If tags not updated
+                                                        updateAsset(id, dynUpdate, res)
+                                                    }
+                                                });
+                                        } else { // If location not updated
+                                            if (req.body.tags) { // If asset has tags
+                                                dynUpdate.tags = []
+                                                req.body.tags.forEach(function(tag, index, array) {
+                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                        function(err, tag) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                dynUpdate.tags.push(tag);
+                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        });
+                                                })
+                                            } else { // If tags not updated
+                                                updateAsset(id, dynUpdate, res)
+                                            }
+                                        }
+                                    }
+                                });
+                        } else { // If model not updated
+                            if (req.body.supplier) { // If suppleir updated
+                                Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                    function(err, data) {
+                                        if (err) return res.json(returnErr(err))
+                                        dynUpdate.supplier = [data._id]
+                                        if (req.body.location) { // If location updated
+                                            Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                function(err, data) {
+                                                    if (err) return res.json(returnErr(err))
+                                                    dynUpdate.location = [data._id]
+                                                    if (req.body.tags) { // If asset has tags
+                                                        dynUpdate.tags = []
+                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                function(err, tag) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    else {
+                                                                        dynUpdate.tags.push(tag);
+                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                });
+                                                        })
+                                                    } else { // If tags not updated
+                                                        updateAsset(id, dynUpdate, res)
+                                                    }
+                                                });
+                                        } else { // If location not updated
+                                            if (req.body.tags) { // If asset has tags
+                                                dynUpdate.tags = []
+                                                req.body.tags.forEach(function(tag, index, array) {
+                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                        function(err, tag) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                dynUpdate.tags.push(tag);
+                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        });
+                                                })
+                                            } else { // If tags not updated
+                                                updateAsset(id, dynUpdate, res)
+                                            }
+                                        }
+                                    });
+                            } else { // If supplier not updated
+                                if (req.body.location) { // If location updated
+                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                        function(err, data) {
+                                            if (err) return res.json(returnErr(err))
+                                            dynUpdate.location = [data._id]
+                                            if (req.body.tags) { // If asset has tags
+                                                dynUpdate.tags = []
+                                                req.body.tags.forEach(function(tag, index, array) {
+                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                        function(err, tag) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                dynUpdate.tags.push(tag);
+                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        });
+                                                })
+                                            } else { // If tags not updated
+                                                updateAsset(id, dynUpdate, res)
+                                            }
+                                        });
+                                } else { // If location not updated
+                                    if (req.body.tags) { // If asset has tags
+                                        dynUpdate.tags = []
+                                        req.body.tags.forEach(function(tag, index, array) {
+                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                function(err, tag) {
+                                                    if (err) return res.json(returnErr(err))
+                                                    else {
+                                                        dynUpdate.tags.push(tag);
+                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                    }
+                                                });
+                                        })
+                                    } else { // If tags not updated
+                                        updateAsset(id, dynUpdate, res)
+                                    }
+                                }
+                            }
+                        }
+                    });
+            } else { // If company not updated
+                if (req.body.model) { // If model updated
+                    Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true },
+                        function(err, data) {
+                            if (err) return res.json(returnErr(err))
+                            dynUpdate.assetModel = [data._id]
+                            if (req.body.supplier) { // If suppleir updated
+                                Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                                    function(err, data) {
+                                        if (err) return res.json(returnErr(err))
+                                        dynUpdate.supplier = [data._id]
+                                        if (req.body.location) { // If location updated
+                                            Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                                function(err, data) {
+                                                    if (err) return res.json(returnErr(err))
+                                                    dynUpdate.location = [data._id]
+                                                    if (req.body.tags) { // If asset has tags
+                                                        dynUpdate.tags = []
+                                                        req.body.tags.forEach(function(tag, index, array) {
+                                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                                function(err, tag) {
+                                                                    if (err) return res.json(returnErr(err))
+                                                                    else {
+                                                                        dynUpdate.tags.push(tag);
+                                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                                    }
+                                                                });
+                                                        })
+                                                    } else { // If tags not updated
+                                                        updateAsset(id, dynUpdate, res)
+                                                    }
+                                                });
+                                        } else { // If location not updated
+                                            if (req.body.tags) { // If asset has tags
+                                                dynUpdate.tags = []
+                                                req.body.tags.forEach(function(tag, index, array) {
+                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                        function(err, tag) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                dynUpdate.tags.push(tag);
+                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        });
+                                                })
+                                            } else { // If tags not updated
+                                                updateAsset(id, dynUpdate, res)
+                                            }
+                                        }
+                                    });
+                            } else { // If supplier not updated
+                                if (req.body.location) { // If location updated
+                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                        function(err, data) {
+                                            if (err) return res.json(returnErr(err))
+                                            dynUpdate.location = [data._id]
+                                            if (req.body.tags) { // If asset has tags
+                                                dynUpdate.tags = []
+                                                req.body.tags.forEach(function(tag, index, array) {
+                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                        function(err, tag) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                dynUpdate.tags.push(tag);
+                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        });
+                                                })
+                                            } else { // If tags not updated
+                                                updateAsset(id, dynUpdate, res)
+                                            }
+                                        });
+                                } else { // If location not updated
+                                    if (req.body.tags) { // If asset has tags
+                                        dynUpdate.tags = []
+                                        req.body.tags.forEach(function(tag, index, array) {
+                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                function(err, tag) {
+                                                    if (err) return res.json(returnErr(err))
+                                                    else {
+                                                        dynUpdate.tags.push(tag);
+                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                    }
+                                                });
+                                        })
+                                    } else { // If tags not updated
+                                        updateAsset(id, dynUpdate, res)
+                                    }
+                                }
+                            }
+                        });
+                } else { // If model not updated
+                    if (req.body.supplier) { // If suppleir updated
+                        Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                            function(err, data) {
+                                if (err) return res.json(returnErr(err))
+                                dynUpdate.supplier = [data._id]
+                                if (req.body.location) { // If location updated
+                                    Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                        function(err, data) {
+                                            if (err) return res.json(returnErr(err))
+                                            dynUpdate.location = [data._id]
+                                            if (req.body.tags) { // If asset has tags
+                                                dynUpdate.tags = []
+                                                req.body.tags.forEach(function(tag, index, array) {
+                                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                        function(err, tag) {
+                                                            if (err) return res.json(returnErr(err))
+                                                            else {
+                                                                dynUpdate.tags.push(tag);
+                                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                            }
+                                                        });
+                                                })
+                                            } else { // If tags not updated
+                                                updateAsset(id, dynUpdate, res)
+                                            }
+                                        });
+                                } else { // If location not updated
+                                    if (req.body.tags) { // If asset has tags
+                                        dynUpdate.tags = []
+                                        req.body.tags.forEach(function(tag, index, array) {
+                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                function(err, tag) {
+                                                    if (err) return res.json(returnErr(err))
+                                                    else {
+                                                        dynUpdate.tags.push(tag);
+                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                    }
+                                                });
+                                        })
+                                    } else { // If tags not updated
+                                        updateAsset(id, dynUpdate, res)
+                                    }
+                                }
+                            });
+                    } else { // If supplier not updated
+                        if (req.body.location) { // If location updated
+                            Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                                function(err, data) {
+                                    if (err) return res.json(returnErr(err))
+                                    dynUpdate.location = [data._id]
+                                    if (req.body.tags) { // If asset has tags
+                                        dynUpdate.tags = []
+                                        req.body.tags.forEach(function(tag, index, array) {
+                                            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                                function(err, tag) {
+                                                    if (err) return res.json(returnErr(err))
+                                                    else {
+                                                        dynUpdate.tags.push(tag);
+                                                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                                    }
+                                                });
+                                        })
+                                    } else { // If tags not updated
+                                        updateAsset(id, dynUpdate, res)
+                                    }
+                                });
+                        } else { // If location not updated
+                            if (req.body.tags) { // If asset has tags
+                                dynUpdate.tags = []
+                                req.body.tags.forEach(function(tag, index, array) {
+                                    Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                                        function(err, tag) {
+                                            if (err) return res.json(returnErr(err))
+                                            else {
+                                                dynUpdate.tags.push(tag);
+                                                if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                                            }
+                                        });
+                                })
+                            } else { // If tags not updated
+                                updateAsset(id, dynUpdate, res)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 };
 
 // Delete an asset with the specified id in the request
