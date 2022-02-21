@@ -42,6 +42,22 @@ export const createAsset = async item => {
     return response;
 };
 
+export const updateAsset = async item => {
+    console.log(item)
+    let request = {
+        url: process.env.VUE_APP_API_URL + "/assets/" + item.id,
+        method: "put",
+        headers: {
+            "Content-type": "application/json",
+            "Authorization": "Bearer " + item.token
+        },
+        data: JSON.stringify(item)
+    };
+
+    const response = await axios(request);
+    return response;
+};
+
 export const deleteAsset = async item => {
     let request = {
         url: process.env.VUE_APP_API_URL + "/assets/" + item.id,

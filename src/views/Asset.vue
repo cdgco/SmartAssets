@@ -190,7 +190,7 @@
 	import CardActiveConnections from "../components/Cards/CardActiveConnections"
 	import CardAssetNotes from "../components/Cards/CardAssetNotes"
 
-	import { getAsset, deleteAsset } from "../components/asset.script";
+	import { getAsset, deleteAsset, updateAsset } from "../components/asset.script";
 	import { getCompanies, getLocations, getManufacturers, getModels, getSuppliers, getTypes } from "../components/autocomplete.script";
 
 	// "Invoices" list data.
@@ -260,7 +260,9 @@
 				emptySupplier: [],
 				typeSource: [],
 				emptyType: [],
+				originalObject: {},
 				query,
+				tags: [],
 
 				fields: {
 					assetName: '',
@@ -348,6 +350,7 @@
 						width:5,
 						height:50
 					});
+					this.originalObject = response.data.result
                 } else {
                     this.$router.push({ path: `/assets/?err=a404` });
                 }
@@ -364,11 +367,38 @@
                     this.error(response.data.errors.errors.name.message)
                 }
 			},
+			async update(values) {
+				this.item = {
+					id: this.query,
+					token: this.accessToken
+					};
+				if (values.assetName != this.originalObject.name) this.item.name = values.assetName;
+				if (values.serial != this.originalObject.serial) this.item.serial = values.serial;
+				if (values.quantity != this.originalObject.quantity) this.item.quantity = values.quantity;
+
+				if ((this.originalObject.type[0] && values.type != this.originalObject.type[0].name) || (!this.originalObject.type[0] && values.type)) this.item.type = values.type;
+				if ((this.originalObject.manufacturer[0] && values.manufacturer != this.originalObject.manufacturer[0].name) || (!this.originalObject.manufacturer[0] && values.manufacturer)) this.item.manufacturer = values.manufacturer;
+				if ((this.originalObject.assetModel[0] && values.model != this.originalObject.assetModel[0].name) || (!this.originalObject.assetModel[0] && values.model)) this.item.model = values.model;
+				if ((this.originalObject.location[0] && values.location != this.originalObject.location[0].name) || (!this.originalObject.location[0] && values.location)) this.item.location = values.location;
+				if ((this.originalObject.supplier[0] && values.supplier != this.originalObject.supplier[0].name) || (!this.originalObject.supplier[0] && values.supplier)) this.item.supplier = values.supplier;
+				if ((this.originalObject.company[0] && values.company != this.originalObject.company[0].name) || (!this.originalObject.company[0] && values.company)) this.item.company = values.company;
+				this.loading = true;
+				console.log(this.originalObject)
+				const response = await updateAsset(this.item);
+				if (response.data.success) {
+					this.loading = false;
+					this.$message.success('Asset Updated');
+					this.originalObject = response.data.result
+					
+				} else {
+					this.error(response.data.errors)
+				}
+			},
 			handleSubmit(e) {
 				e.preventDefault();
 				this.form.validateFields((err, values) => {
 					if (!err) {
-					// console.log('Received values of form: ', values);
+						this.update(values);
 					}
 				});
 			}

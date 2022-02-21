@@ -9,7 +9,6 @@ const Supplier = db.supplier;
 const Tags = db.tags;
 const { Client } = require('@elastic/elasticsearch')
 const elasticConfig = require("../../elastic.config.js");
-const { type } = require("../models");
 const elasticClient = new Client({
     node: elasticConfig.protocol + "://" + elasticConfig.host + ":" + elasticConfig.port,
     auth: {
@@ -148,7 +147,6 @@ exports.create = (req, res) => {
     });
     createType(asset, req, res)
 }
-
 
 // Retrieve all Tutorials from the database (with condition).
 exports.findAll = (req, res) => {
@@ -296,84 +294,118 @@ function updateAsset(id, dynUpdate, res) {
 }
 
 function updateTags(req, res, id, dynUpdate) {
-    if (req.body.tags) { // If asset has tags
+    if (req.body.tags !== undefined) { // If asset has tags
         dynUpdate.tags = []
-        req.body.tags.forEach(function(tag, index, array) {
-            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
-                function(err, tag) {
-                    if (err) return returnErr(err)
-                    else {
-                        dynUpdate.tags.push(tag);
-                        if (index === array.length - 1) updateAsset(id, dynUpdate, res)
-                    }
-                });
-        })
+        if (req.body.tags == []) {
+            updateAsset(id, dynUpdate, res)
+        } else {
+            req.body.tags.forEach(function(tag, index, array) {
+                Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                    function(err, tag) {
+                        if (err) return returnErr(err)
+                        else {
+                            dynUpdate.tags.push(tag);
+                            if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                        }
+                    });
+            })
+        }
     } else updateAsset(id, dynUpdate, res)
 }
 
 function updateLocation(req, res, id, dynUpdate) {
-    if (req.body.location) { // If location updated
-        Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
-            function(err, data) {
-                if (err) return returnErr(err)
-                dynUpdate.location = [data._id]
-                updateTags(req, res, id, dynUpdate)
-            });
+    if (req.body.location !== undefined) { // If location updated
+        if (req.body.location == '') {
+            dynUpdate.location = []
+            updateTags(req, res, id, dynUpdate)
+        } else {
+            Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+                function(err, data) {
+                    if (err) return returnErr(err)
+                    dynUpdate.location = [data._id]
+                    updateTags(req, res, id, dynUpdate)
+                });
+        }
     } else updateTags(req, res, id, dynUpdate)
 }
 
 function updateSupplier(req, res, id, dynUpdate) {
-    if (req.body.supplier) { // If suppleir updated
-        Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
-            function(err, data) {
-                if (err) return returnErr(err)
-                dynUpdate.supplier = [data._id]
-                updateLocation(req, res, id, dynUpdate)
-            });
+    if (req.body.supplier !== undefined) { // If suppleir updated
+        if (req.body.supplier == '') {
+            dynUpdate.supplier = []
+            updateLocation(req, res, id, dynUpdate)
+        } else {
+            Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+                function(err, data) {
+                    if (err) return returnErr(err)
+                    dynUpdate.supplier = [data._id]
+                    updateLocation(req, res, id, dynUpdate)
+                });
+        }
     } else updateLocation(req, res, id, dynUpdate)
 }
 
 function updateModel(req, res, id, dynUpdate) {
-    if (req.body.model) { // If model updated
-        Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true },
-            function(err, data) {
-                if (err) return returnErr(err)
-                dynUpdate.assetModel = [data._id]
-                updateSupplier(req, res, id, dynUpdate)
-            });
+    if (req.body.model !== undefined) { // If model updated
+        if (req.body.model == '') {
+            dynUpdate.assetModel = []
+            updateSupplier(req, res, id, dynUpdate)
+        } else {
+            Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true },
+                function(err, data) {
+                    if (err) return returnErr(err)
+                    dynUpdate.assetModel = [data._id]
+                    updateSupplier(req, res, id, dynUpdate)
+                });
+        }
     } else updateSupplier(req, res, id, dynUpdate)
 }
 
 function updateCompany(req, res, id, dynUpdate) {
-    if (req.body.company) { // If company updated
-        Company.findOneAndUpdate({ name: req.body.company }, { name: req.body.company }, { new: true, upsert: true },
-            function(err, data) {
-                if (err) return returnErr(err)
-                dynUpdate.company = [data._id]
-                updateModel(req, res, id, dynUpdate)
-            });
+    if (req.body.company !== undefined) { // If company updated
+        if (req.body.company == '') {
+            dynUpdate.company = []
+            updateModel(req, res, id, dynUpdate)
+        } else {
+            Company.findOneAndUpdate({ name: req.body.company }, { name: req.body.company }, { new: true, upsert: true },
+                function(err, data) {
+                    if (err) return returnErr(err)
+                    dynUpdate.company = [data._id]
+                    updateModel(req, res, id, dynUpdate)
+                });
+        }
     } else updateModel(req, res, id, dynUpdate)
 }
 
 function updateManufacturer(req, res, id, dynUpdate) {
-    if (req.body.manufacturer) { // If manufacturer updated
-        Manufacturer.findOneAndUpdate({ name: req.body.manufacturer }, { name: req.body.manufacturer }, { new: true, upsert: true },
-            function(err, data) {
-                if (err) return returnErr(err)
-                dynUpdate.manufacturer = [data._id]
-                updateCompany(req, res, id, dynUpdate)
-            });
+    if (req.body.manufacturer !== undefined) { // If manufacturer updated
+        if (req.body.manufacturer == '') {
+            dynUpdate.manufacturer = []
+            updateCompany(req, res, id, dynUpdate)
+        } else {
+            Manufacturer.findOneAndUpdate({ name: req.body.manufacturer }, { name: req.body.manufacturer }, { new: true, upsert: true },
+                function(err, data) {
+                    if (err) return returnErr(err)
+                    dynUpdate.manufacturer = [data._id]
+                    updateCompany(req, res, id, dynUpdate)
+                });
+        }
     } else updateCompany(req, res, id, dynUpdate)
 }
 
 function updateType(req, res, id, dynUpdate) {
-    if (req.body.type) { // If type updated
-        Type.findOneAndUpdate({ name: req.body.type }, { name: req.body.type }, { new: true, upsert: true },
-            function(err, data) {
-                if (err) return returnErr(err)
-                dynUpdate.type = [data._id]
-                updateManufacturer(req, res, id, dynUpdate)
-            });
+    if (req.body.type !== undefined) { // If type updated
+        if (req.body.type == '') {
+            dynUpdate.type = []
+            updateManufacturer(req, res, id, dynUpdate)
+        } else {
+            Type.findOneAndUpdate({ name: req.body.type }, { name: req.body.type }, { new: true, upsert: true },
+                function(err, data) {
+                    if (err) return returnErr(err)
+                    dynUpdate.type = [data._id]
+                    updateManufacturer(req, res, id, dynUpdate)
+                });
+        }
     } else updateManufacturer(req, res, id, dynUpdate)
 }
 

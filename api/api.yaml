@@ -477,20 +477,53 @@ components:
       properties:
         name:
           type: string
-        description:
+        quantity:
+          type: integer
+        serial:
           type: string
-        published:
-          type: boolean
+        location:
+          type: string
+        type: 
+          type: string
+        manufacturer:
+          type: string
+        supplier:
+          type: string
+        company:
+          type: string
+        model:
+          type: string
+        tags:
+          type: array
+        customFields:
+          type: array
+        
     NewAsset:
       required:
         - name
       properties:
         name:
           type: string
-        description:
+        quantity:
+          type: integer
+        serial:
           type: string
-        published:
-          type: boolean
+        location:
+          type: string
+        type: 
+          type: string
+        manufacturer:
+          type: string
+        supplier:
+          type: string
+        company:
+          type: string
+        model:
+          type: string
+        tags:
+          type: array
+        customFields:
+          type: array
     Token:
       required:
         - token
