@@ -140,6 +140,146 @@ paths:
             application/json:
               schema:
                 type: object
+  /company:
+    get:
+      description: Retrieve all companies
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /company/{id}:
+    delete:
+      description: Delete company with specified ID.
+      responses:
+        '200':
+          description: Company deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+  /location:
+    get:
+      description: Retrieve all locations
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /location/{id}:
+    delete:
+      description: Delete location with specified ID.
+      responses:
+        '200':
+          description: Location deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+  /manufacturer:
+    get:
+      description: Retrieve all manufacturers
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /manufacturer/{id}:
+    delete:
+      description: Delete manufacturer with specified ID.
+      responses:
+        '200':
+          description: Manufacturer deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+  /model:
+    get:
+      description: Retrieve all models
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /model/{id}:
+    delete:
+      description: Delete model with specified ID.
+      responses:
+        '200':
+          description: Model deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+  /supplier:
+    get:
+      description: Retrieve all suppliers
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /supplier/{id}:
+    delete:
+      description: Delete supplier with specified ID.
+      responses:
+        '200':
+          description: Supplier deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+  /tags:
+    get:
+      description: Retrieve all tags
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /tags/{id}:
+    delete:
+      description: Delete tag with specified ID.
+      responses:
+        '200':
+          description: Tag deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+  /type:
+    get:
+      description: Retrieve all types
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /type/{id}:
+    delete:
+      description: Delete type with specified ID.
+      responses:
+        '200':
+          description: Type deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
   /assets/{id}:
     get:
       description: Retrieve asset with specified ID

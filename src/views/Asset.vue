@@ -16,28 +16,50 @@
 						<!-- Payment Methods Card -->
 						<a-card :bordered="false" class="header-solid h-full" :bodyStyle="{padding: 0,}">
 							<br>
-							<a-form :form="form" :label-col="{ span: 5 }" :wrapper-col="{ span: 12 }" :hideRequiredMark="true" @submit="handleSubmit">
+							<a-form :form="form" :label-col="{ span: 5 }" :wrapper-col="{ span: 12 }" :hideRequiredMark="true" @submit="handleSubmit" autocomplete="off">
 								<a-row>
 									<a-form-item label="Name">
-										<a-input id="name"
-											v-decorator="['name', { rules: [{ required: true, message: 'Asset name is required' }] }]"
+										<a-input
+											autocomplete="chrome-off" 
+											v-decorator="['assetName', { rules: [{ required: true, message: 'Asset name is required' }] }]"
 										/>
 									</a-form-item>
 								</a-row>
 								<a-row>
 									<a-form-item label="Type">
-										<a-input id="type" v-decorator="['type']"/>
+										<a-auto-complete
+											autocomplete="chrome-off" 
+											v-decorator="['type']"
+											v-model="type"
+											:data-source="emptyType"
+											:filter-option="filterOption"
+											@search="function(value) { emptyType = value ? typeSource : []; }"
+										/>
 									</a-form-item>
 								</a-row>
 								<a-row>
 										<a-form-item label="Manufacturer">
-											<a-input id="manufacturer" v-decorator="['manufacturer']"/>
+											<a-auto-complete
+												autocomplete="chrome-off" 
+												v-decorator="['manufacturer']"
+												v-model="manufacturer"
+												:data-source="emptyManufacturer"
+												:filter-option="filterOption"
+												@search="function(value) { emptyManufacturer = value ? manufacturerSource : []; }"
+											/>
 										</a-form-item>
 										</a-row>
 								<a-row>
 									
 										<a-form-item label="Model">
-											<a-input id="model" v-decorator="['model']"/>
+											<a-auto-complete
+												autocomplete="chrome-off" 
+												v-decorator="['model']"
+												v-model="model"
+												:data-source="emptyModel"
+												:filter-option="filterOption"
+												@search="function(value) { emptyModel = value ? modelSource : []; }"
+											/>
 										</a-form-item>
 									</a-row>
 								<a-row>
@@ -52,17 +74,38 @@
 									</a-row>
 								<a-row>
 										<a-form-item label="Location">
-											<a-input id="location" v-decorator="['location']"/>
+											<a-auto-complete
+												autocomplete="chrome-off" 
+												v-decorator="['location']"
+												v-model="location"
+												:data-source="emptyLocation"
+												:filter-option="filterOption"
+												@search="function(value) { emptyLocation = value ? locationSource : []; }"
+											/>
 										</a-form-item>
 								</a-row>
 								<a-row>
 										<a-form-item label="Supplier">
-											<a-input id="supplier" v-decorator="['supplier']"/>
+											<a-auto-complete
+												autocomplete="chrome-off" 
+												v-decorator="['supplier']"
+												v-model="supplier"
+												:data-source="emptySupplier"
+												:filter-option="filterOption"
+												@search="function(value) { emptySupplier = value ? supplierSource : []; }"
+											/>
 										</a-form-item>
 									</a-row>
 								<a-row>
 										<a-form-item label="Company">
-											<a-input id="company" v-decorator="['company']"/>
+											<a-auto-complete
+												autocomplete="chrome-off" 
+												v-decorator="['company']"
+												v-model="company"
+												:data-source="emptyCompany"
+												:filter-option="filterOption"
+												@search="function(value) { emptyCompany = value ? companySource : []; }"
+											/>
 										</a-form-item>
 								</a-row>
 								
@@ -148,7 +191,7 @@
 	import CardAssetNotes from "../components/Cards/CardAssetNotes"
 
 	import { getAsset, deleteAsset } from "../components/asset.script";
-
+	import { getCompanies, getLocations, getManufacturers, getModels, getSuppliers, getTypes } from "../components/autocomplete.script";
 
 	// "Invoices" list data.
 	const invoiceData = [
@@ -181,7 +224,7 @@
 	export default ({
 		metaInfo () {
 			return {
-			title: this.fields.name
+			title: this.fields.assetName
 			}
 		},
 		components: {
@@ -204,15 +247,72 @@
 				spinning: true,
 				accessToken: accessToken,
 				assetId: '',
+				companySource: [],
+				emptyCompany: [],
+				locationSource: [],
+				emptyLocation: [],
+				manufacturerSource: [],
+				emptyManufacturer: [],
+				modelSource: [],
+				emptyModel: [],
+				supplierSource: [],
+				emptySupplier: [],
+				typeSource: [],
+				emptyType: [],
 
 				fields: {
-					name: '',
+					assetName: '',
 					id: ''
 				},
 			
 			}
 		},
 		methods: {
+			filterOption(input, option) {
+				return (
+					option.componentOptions.children[0].text.toUpperCase().indexOf(input.toUpperCase()) >= 0
+				);
+			},
+			async queryAutocomplete() {
+				this.item = { token: this.accessToken };
+				const companyResponse = await getCompanies(this.item);
+				if (companyResponse.data.success) {
+					companyResponse.data.result.forEach(singleResult => {
+						this.companySource.push(singleResult.name)
+					})
+				} 
+				const locationResponse = await getLocations(this.item);
+				if (locationResponse.data.success) {
+					locationResponse.data.result.forEach(singleResult => {
+						this.locationSource.push(singleResult.name)
+					})
+				} 
+				const manufacturerResponse = await getManufacturers(this.item);
+				if (manufacturerResponse.data.success) {
+					manufacturerResponse.data.result.forEach(singleResult => {
+						this.manufacturerSource.push(singleResult.name)
+					})
+				} 
+				const modelResponse = await getModels(this.item);
+				if (modelResponse.data.success) {
+					modelResponse.data.result.forEach(singleResult => {
+						this.modelSource.push(singleResult.name)
+					})
+				} 
+				const supplierResponse = await getSuppliers(this.item);
+				if (supplierResponse.data.success) {
+					supplierResponse.data.result.forEach(singleResult => {
+						this.supplierSource.push(singleResult.name)
+					})
+				} 
+				const typeResponse = await getTypes(this.item);
+				if (typeResponse.data.success) {
+					typeResponse.data.result.forEach(singleResult => {
+						this.typeSource.push(singleResult.name)
+					})
+				} 
+				
+			},
 			error(message) {
 				this.$error({
 					title: 'Failed to delete asset',
@@ -227,9 +327,9 @@
                 const response = await getAsset(this.item);
                 if (response.data.success) {
 					this.spinning = !this.spinning;
-					this.fields.name = response.data.result.name
+					this.fields.assetName = response.data.result.name
 					this.fields.id = response.data.result._id
-					this.form.setFieldsValue({ name: response.data.result.name })
+					this.form.setFieldsValue({ assetName: response.data.result.name })
 					this.form.setFieldsValue({ type: (response.data.result.type[0]) ? response.data.result.type[0].name : '' })
 					this.form.setFieldsValue({ manufacturer: (response.data.result.manufacturer[0]) ? response.data.result.manufacturer[0].name : '' })
 					this.form.setFieldsValue({ model: (response.data.result.assetModel[0]) ? response.data.result.assetModel[0].name : '' })
@@ -238,7 +338,7 @@
 					this.form.setFieldsValue({ location: (response.data.result.location[0]) ? response.data.result.location[0].name : '' })
 					this.form.setFieldsValue({ supplier: (response.data.result.supplier[0]) ? response.data.result.supplier[0].name : '' })
 					this.form.setFieldsValue({ company: (response.data.result.company[0]) ? response.data.result.company[0].name : '' })
-					this.$emit('asset-name', this.fields.name)
+					this.$emit('asset-name', this.fields.assetName)
 					var barcodeData = (String(response.data.result._id).length == 1) ? "0" + response.data.result._id : response.data.result._id;
 					JsBarcode("#barcode", barcodeData, {
 						format: "CODE128",
@@ -272,6 +372,7 @@
 			}
         },
 		created() {
+			this.queryAutocomplete()
 			this.queryAsset()
         },
 	})

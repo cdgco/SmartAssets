@@ -121,10 +121,28 @@ apiRouter.use('/users', userRouter, function(req, res, next) {
 })
 
 const assetRouter = require('./routes/asset.router.js');
-const { truncate } = require('fs');
 apiRouter.use('/assets', assetRouter);
 
+const companyRouter = require('./routes/company.router.js');
+apiRouter.use('/company', companyRouter);
 
+const locationRouter = require('./routes/location.router.js');
+apiRouter.use('/location', locationRouter);
+
+const manufacturerRouter = require('./routes/manufacturer.router.js');
+apiRouter.use('/manufacturer', manufacturerRouter);
+
+const modelRouter = require('./routes/model.router.js');
+apiRouter.use('/model', modelRouter);
+
+const supplierRouter = require('./routes/supplier.router.js');
+apiRouter.use('/supplier', supplierRouter);
+
+const tagsRouter = require('./routes/tags.router.js');
+apiRouter.use('/tags', tagsRouter);
+
+const typeRouter = require('./routes/type.router.js');
+apiRouter.use('/type', typeRouter);
 
 apiRouter.get('/', function(req, res, next) {
     res.json({
