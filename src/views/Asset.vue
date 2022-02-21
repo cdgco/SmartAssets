@@ -139,17 +139,26 @@
 			<!-- Invoices Column -->
 			<a-col :span="24" :md="8" class="mb-24">
 				<a-row>
-					<!-- Invoices Card -->
-					<CardConnectionMarketplace
-						:data="invoiceData"
-					></CardConnectionMarketplace>
-					<!-- / Invoices Card -->
+					<a-card :bordered="false" class="header-solid h-full" :bodyStyle="{padding: 4,}">
+						<template #title>
+							<h6 class="font-semibold m-0">Tags</h6>
+						</template>
+						<a-row class="card-footer" type="flex" justify="center" align="top">
+							<a-form-item style="width: 80%">
+								<a-select mode="tags" v-decorator="['tags']" style="width: 100%" @change="handleChange" :default-value="tagSelected" allowClear="true">
+									<a-select-option v-for="tag in tagSource" :key="tag">
+										{{ tag }}
+									</a-select-option>
+								</a-select>
+							</a-form-item>
+						</a-row>
+						</a-card>
 				</a-row>
 				<br>
 				<a-row>
-					<a-card :bordered="false" class="header-solid h-full" :bodyStyle="{padding: 0,}">
+					<a-card :bordered="false" class="header-solid h-full" :bodyStyle="{padding: 4,}">
 						<template #title>
-							<h6 class="font-semibold m-0">Asset Tag</h6>
+							<h6 class="font-semibold m-0">Asset Code</h6>
 						</template>
 						<a-row class="card-footer" type="flex" justify="center" align="top">
 							<img id="barcode" style="max-width: 80%;"/>
@@ -191,36 +200,8 @@
 	import CardAssetNotes from "../components/Cards/CardAssetNotes"
 
 	import { getAsset, deleteAsset, updateAsset } from "../components/asset.script";
-	import { getCompanies, getLocations, getManufacturers, getModels, getSuppliers, getTypes } from "../components/autocomplete.script";
+	import { getCompanies, getLocations, getManufacturers, getModels, getSuppliers, getTypes, getTags } from "../components/autocomplete.script";
 
-	// "Invoices" list data.
-	const invoiceData = [
-		{
-			title: "Active Directory Users & Groups",
-			code: "Assign assets to AD users",
-			amount: "50",
-		},
-		{
-			title: "Jira Helpdesk",
-			code: "Link assets & projects to Jira tickets",
-			amount: "200",
-		},
-		{
-			title: "TeamDynamix",
-			code: "Link assets & projects to TeamDynamix tickets",
-			amount: "200",
-		},
-		{
-			title: "LDAP Authentication",
-			code: "Allow login via LDAP",
-			amount: "20",
-		},
-		{
-			title: "Azure SSO",
-			code: "Allow login via Azure",
-			amount: "20",
-		},
-	] ;
 	export default ({
 		metaInfo () {
 			return {
@@ -244,7 +225,6 @@
 				form: this.$form.createForm(this, { name: 'coordinated'}),
 
 				// Associating "Invoices" list data with its corresponding property.
-				invoiceData,
 				spinning: true,
 				accessToken: accessToken,
 				assetId: '',
@@ -260,6 +240,8 @@
 				emptySupplier: [],
 				typeSource: [],
 				emptyType: [],
+				tagSource: [],
+				tagSelected: [],
 				originalObject: {},
 				query,
 				tags: [],
@@ -272,6 +254,9 @@
 			}
 		},
 		methods: {
+			handleChange(selectedItems) {
+				this.tagSelected = selectedItems;
+			},
 			filterOption(input, option) {
 				return (
 					option.componentOptions.children[0].text.toUpperCase().indexOf(input.toUpperCase()) >= 0
@@ -315,6 +300,12 @@
 						this.typeSource.push(singleResult.name)
 					})
 				} 
+				const tagResponse = await getTags(this.item);
+				if (tagResponse.data.success) {
+					tagResponse.data.result.forEach(singleResult => {
+						this.tagSource.push(singleResult.name)
+					})
+				} 
 				
 			},
 			error(message) {
@@ -342,6 +333,9 @@
 					this.form.setFieldsValue({ location: (response.data.result.location[0]) ? response.data.result.location[0].name : '' })
 					this.form.setFieldsValue({ supplier: (response.data.result.supplier[0]) ? response.data.result.supplier[0].name : '' })
 					this.form.setFieldsValue({ company: (response.data.result.company[0]) ? response.data.result.company[0].name : '' })
+					response.data.result.tags.forEach(singleResult => {
+						this.tagSelected.push(singleResult.name)
+					})
 					this.$emit('asset-name', this.fields.assetName)
 					var barcodeData = (String(response.data.result._id).length == 1) ? "0" + response.data.result._id : response.data.result._id;
 					JsBarcode("#barcode", barcodeData, {
@@ -382,8 +376,8 @@
 				if ((this.originalObject.location[0] && values.location != this.originalObject.location[0].name) || (!this.originalObject.location[0] && values.location)) this.item.location = values.location;
 				if ((this.originalObject.supplier[0] && values.supplier != this.originalObject.supplier[0].name) || (!this.originalObject.supplier[0] && values.supplier)) this.item.supplier = values.supplier;
 				if ((this.originalObject.company[0] && values.company != this.originalObject.company[0].name) || (!this.originalObject.company[0] && values.company)) this.item.company = values.company;
+				if (this.originalObject.tags != this.tagSelected) this.item.tags = this.tagSelected;
 				this.loading = true;
-				console.log(this.originalObject)
 				const response = await updateAsset(this.item);
 				if (response.data.success) {
 					this.loading = false;
@@ -398,7 +392,9 @@
 				e.preventDefault();
 				this.form.validateFields((err, values) => {
 					if (!err) {
-						this.update(values);
+						var tempValues = values;
+						tempValues.tags = this.tagSelected
+						this.update(tempValues);
 					}
 				});
 			}

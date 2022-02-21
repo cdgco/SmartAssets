@@ -105,6 +105,15 @@
 								/>
 							</a-form-item>
 						</a-row>
+						<a-row>
+							<a-form-item label="Tags">
+								<a-select mode="tags" v-decorator="['tags']" style="width: 100%" allowClear="true">
+									<a-select-option v-for="tag in tagSource" :key="tag">
+										{{ tag }}
+									</a-select-option>
+								</a-select>
+							</a-form-item>
+						</a-row>
 						<a-form-item :wrapper-col="{ span: 12, offset: 5 }">
 							<a-button type="primary" html-type="submit" style="margin-right: 15px;">
 								Submit
@@ -124,7 +133,7 @@
 
 <script>
 	import { createAsset } from "../components/asset.script";
-	import { getCompanies, getLocations, getManufacturers, getModels, getSuppliers, getTypes } from "../components/autocomplete.script";
+	import { getCompanies, getLocations, getManufacturers, getModels, getSuppliers, getTypes, getTags } from "../components/autocomplete.script";
 
 	export default ({
 		metaInfo: {
@@ -147,7 +156,7 @@
 				emptySupplier: [],
 				typeSource: [],
 				emptyType: [],
-				tags: [],
+				tagSource: [],
 				fieldTypes: {
 					text: 'text',
 				},
@@ -195,6 +204,12 @@
 						this.typeSource.push(singleResult.name)
 					})
 				} 
+				const tagResponse = await getTags(this.item);
+				if (tagResponse.data.success) {
+					tagResponse.data.result.forEach(singleResult => {
+						this.tagSource.push(singleResult.name)
+					})
+				} 
 				
 			},
 			filterOption(input, option) {
@@ -221,7 +236,7 @@
 				if (values.location) this.item.location = values.location;
 				if (values.supplier) this.item.supplier = values.supplier;
 				if (values.company) this.item.company = values.company;
-				if (this.tags.length > 0) this.item.tags = values.tags;
+				if (this.tagSource.length > 0) this.item.tags = values.tags;
 				this.loading = true;
 				const response = await createAsset(this.item);
 				if (response.data.success) {

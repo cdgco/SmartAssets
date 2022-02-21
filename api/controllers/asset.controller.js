@@ -39,8 +39,8 @@ function returnSuccess(res, asset) {
 
 function createAsset(asset, res) {
     asset.save((error, asset) => {
-        if (error) return returnErr(error)
-        else return returnSuccess(asset)
+        if (error) return returnErr(res, error)
+        else return returnSuccess(res, asset)
     });
 }
 
@@ -49,7 +49,7 @@ function createTags(asset, req, res) {
         req.body.tags.forEach(function(tag, index, array) {
             Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
                 function(err, tag) {
-                    if (err) return returnErr(err)
+                    if (err) return returnErr(res, err)
                     else {
                         asset.tags.push(tag);
                         if (index === array.length - 1) createAsset(asset, res)
@@ -63,7 +63,7 @@ function createLocation(asset, req, res) {
     if (req.body.location) { // If asset has location
         Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
             function(err, location) {
-                if (err) return returnErr(err)
+                if (err) return returnErr(res, err)
                 else {
                     asset.location.push(location);
                     createTags(asset, req, res)
@@ -76,7 +76,7 @@ function createSupplier(asset, req, res) {
     if (req.body.supplier) { // If asset has supplier
         Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
             function(err, supplier) {
-                if (err) return returnErr(err)
+                if (err) return returnErr(res, err)
                 else {
                     asset.supplier.push(supplier);
                     createLocation(asset, req, res)
@@ -89,7 +89,7 @@ function createModel(asset, req, res) {
     if (req.body.model) { // If asset has model
         Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true },
             function(err, model) {
-                if (err) return returnErr(err)
+                if (err) return returnErr(res, err)
                 else {
                     asset.assetModel.push(model);
                     createSupplier(asset, req, res)
@@ -102,7 +102,7 @@ function createCompany(asset, req, res) {
     if (req.body.company) { // If asset has company
         Company.findOneAndUpdate({ name: req.body.company }, { name: req.body.company }, { new: true, upsert: true },
             function(err, company) {
-                if (err) return returnErr(err)
+                if (err) return returnErr(res, err)
                 else {
                     asset.company.push(company);
                     createModel(asset, req, res)
@@ -115,7 +115,7 @@ function createManufacturer(asset, req, res) {
     if (req.body.manufacturer) { // If asset has manufacturer
         Manufacturer.findOneAndUpdate({ name: req.body.manufacturer }, { name: req.body.manufacturer }, { new: true, upsert: true },
             function(err, manufacturer) {
-                if (err) return returnErr(err)
+                if (err) return returnErr(res, err)
                 else {
                     asset.manufacturer.push(manufacturer);
                     createCompany(asset, req, res)
@@ -128,7 +128,7 @@ function createType(asset, req, res) {
     if (req.body.type) { // If Asset has type
         Type.findOneAndUpdate({ name: req.body.type }, { name: req.body.type }, { new: true, upsert: true },
             function(err, type) {
-                if (err) return returnErr(err)
+                if (err) return returnErr(res, err)
                 else {
                     asset.type.push(type);
                     createManufacturer(asset, req, res)
@@ -302,7 +302,7 @@ function updateTags(req, res, id, dynUpdate) {
             req.body.tags.forEach(function(tag, index, array) {
                 Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
                     function(err, tag) {
-                        if (err) return returnErr(err)
+                        if (err) return returnErr(res, err)
                         else {
                             dynUpdate.tags.push(tag);
                             if (index === array.length - 1) updateAsset(id, dynUpdate, res)
@@ -321,7 +321,7 @@ function updateLocation(req, res, id, dynUpdate) {
         } else {
             Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
                 function(err, data) {
-                    if (err) return returnErr(err)
+                    if (err) return returnErr(res, err)
                     dynUpdate.location = [data._id]
                     updateTags(req, res, id, dynUpdate)
                 });
@@ -337,7 +337,7 @@ function updateSupplier(req, res, id, dynUpdate) {
         } else {
             Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
                 function(err, data) {
-                    if (err) return returnErr(err)
+                    if (err) return returnErr(res, err)
                     dynUpdate.supplier = [data._id]
                     updateLocation(req, res, id, dynUpdate)
                 });
@@ -353,7 +353,7 @@ function updateModel(req, res, id, dynUpdate) {
         } else {
             Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true },
                 function(err, data) {
-                    if (err) return returnErr(err)
+                    if (err) return returnErr(res, err)
                     dynUpdate.assetModel = [data._id]
                     updateSupplier(req, res, id, dynUpdate)
                 });
@@ -369,7 +369,7 @@ function updateCompany(req, res, id, dynUpdate) {
         } else {
             Company.findOneAndUpdate({ name: req.body.company }, { name: req.body.company }, { new: true, upsert: true },
                 function(err, data) {
-                    if (err) return returnErr(err)
+                    if (err) return returnErr(res, err)
                     dynUpdate.company = [data._id]
                     updateModel(req, res, id, dynUpdate)
                 });
@@ -385,7 +385,7 @@ function updateManufacturer(req, res, id, dynUpdate) {
         } else {
             Manufacturer.findOneAndUpdate({ name: req.body.manufacturer }, { name: req.body.manufacturer }, { new: true, upsert: true },
                 function(err, data) {
-                    if (err) return returnErr(err)
+                    if (err) return returnErr(res, err)
                     dynUpdate.manufacturer = [data._id]
                     updateCompany(req, res, id, dynUpdate)
                 });
@@ -401,7 +401,7 @@ function updateType(req, res, id, dynUpdate) {
         } else {
             Type.findOneAndUpdate({ name: req.body.type }, { name: req.body.type }, { new: true, upsert: true },
                 function(err, data) {
-                    if (err) return returnErr(err)
+                    if (err) return returnErr(res, err)
                     dynUpdate.type = [data._id]
                     updateManufacturer(req, res, id, dynUpdate)
                 });
