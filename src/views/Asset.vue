@@ -152,7 +152,7 @@
 							<h6 class="font-semibold m-0">Asset Tag</h6>
 						</template>
 						<a-row class="card-footer" type="flex" justify="center" align="top">
-							<img id="barcode"/>
+							<img id="barcode" style="max-width: 80%;"/>
 						</a-row>
 					</a-card>
 				</a-row>
@@ -238,6 +238,7 @@
 			var jsonToken = localStorage.getItem("user")
             var rawToken = JSON.parse(jsonToken)
             var accessToken = rawToken.accessToken
+			var query = this.$route.params.id;
 			return {
 				formLayout: 'horizontal',
 				form: this.$form.createForm(this, { name: 'coordinated'}),
@@ -259,6 +260,7 @@
 				emptySupplier: [],
 				typeSource: [],
 				emptyType: [],
+				query,
 
 				fields: {
 					assetName: '',
@@ -321,7 +323,7 @@
 			},
             async queryAsset() {
                 this.item = {
-                    query: this.$route.params.id,
+                    query: this.query,
 					token: this.accessToken
                 };
                 const response = await getAsset(this.item);
@@ -352,7 +354,7 @@
             },
 			async confirmDelete() {
 				 this.item = {
-                    id: this.$route.params.id,
+                    id: this.query,
 					token: this.accessToken
                 };
                 const response = await deleteAsset(this.item);
@@ -374,6 +376,13 @@
 		created() {
 			this.queryAutocomplete()
 			this.queryAsset()
+        },
+		watch: {
+            '$route.params.id': function (id) {
+				this.spinning = true
+                this.query = id
+                this.queryAsset()
+            }
         },
 	})
 

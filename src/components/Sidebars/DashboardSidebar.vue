@@ -142,31 +142,27 @@ import { getAsset } from "../asset.script";
 		mounted() {		
 			let code = "";
 			let reading = false;
-			if (`${this.$route.name}` != 'Sign-In') {
-				document.addEventListener('keypress', e => {
-					if (e.key == "Enter") {
-						if (code != '') {
-							var curCode = code
-							this.queryAsset(curCode).then((response) => {
-								if (response) this.$router.push("/assets/" +curCode);
-								else this.$router.push("/search/" +curCode);
-								curCode = ''
-							})
-						}
-						code = "";
-					} else {
-						code += e.key;          
+			document.addEventListener('keypress', e => {
+				if (e.key == "Enter") {
+					if (code != '' && `${this.$route.name}` != 'Sign-In' && `${this.$route.name}` != 'Licenses') {
+						var curCode = code
+						this.queryAsset(curCode).then((response) => {
+							if (response) this.$router.push("/assets/" +curCode).catch(() => { /* ignore */ });
+							else this.$router.push("/search/" +curCode).catch(() => { /* ignore */ });
+							curCode = ''
+						})
 					}
+					code = "";
+				} else code += e.key; 
 
-					if(!reading) {
-						reading = true;
-						setTimeout(() => {
-							code = "";
-							reading = false;
-						}, 20);
-					}
-				})
-			}
+				if(!reading) {
+					reading = true;
+					setTimeout(() => {
+						code = "";
+						reading = false;
+					}, 50);
+				}
+			})
 		},
 		methods: {
 			async queryAsset(assetCode) {
