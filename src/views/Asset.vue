@@ -14,7 +14,7 @@
 					<a-col :span="24" class="mb-24">
 
 						<!-- Payment Methods Card -->
-						<a-card :bordered="false" class="header-solid h-full" :bodyStyle="{padding: 0,}">
+						<a-card :bordered="false" class="header-solid h-full" :bodyStyle="{padding: 4,}">
 							<br>
 							<a-form :form="form" :label-col="{ span: 5 }" :wrapper-col="{ span: 12 }" :hideRequiredMark="true" @submit="handleSubmit" autocomplete="off">
 								<a-row>
