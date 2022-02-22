@@ -1,5 +1,4 @@
 import axios from "axios";
-import { date } from "express-openapi-validator/dist/framework/base.serdes";
 
 export const getAsset = async item => {
     let request = {
@@ -43,7 +42,6 @@ export const createAsset = async item => {
 };
 
 export const updateAsset = async item => {
-    console.log(item)
     let request = {
         url: process.env.VUE_APP_API_URL + "/assets/" + item.id,
         method: "put",

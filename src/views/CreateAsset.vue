@@ -107,7 +107,7 @@
 						</a-row>
 						<a-row>
 							<a-form-item label="Tags">
-								<a-select mode="tags" v-decorator="['tags']" style="width: 100%" allowClear="true">
+								<a-select mode="tags" v-model="tags" v-decorator="['tags', {initialValue: tags}]" style="width: 100%" allowClear="true">
 									<a-select-option v-for="tag in tagSource" :key="tag">
 										{{ tag }}
 									</a-select-option>
@@ -120,6 +120,7 @@
 							</a-button>
 						</a-form-item>
 					</a-form>
+					
 				</a-card>
 
 			</a-col>
@@ -132,7 +133,7 @@
 </template>
 
 <script>
-	import { createAsset } from "../components/asset.script";
+	import { createAsset, getAsset } from "../components/asset.script";
 	import { getCompanies, getLocations, getManufacturers, getModels, getSuppliers, getTypes, getTags } from "../components/autocomplete.script";
 
 	export default ({
@@ -157,6 +158,7 @@
 				typeSource: [],
 				emptyType: [],
 				tagSource: [],
+				tags: [],
 				fieldTypes: {
 					text: 'text',
 				},
@@ -246,6 +248,27 @@
 					this.error(response.data.errors.errors.name.message)
 				}
 			},
+			 async queryAsset(id) {
+                this.item = {
+                    query: id,
+					token: this.accessToken
+                };
+                const response = await getAsset(this.item);
+                if (response.data.success) {
+					this.form.setFieldsValue({ assetName: response.data.result.name + " (copy)"})
+					this.form.setFieldsValue({ type: (response.data.result.type[0]) ? response.data.result.type[0].name : '' })
+					this.form.setFieldsValue({ manufacturer: (response.data.result.manufacturer[0]) ? response.data.result.manufacturer[0].name : '' })
+					this.form.setFieldsValue({ model: (response.data.result.assetModel[0]) ? response.data.result.assetModel[0].name : '' })
+					this.form.setFieldsValue({ quantity: (response.data.result.quantity) ? response.data.result.quantity : '' })
+					this.form.setFieldsValue({ serial: (response.data.result.serial) ? response.data.result.serial : '' })
+					this.form.setFieldsValue({ location: (response.data.result.location[0]) ? response.data.result.location[0].name : '' })
+					this.form.setFieldsValue({ supplier: (response.data.result.supplier[0]) ? response.data.result.supplier[0].name : '' })
+					this.form.setFieldsValue({ company: (response.data.result.company[0]) ? response.data.result.company[0].name : '' })
+					response.data.result.tags.forEach(singleResult => {
+						this.tags.push(singleResult.name)
+					})
+                } 
+            },
 			handleSubmit(e) {
 				e.preventDefault();
 				this.form.validateFields((err, values) => {
@@ -256,7 +279,13 @@
 			}
 		},
 		created() {
+			if (this.$route.params.id) this.queryAsset(this.$route.params.id)
 			this.queryAutocomplete()
+        },
+		watch: {
+            '$route.params.id': function (id) {
+				this.queryAsset(id)
+            }
         },
 	})
 

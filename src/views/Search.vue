@@ -27,6 +27,7 @@
                         :data-source="tableData"
                         :pagination="false"
                         :loading="loading"
+                        :scroll="{ x: 1600 }"
                     >
                         <span slot="name" slot-scope="name">
                             <router-link :to="{ path: '/assets/'+name.id, }">{{ name.name }}</router-link>
@@ -75,13 +76,15 @@
                                 </a>
                             </a-popconfirm>
                             <a v-if="tableData.length">
-                                    <a-tooltip>
-                                        <template slot="title">
-                                        duplicate
-                                        </template>
+                                <a-tooltip>
+                                    <template slot="title">
+                                    clone
+                                    </template>
+                                    <router-link :to="{ path: '/assets/new/' + action }">
                                         <a-icon type="copy" />
-                                    </a-tooltip>
-                                </a>
+                                    </router-link>
+                                </a-tooltip>
+                            </a>
                         </span>
                     </a-table>
                 </a-card>
@@ -119,7 +122,7 @@
 			title: 'NAME',
 			dataIndex: '_source',
             fixed: 'left',
-            width: 200,
+            width: 220,
             scopedSlots: { customRender: 'name' },
 		},
 		{

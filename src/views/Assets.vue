@@ -26,6 +26,7 @@
                         :data-source="tableData"
                         :pagination="false"
                         :loading="loading"
+                        :scroll="{ x: 1600 }"
                     >
 						<span slot="name" slot-scope="name">
                             <router-link :to="{ path: '/assets/' + name.id }">{{ name.name }}</router-link>
@@ -58,12 +59,13 @@
                         </span>
                         <span slot="action" slot-scope="action">
                             <a-popconfirm
+                                v-if="tableData.length"
                                 title="Are you sure?"
                                 ok-text="Yes"
                                 cancel-text="No"
                                 @confirm="confirmDelete(action.id)"
                             >
-                                    <a style="padding-right: 10px;"> 
+                                <a style="padding-right: 10px;"> 
                                     <a-tooltip>
                                         <template slot="title">
                                         delete
@@ -72,13 +74,14 @@
                                     </a-tooltip>
                                 </a>
                             </a-popconfirm>
-                           
-                            <a>
+                            <a v-if="tableData.length">
                                 <a-tooltip>
                                     <template slot="title">
-                                    duplicate
+                                    clone
                                     </template>
-                                    <a-icon type="copy" />
+                                    <router-link :to="{ path: '/assets/new/' + action.id }">
+                                        <a-icon type="copy" />
+                                    </router-link>
                                 </a-tooltip>
                             </a>
                         </span>
@@ -123,7 +126,7 @@
 			title: 'NAME',
 			dataIndex: 'tableData',
             fixed: 'left',
-            width: 200,
+            width: 220,
             scopedSlots: { customRender: 'name' },
 		},
 		{
@@ -166,7 +169,6 @@
 		},
         {
             title: 'Action',
-            key: 'operation',
             fixed: 'right',
             dataIndex: 'tableData',
             scopedSlots: { customRender: 'action' },

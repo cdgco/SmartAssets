@@ -139,7 +139,7 @@
 			title: 'NAME',
 			dataIndex: 'tableData',
             fixed: 'left',
-            width: 200,
+            width: 220,
             scopedSlots: { customRender: 'name' },
 		},
 		{

@@ -114,9 +114,11 @@
 									<a-button type="primary" html-type="submit" style="margin-right: 15px;">
 										Submit
 									</a-button>
-									<a-button type="default" style="margin-right: 15px;">
-										Clone
-									</a-button>
+									<router-link :to="{ path: '/assets/new/' + this.query }">
+										<a-button type="default" style="margin-right: 15px;">
+											Clone
+										</a-button>
+									</router-link>
 									<a-popconfirm
 										title="Are you sure?"
 										ok-text="Yes"
@@ -165,6 +167,28 @@
 						</a-row>
 					</a-card>
 				</a-row>
+				<br>
+				<a-row>
+					<a-card :bordered="false" class="header-solid h-full" :bodyStyle="{padding: 4,}">
+						<template #title>
+							<h6 class="font-semibold m-0">Notes</h6>
+						</template>
+						<a-form :form="form" :label-col="{ span: 5 }" :wrapper-col="{ span: 12 }">
+							<a-row>
+								<a-col :span="24">
+									<a-textarea :rows="8" />
+								</a-col>
+							</a-row>
+							
+							
+							<a-form-item :wrapper-col="{ span: 24 }" style="padding-top: 12px;">
+							<a-button type="primary" block html-type="submit">
+								Save
+							</a-button>
+							</a-form-item>
+						</a-form>
+					</a-card>
+				</a-row>
 			</a-col>
 
 		</a-row>
@@ -174,7 +198,25 @@
 			<!-- Billing Information Column -->
 			<a-col :span="24" :md="16" class="mb-24">
 					<!-- Billing Information Card -->
-					<CardAssetHistory></CardAssetHistory>
+					<a-card :bordered="false" class="header-solid h-full" :bodyStyle="{paddingTop: 0, paddingBottom: '16px' }">
+						<template #title>
+							<h6 class="font-semibold m-0">Notes</h6>
+						</template>
+						<a-form :form="form" :label-col="{ span: 5 }" :wrapper-col="{ span: 12 }">
+							<a-row>
+								<a-col :span="24">
+									<a-textarea :rows="8" />
+								</a-col>
+							</a-row>
+							
+							
+							<a-form-item :wrapper-col="{ span: 24 }">
+							<a-button type="primary" block html-type="submit">
+								Save
+							</a-button>
+							</a-form-item>
+						</a-form>
+					</a-card>
 					<!-- / Billing Information Card -->
 			</a-col>
 			<a-col :span="24" :md="8" class="mb-24">

@@ -71,6 +71,14 @@ let routes = [{
         beforeEnter: handleAuth
     },
     {
+        path: '/assets/new/:id',
+        name: 'New Asset',
+        layout: "dashboard",
+        component: () =>
+            import ('../views/CreateAsset.vue'),
+        beforeEnter: handleAuth
+    },
+    {
         path: '/assets/:id',
         name: 'Asset',
         layout: "asset",
