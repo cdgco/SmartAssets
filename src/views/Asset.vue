@@ -376,7 +376,7 @@
 				if ((this.originalObject.location[0] && values.location != this.originalObject.location[0].name) || (!this.originalObject.location[0] && values.location)) this.item.location = values.location;
 				if ((this.originalObject.supplier[0] && values.supplier != this.originalObject.supplier[0].name) || (!this.originalObject.supplier[0] && values.supplier)) this.item.supplier = values.supplier;
 				if ((this.originalObject.company[0] && values.company != this.originalObject.company[0].name) || (!this.originalObject.company[0] && values.company)) this.item.company = values.company;
-				if (this.originalObject.tags != this.tagSelected) this.item.tags = this.tagSelected;
+				if (JSON.stringify(this.originalObject.tags) != JSON.stringify(this.tagSelected)) this.item.tags = this.tagSelected;
 				this.loading = true;
 				const response = await updateAsset(this.item);
 				if (response.data.success) {

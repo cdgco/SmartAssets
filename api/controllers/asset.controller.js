@@ -255,6 +255,7 @@ exports.findOne = (req, res) => {
 };
 
 function updateAsset(id, dynUpdate, res) {
+    console.log("asset")
     Asset.findByIdAndUpdate(id, dynUpdate, { useFindAndModify: false, returnDocument: 'after' })
         .populate("manufacturer")
         .populate("type")
@@ -296,7 +297,7 @@ function updateAsset(id, dynUpdate, res) {
 function updateTags(req, res, id, dynUpdate) {
     if (req.body.tags !== undefined) { // If asset has tags
         dynUpdate.tags = []
-        if (req.body.tags == []) {
+        if (req.body.tags.length == 0) {
             updateAsset(id, dynUpdate, res)
         } else {
             req.body.tags.forEach(function(tag, index, array) {
@@ -330,7 +331,7 @@ function updateLocation(req, res, id, dynUpdate) {
 }
 
 function updateSupplier(req, res, id, dynUpdate) {
-    if (req.body.supplier !== undefined) { // If suppleir updated
+    if (req.body.supplier !== undefined) { // If supplier updated
         if (req.body.supplier == '') {
             dynUpdate.supplier = []
             updateLocation(req, res, id, dynUpdate)
