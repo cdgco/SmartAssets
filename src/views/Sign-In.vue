@@ -141,7 +141,12 @@
 						rememberme: ""
 					};
 					this.loading = false;
-					this.$router.push("/dashboard");
+					if (this.$route.query.redirect) {
+						this.$router.push(this.$route.query.redirect);
+					}
+					else {
+						this.$router.push("/dashboard");
+					}
 				} else {
 					// error
 					this.show = true;

@@ -6,7 +6,7 @@ Vue.use(VueRouter)
 const handleAuth = (to, from, next) => {
     var itemStr = localStorage.getItem("user")
     if (to.name !== 'Sign-In' && itemStr === null) {
-        next({ name: 'Sign-In' })
+        next({ name: 'Sign-In', query: { redirect: to.fullPath } })
     } else {
         var item = JSON.parse(itemStr)
         axios.post(process.env.VUE_APP_API_URL + "/users/token", {
@@ -24,12 +24,12 @@ const handleAuth = (to, from, next) => {
                     next()
                 } else {
                     localStorage.removeItem("user")
-                    next({ name: 'Sign-In' })
+                    next({ name: 'Sign-In', query: { redirect: to.fullPath } })
                 }
             })
             .catch(function(error) {
                 localStorage.removeItem("user")
-                next({ name: 'Sign-In' })
+                next({ name: 'Sign-In', query: { redirect: to.fullPath } })
             });
     }
 }
@@ -144,10 +144,14 @@ let routes = [{
         component: () =>
             import ('../views/Sign-In.vue'),
         beforeEnter: (to, from, next) => {
-            if (localStorage.getItem("user") !== null) next({
-                name: 'Dashboard'
-            })
-            else next()
+            var redirect = to.query.redirect
+            if (localStorage.getItem("user") !== null && redirect !== undefined) {
+                next({ path: redirect })
+            } else if (localStorage.getItem("user") !== null) {
+                next({
+                    name: 'Dashboard'
+                })
+            } else next()
         }
     },
     {
