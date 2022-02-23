@@ -209,7 +209,7 @@
 		},
 		 created() {
 			this.queryAsset()
-			setTimeout(this.loading, 1000);
+			setTimeout(this.loading, 100);
 		}
 	})
 

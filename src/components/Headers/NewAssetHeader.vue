@@ -14,13 +14,13 @@
 					<a-breadcrumb>
 						<a-breadcrumb-item><router-link to="/"><a-icon type="home" /></router-link></a-breadcrumb-item>
 						<a-breadcrumb-item><router-link to="/assets/"> Assets</router-link></a-breadcrumb-item>
-						<a-breadcrumb-item>{{ this.$route.name }} {{ this.$route.params.id }}</a-breadcrumb-item>
+						<a-breadcrumb-item>{{ this.$route.name }}</a-breadcrumb-item>
 					</a-breadcrumb>
 					<!-- / Header Breadcrumbs -->
 
 					<!-- Header Page Title -->
 					<div class="ant-page-header-heading">
-						<span class="ant-page-header-heading-title">{{ this.pageTitle }}</span>
+						<span class="ant-page-header-heading-title">{{ this.$route.name }}</span>
 					</div>
 					<!-- / Header Page Title -->
 
@@ -71,7 +71,6 @@
 					<a-button type="link" class="sidebar-toggler" @click="$emit('toggleSidebar', ! sidebarCollapsed) , resizeEventHandler()">
 						<a-icon type="menu" style="font-size:20px"/>
 					</a-button>
-					<!-- / Header Control Buttons -->
 
 					<!-- Header Search Input -->
 					<a-input-search class="header-search" placeholder="Search..." @search="onSearch" />
@@ -153,10 +152,6 @@ import { getAsset } from "../asset.script";
 				type: Array,
 				default: () => notificationsData,
 			},
-
-			assetTitle: {
-				type: String,
-			},
 		},
 		data() {
 			var jsonToken = localStorage.getItem("user")
@@ -171,21 +166,14 @@ import { getAsset } from "../asset.script";
 
 				// The wrapper element to attach dropdowns to.
 				wrapper: document.body,
-
-				pageTitle: this.$route.name + " " + this.$route.params.id,
 				visible: false,
 				accessToken: accessToken,
 				loading: false
 			}
 		},
-		watch: {
-			assetTitle(val) {
-				this.pageTitle = val;
-			},
-		},
 		methods: {
 			onDecode (result) {
-				this.visible = false;
+				this.visible = true;
 				console.log(encodeURIComponent(result))
 				this.queryAsset(encodeURIComponent(result)).then((response) => {
 					if (response) this.$router.push("/assets/" +encodeURIComponent(result)).catch(() => { /* ignore */ });
