@@ -46,3 +46,7 @@
 @import "./pages/_sign-in";
 @import "./pages/_sign-up";
 // Pages
+.camera-scanner-modal .ant-modal .ant-modal-content {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}

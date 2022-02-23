@@ -80,10 +80,14 @@
 				<!-- / Header Control Column -->
 
 			</a-row>
-			<a-modal v-model="visible" title="Barcode Scanner" :footer="null">
+			<a-modal v-model="visible" :title="null" :destroyOnClose=true :bodyStyle="{padding: 0}" wrapClassName="camera-scanner-modal" :footer="null">
+				<a-spin :spinning="loading">
 				<StreamBarcodeReader
 					@decode="onDecode"
+					@loaded="onLoaded"
 				></StreamBarcodeReader>
+				<div v-if="loading" style="height: 400px;"></div>
+				</a-spin>
 			</a-modal>
 		</a-layout-header>
 		<!--  /Layout Header -->
@@ -170,6 +174,7 @@ import { getAsset } from "../asset.script";
 				pageTitle: this.$route.name + " " + this.$route.params.id,
 				visible: false,
 				accessToken: accessToken,
+				loading: false
 			}
 		},
 		watch: {
@@ -186,6 +191,9 @@ import { getAsset } from "../asset.script";
 					else this.$router.push("/search/" +encodeURIComponent(result)).catch(() => { /* ignore */ });
 				})
 			},
+			onLoaded() {
+				this.loading = false;
+			},
 			resizeEventHandler(){
 				this.top = this.top ? 0 : -0.01 ;
 				// To refresh the header if the window size changes.
@@ -194,13 +202,13 @@ import { getAsset } from "../asset.script";
 			},
 			onSearch(value){
 				this.$router.push({ path: `/search/${value}` });
-				// this.$router.go();
 			},
 			logout() {
 				localStorage.removeItem("user")
 				this.$router.push("/sign-in");
 			},
 			showModal() {
+				this.loading = true;
 				this.visible = true;
 			},
 			async queryAsset(assetCode) {

@@ -79,10 +79,14 @@
 				<!-- / Header Control Column -->
 
 			</a-row>
-			<a-modal v-model="visible" title="Barcode Scanner" :footer="null">
+			<a-modal v-model="visible" :title="null" :destroyOnClose=true :bodyStyle="{padding: 0}" wrapClassName="camera-scanner-modal" :footer="null">
+				<a-spin :spinning="loading">
 				<StreamBarcodeReader
 					@decode="onDecode"
+					@loaded="onLoaded"
 				></StreamBarcodeReader>
+				<div v-if="loading" style="height: 400px;"></div>
+				</a-spin>
 			</a-modal>
 		</a-layout-header>
 		<!--  /Layout Header -->
@@ -163,16 +167,20 @@ import { getAsset } from "../asset.script";
 				wrapper: document.body,
 				visible: false,
 				accessToken: accessToken,
+				loading: false
 			}
 		},
 		methods: {
 			onDecode (result) {
-				this.visible = false;
+				this.visible = true;
 				console.log(encodeURIComponent(result))
 				this.queryAsset(encodeURIComponent(result)).then((response) => {
 					if (response) this.$router.push("/assets/" +encodeURIComponent(result)).catch(() => { /* ignore */ });
 					else this.$router.push("/search/" +encodeURIComponent(result)).catch(() => { /* ignore */ });
 				})
+			},
+			onLoaded() {
+				this.loading = false;
 			},
 			resizeEventHandler(){
 				this.top = this.top ? 0 : -0.01 ;
@@ -182,13 +190,13 @@ import { getAsset } from "../asset.script";
 			},
 			onSearch(value){
 				this.$router.push({ path: `/search/${value}` });
-				// this.$router.go();
 			},
 			logout() {
 				localStorage.removeItem("user")
 				this.$router.push("/sign-in");
 			},
 			showModal() {
+				this.loading = true;
 				this.visible = true;
 			},
 			async queryAsset(assetCode) {
