@@ -167,7 +167,7 @@ import { getAsset } from "../asset.script";
 		methods: {
 			async queryAsset(assetCode) {
                 this.item = {
-                    query: assetCode,
+                    query: encodeURIComponent(assetCode),
 					token: this.accessToken
                 };
                 const response = await getAsset(this.item);

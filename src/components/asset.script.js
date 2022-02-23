@@ -2,7 +2,7 @@ import axios from "axios";
 
 export const getAsset = async item => {
     let request = {
-        url: process.env.VUE_APP_API_URL + "/assets/" + item.query,
+        url: process.env.VUE_APP_API_URL + "/assets/" + encodeURIComponent(item.query),
         method: "get",
         headers: {
             "Authorization": "Bearer " + item.token

@@ -46,16 +46,19 @@ function createAsset(asset, res) {
 
 function createTags(asset, req, res) {
     if (req.body.tags) { // If asset has tags
-        req.body.tags.forEach(function(tag, index, array) {
-            Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
-                function(err, tag) {
-                    if (err) return returnErr(res, err)
-                    else {
-                        asset.tags.push(tag);
-                        if (index === array.length - 1) createAsset(asset, res)
-                    }
-                });
-        })
+        if (req.body.tags.length > 0) {
+            req.body.tags.forEach(function(tag, index, array) {
+                Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                    function(err, tag) {
+                        if (err) return returnErr(res, err)
+                        else {
+                            asset.tags.push(tag);
+                            if (index === array.length - 1) createAsset(asset, res)
+                        }
+                    });
+
+            })
+        } else createAsset(asset, res)
     } else createAsset(asset, res)
 }
 

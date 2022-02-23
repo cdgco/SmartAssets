@@ -358,7 +358,7 @@
 			},
             async queryAsset() {
                 this.item = {
-                    query: this.query,
+                    query: encodeURIComponent(this.query),
 					token: this.accessToken
                 };
                 const response = await getAsset(this.item);

@@ -238,7 +238,7 @@
 				if (values.location) this.item.location = values.location;
 				if (values.supplier) this.item.supplier = values.supplier;
 				if (values.company) this.item.company = values.company;
-				if (this.tagSource.length > 0) this.item.tags = values.tags;
+				if (values.tags.length !== 0) this.item.tags = values.tags;
 				this.loading = true;
 				const response = await createAsset(this.item);
 				if (response.data.success) {
@@ -250,7 +250,7 @@
 			},
 			 async queryAsset(id) {
                 this.item = {
-                    query: id,
+                    query: encodeURIComponent(id),
 					token: this.accessToken
                 };
                 const response = await getAsset(this.item);

@@ -28,14 +28,15 @@
 
 				<!-- Header Control Column -->
 				<a-col :span="24" :md="18" class="header-control">
+					<a-button type="link" @click="logout()">
+						<a-icon type="logout" style="font-size:20px" />
+					</a-button>
+
 					<!-- Header Control Buttons -->
 					<a-dropdown :trigger="['click']" overlayClassName="header-notifications-dropdown" :getPopupContainer="() => wrapper">
 						<a-badge count="4">
 							<a class="ant-dropdown-link" @click="e => e.preventDefault()">
-								<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-									<path d="M10 2C6.68632 2 4.00003 4.68629 4.00003 8V11.5858L3.29292 12.2929C3.00692 12.5789 2.92137 13.009 3.07615 13.3827C3.23093 13.7564 3.59557 14 4.00003 14H16C16.4045 14 16.7691 13.7564 16.9239 13.3827C17.0787 13.009 16.9931 12.5789 16.7071 12.2929L16 11.5858V8C16 4.68629 13.3137 2 10 2Z" fill="#111827"/>
-									<path d="M10 18C8.34315 18 7 16.6569 7 15H13C13 16.6569 11.6569 18 10 18Z" fill="#111827"/>
-								</svg>
+								<a-icon type="bell" theme="filled" style="font-size: 20px"/>
 							</a>
 						</a-badge>
 						
@@ -43,9 +44,7 @@
 							<a-list-item slot="renderItem" slot-scope="item">
 								<a-list-item-meta>
 									<template #description>
-										<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-											<path fill-rule="evenodd" clip-rule="evenodd" d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18ZM11 6C11 5.44772 10.5523 5 10 5C9.44772 5 9 5.44772 9 6V10C9 10.2652 9.10536 10.5196 9.29289 10.7071L12.1213 13.5355C12.5118 13.9261 13.145 13.9261 13.5355 13.5355C13.9261 13.145 13.9261 12.5118 13.5355 12.1213L11 9.58579V6Z" fill="#111827"/>
-										</svg>
+										<a-icon type="clock-circle" theme="filled" style="font-size: 20px"/>
 										<span>{{ item.time }}</span>
 									</template>
 									<a slot="title" href="#">{{ item.title }}</a>
@@ -62,20 +61,15 @@
 							</a-list-item>
 						</a-list>
 					</a-dropdown>
-					<a-button type="link" ref="secondarySidebarTriggerBtn" @click="$emit('toggleSettingsDrawer', true)">
-						<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-							<path fill-rule="evenodd" clip-rule="evenodd" d="M11.4892 3.17094C11.1102 1.60969 8.8898 1.60969 8.51078 3.17094C8.26594 4.17949 7.11045 4.65811 6.22416 4.11809C4.85218 3.28212 3.28212 4.85218 4.11809 6.22416C4.65811 7.11045 4.17949 8.26593 3.17094 8.51078C1.60969 8.8898 1.60969 11.1102 3.17094 11.4892C4.17949 11.7341 4.65811 12.8896 4.11809 13.7758C3.28212 15.1478 4.85218 16.7179 6.22417 15.8819C7.11045 15.3419 8.26594 15.8205 8.51078 16.8291C8.8898 18.3903 11.1102 18.3903 11.4892 16.8291C11.7341 15.8205 12.8896 15.3419 13.7758 15.8819C15.1478 16.7179 16.7179 15.1478 15.8819 13.7758C15.3419 12.8896 15.8205 11.7341 16.8291 11.4892C18.3903 11.1102 18.3903 8.8898 16.8291 8.51078C15.8205 8.26593 15.3419 7.11045 15.8819 6.22416C16.7179 4.85218 15.1478 3.28212 13.7758 4.11809C12.8896 4.65811 11.7341 4.17949 11.4892 3.17094ZM10 13C11.6569 13 13 11.6569 13 10C13 8.34315 11.6569 7 10 7C8.34315 7 7 8.34315 7 10C7 11.6569 8.34315 13 10 13Z" fill="#111827"/>
-						</svg>
+
+					<a-button type="link" @click="showModal">
+						<a-icon type="camera" theme="filled" style="font-size: 20px"/>
 					</a-button>
+					
+
 					<a-button type="link" class="sidebar-toggler" @click="$emit('toggleSidebar', ! sidebarCollapsed) , resizeEventHandler()">
-						<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M16 132h416c8.837 0 16-7.163 16-16V76c0-8.837-7.163-16-16-16H16C7.163 60 0 67.163 0 76v40c0 8.837 7.163 16 16 16zm0 160h416c8.837 0 16-7.163 16-16v-40c0-8.837-7.163-16-16-16H16c-8.837 0-16 7.163-16 16v40c0 8.837 7.163 16 16 16zm0 160h416c8.837 0 16-7.163 16-16v-40c0-8.837-7.163-16-16-16H16c-8.837 0-16 7.163-16 16v40c0 8.837 7.163 16 16 16z"/></svg>
+						<a-icon type="menu" style="font-size:20px"/>
 					</a-button>
-					<a-button type="link" @click="logout()">
-						<svg width="20" height="20" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
-							<path fill-rule="evenodd" clip-rule="evenodd" d="M725.333333 736 725.333333 597.333333 426.666667 597.333333 426.666667 426.666667 725.333333 426.666667 725.333333 288 949.333333 512 725.333333 736M554.666667 85.333333C601.6 85.333333 640 123.733333 640 170.666667L640 341.333333 554.666667 341.333333 554.666667 170.666667 170.666667 170.666667 170.666667 853.333333 554.666667 853.333333 554.666667 682.666667 640 682.666667 640 853.333333C640 900.266667 601.6 938.666667 554.666667 938.666667L170.666667 938.666667C123.733333 938.666667 85.333333 900.266667 85.333333 853.333333L85.333333 170.666667C85.333333 123.733333 123.733333 85.333333 170.666667 85.333333L554.666667 85.333333Z" fill="#111827"/>
-						</svg>
-					</a-button>
-					<!-- / Header Control Buttons -->
 
 					<!-- Header Search Input -->
 					<a-input-search class="header-search" placeholder="Search..." @search="onSearch" />
@@ -85,6 +79,11 @@
 				<!-- / Header Control Column -->
 
 			</a-row>
+			<a-modal v-model="visible" title="Barcode Scanner" :footer="null">
+				<StreamBarcodeReader
+					@decode="onDecode"
+				></StreamBarcodeReader>
+			</a-modal>
 		</a-layout-header>
 		<!--  /Layout Header -->
 
@@ -94,6 +93,10 @@
 </template>
 
 <script>
+
+import { StreamBarcodeReader } from "vue-barcode-reader";
+import { getAsset } from "../asset.script";
+
 	const notificationsData = [
 		{
 			title: 'New message from Sophie',
@@ -123,6 +126,9 @@
 	] ;
 
 	export default ({
+		components: {
+			StreamBarcodeReader,
+		},
 		props: {
 			// Header fixed status.
 			navbarFixed: {
@@ -143,6 +149,9 @@
 			},
 		},
 		data() {
+			var jsonToken = localStorage.getItem("user")
+            var rawToken = JSON.parse(jsonToken)
+            var accessToken = rawToken.accessToken
 			return {
 				// Fixed header/sidebar-footer ( Affix component ) top offset.
 				top: 0,
@@ -152,9 +161,19 @@
 
 				// The wrapper element to attach dropdowns to.
 				wrapper: document.body,
+				visible: false,
+				accessToken: accessToken,
 			}
 		},
 		methods: {
+			onDecode (result) {
+				this.visible = false;
+				console.log(encodeURIComponent(result))
+				this.queryAsset(encodeURIComponent(result)).then((response) => {
+					if (response) this.$router.push("/assets/" +encodeURIComponent(result)).catch(() => { /* ignore */ });
+					else this.$router.push("/search/" +encodeURIComponent(result)).catch(() => { /* ignore */ });
+				})
+			},
 			resizeEventHandler(){
 				this.top = this.top ? 0 : -0.01 ;
 				// To refresh the header if the window size changes.
@@ -168,7 +187,19 @@
 			logout() {
 				localStorage.removeItem("user")
 				this.$router.push("/sign-in");
-			}
+			},
+			showModal() {
+				this.visible = true;
+			},
+			async queryAsset(assetCode) {
+                this.item = {
+                    query: encodeURIComponent(assetCode),
+					token: this.accessToken
+                };
+                const response = await getAsset(this.item);
+                if (response.data.success) return true
+                else return false
+            },
 		},
 		mounted: function(){
 			// Set the wrapper to the proper element, layout wrapper.
