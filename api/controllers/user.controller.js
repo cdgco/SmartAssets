@@ -4,7 +4,6 @@ const Role = db.roles;
 
 var jwt = require("jsonwebtoken");
 var bcrypt = require("bcryptjs");
-var fs = require('fs');
 
 exports.checkToken = (req, res) => {
     if (req.body.token && req.body.refresh) {
@@ -129,101 +128,40 @@ exports.signup = (req, res) => {
         location: req.body.location ? req.body.location : "",
         title: req.body.title ? req.body.title : ""
     });
-
-    user.save((err, user) => {
+    var curRole = (req.body.role) ? req.body.role : "user"
+    Role.findOne({ name: curRole }, (err, role) => {
         if (err) {
             return res.json({
                 "success": false,
                 "code": 500,
-                "errors": [err],
-                "messages": [err],
+                "errors": err,
+                "messages": err,
                 "result": null
             });
-        }
-
-        if (req.body.role) {
-            Role.find({
-                    name: { $in: req.body.role }
-                },
-                (err, roles) => {
-                    if (err) {
-                        return res.json({
-                            "success": false,
-                            "code": 500,
-                            "errors": [err],
-                            "messages": [err],
-                            "result": null
-                        });
-                    }
-
-                    user.roles = roles.map(role => role._id);
-                    user.save(err => {
-                        if (err) {
-                            return res.json({
-                                "success": false,
-                                "code": 500,
-                                "errors": [err],
-                                "messages": [err],
-                                "result": null
-                            });
-                        }
-                        return res.json({
-                            "success": true,
-                            "code": 200,
-                            "errors": [],
-                            "messages": ["User was registered successfully!"],
-                            "result": {
-                                id: user._id,
-                                username: user.username,
-                                email: user.email,
-                                name: user.name,
-                                phone: user.phone,
-                                location: user.location,
-                                title: user.title
-                            }
-                        });
-                    });
-                }
-            );
         } else {
-            Role.findOne({ name: "user" }, (err, role) => {
+            user.roles = [role._id];
+            user.save((err, user) => {
                 if (err) {
                     return res.json({
                         "success": false,
                         "code": 500,
-                        "errors": [err],
-                        "messages": [err],
+                        "errors": err,
+                        "messages": err,
                         "result": null
                     });
-                }
-
-                user.roles = [role._id];
-                user.save(err => {
-                    if (err) {
+                } else {
+                    user.populate('roles', '-__v -_id -createdAt -updatedAt', function(err, user) {
+                        var copyUser = user.toObject();
+                        delete copyUser.password
                         return res.json({
-                            "success": false,
-                            "code": 500,
-                            "errors": [err],
-                            "messages": [err],
-                            "result": null
+                            "success": true,
+                            "code": 200,
+                            "errors": null,
+                            "messages": null,
+                            "result": copyUser
                         });
-                    }
-                    return res.json({
-                        "success": true,
-                        "code": 200,
-                        "errors": [],
-                        "messages": ["User was registered successfully!"],
-                        "result": {
-                            id: user._id,
-                            username: user.username,
-                            email: user.email,
-                            name: user.name,
-                            phone: user.phone,
-                            location: user.location,
-                            title: user.title
-                        }
                     });
-                });
+                }
             });
         }
     });

@@ -547,7 +547,6 @@ components:
         - username
         - email
         - password
-        - role
       properties:
         username:
           type: string

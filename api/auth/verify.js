@@ -50,7 +50,6 @@ checkDuplicateUsernameOrEmail = (req, res, next) => {
                     "result": null
                 });
             }
-
             next();
         });
     });
@@ -71,6 +70,8 @@ checkRoleExists = (req, res, next) => {
                 });
             }
         });
+    } else {
+        next()
     }
 };
 
