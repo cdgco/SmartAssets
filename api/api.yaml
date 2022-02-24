@@ -366,6 +366,11 @@ paths:
           required: false
           schema:
             type: number
+        - name: role
+          in: query
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: OK

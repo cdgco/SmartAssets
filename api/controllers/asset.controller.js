@@ -182,8 +182,8 @@ exports.findAll = (req, res) => {
                 .populate("assetModel")
                 .populate("supplier")
                 .populate("tags")
-                .limit(parseInt(req.query.limit) || 0)
                 .skip(parseInt(req.query.skip) || 0)
+                .limit(parseInt(req.query.limit) || 0)
                 .sort(dynSort)
                 .then(data1 => {
                     return res.json({

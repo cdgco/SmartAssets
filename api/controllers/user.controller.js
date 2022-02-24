@@ -265,45 +265,109 @@ exports.findAll = (req, res) => {
     } else if (req.query.sort && req.query.sort.toLowerCase() == "desc") {
         dynSort._id = -1;
     }
-
-    User.find(dynCondition)
-        .select("-password")
-        .populate("roles", "name")
-        .limit(parseInt(req.query.limit) || 0)
-        .skip(parseInt(req.query.skip) || 0)
-        .sort(dynSort)
-        .exec((err, user) => {
-            if (err) {
-                return res.json({
-                    "success": false,
-                    "code": 500,
-                    "errors": [err],
-                    "messages": [err],
-                    "result": null
-                });
+    var basicRole = {
+        path: 'roles',
+    };
+    var searchRole = {
+        path: 'roles',
+        match: { name: req.query.role },
+    }
+    var curRole = (req.query.role) ? searchRole : basicRole;
+    var aggArray = [{
+            $lookup: {
+                from: "roles",
+                "let": { "ids": "$roles" },
+                pipeline: [
+                    { $match: { $expr: { $in: ['$_id', '$$ids'] } } }
+                ],
+                as: "dbRolesArray"
             }
+        },
+        { $unset: "roles" },
+        { $unwind: '$dbRolesArray' },
+        { $match: { 'dbRolesArray.name': req.query.role } },
+        { $group: { _id: '$_id', dbRolesArray: { $push: '$dbRolesArray' }, data: { $first: '$$ROOT' } } },
+        { $addFields: { 'data.roles': '$dbRolesArray' } },
+        { $replaceRoot: { 'newRoot': '$data' } },
+        { $unset: "password" },
+        { $unset: "dbRolesArray" }
+    ];
+    if (req.query.skip) aggArray.push({ $skip: req.query.skip })
+    if (req.query.limit) aggArray.push({ $limit: req.query.limit })
+    if (req.query.sort) aggArray.push({ $sort: dynSort })
 
-            if (!user) {
+    if (req.query.role) {
+        User.aggregate(aggArray)
+            .exec((err, user) => {
+                if (err) {
+                    return res.json({
+                        "success": false,
+                        "code": 500,
+                        "errors": [err],
+                        "messages": [err],
+                        "result": null
+                    });
+                }
+
+                if (!user) {
+                    return res.json({
+                        "success": false,
+                        "code": 404,
+                        "errors": ["No users found"],
+                        "messages": [err],
+                        "result": null
+                    });
+                }
+
                 return res.json({
-                    "success": false,
-                    "code": 404,
-                    "errors": ["No users found"],
-                    "messages": [err],
-                    "result": null
-                });
-            }
+                    "success": true,
+                    "code": 200,
+                    "errors": [],
+                    "messages": [],
+                    "result": user
 
-            return res.json({
-                "success": true,
-                "code": 200,
-                "errors": [],
-                "messages": [],
-                "result": user
+                });
 
             });
+    } else {
+        User.find(dynCondition)
+            .select("-password")
+            .populate(curRole)
+            .skip(parseInt(req.query.skip) || 0)
+            .limit(parseInt(req.query.limit) || 0)
+            .sort(dynSort)
+            .exec((err, user) => {
+                if (err) {
+                    return res.json({
+                        "success": false,
+                        "code": 500,
+                        "errors": [err],
+                        "messages": [err],
+                        "result": null
+                    });
+                }
 
-        });
+                if (!user) {
+                    return res.json({
+                        "success": false,
+                        "code": 404,
+                        "errors": ["No users found"],
+                        "messages": [err],
+                        "result": null
+                    });
+                }
 
+                return res.json({
+                    "success": true,
+                    "code": 200,
+                    "errors": [],
+                    "messages": [],
+                    "result": user
+
+                });
+
+            });
+    }
 };
 
 exports.findOne = (req, res) => {
