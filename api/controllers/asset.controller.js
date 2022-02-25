@@ -261,7 +261,6 @@ exports.findOne = (req, res) => {
 };
 
 function updateAsset(id, dynUpdate, res) {
-    console.log("asset")
     Asset.findByIdAndUpdate(id, dynUpdate, { useFindAndModify: false, returnDocument: 'after' })
         .populate("manufacturer")
         .populate("type")
@@ -630,9 +629,7 @@ exports.importCSV = (req, res) => {
 
 exports.exportCSV = (req, res) => {
     var dataCopy = []
-    console.log(req.body.assets)
     req.body.assets.forEach(function(element, index, array) {
-        console.log(element)
         var tags = []
         if (element.tags && element.tags[0]) {
             element.tags.forEach(function(tag, index, array) {
