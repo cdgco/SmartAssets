@@ -104,8 +104,19 @@
 			<a-col :span="24" :lg="8" class="mb-24">
 
 				<!-- Orders History Timeline Card -->
-				<CardEventHistory v-if="loaded"></CardEventHistory>
-				<a-skeleton active v-else/>
+				<a-card :bordered="false" class="header-solid h-full" :bodyStyle="{paddingTop: '12px',}">
+					<template #title>
+						<h6>Recent Events</h6>			
+					</template>
+					<a-timeline v-if="events.length > 0" :reverse="timelineReverse">
+						<a-timeline-item v-for="item in events" :key="item._id" :color="item.color">
+							{{item.asset}} {{item.title}}
+							<p>{{ formatDate(item.createdAt) }}</p>
+							<p>{{item.user}}</p>
+						</a-timeline-item>
+					</a-timeline>
+					<a-empty v-else />
+				</a-card>
 				<!-- / Orders History Timeline Card -->
 
 			</a-col>
@@ -127,10 +138,9 @@
 	// "Projects" table component.
 	import CardAssetTable from '../components/Cards/CardAssetTable' ;
 
-	// Order History card component.
-	import CardEventHistory from '../components/Cards/CardEventHistory' ;
-
 	import { getAssets } from "../components/asset.script";
+
+	import { getEvents } from "../components/event.script";
 
 
 	// "Projects" table list of columns and their properties.
@@ -162,7 +172,6 @@
 			CardBarChart,
 			CardLineChart,
 			CardAssetTable,
-			CardEventHistory
 		},
 		data() {
 			var jsonToken = localStorage.getItem("user")
@@ -173,10 +182,17 @@
                 loading: false,
                 columns,
 				loaded : true,
-				accessToken: accessToken
+				accessToken: accessToken,
+				timelineReverse: false,
+				events: []
 			}
 		},
 		methods: {
+			formatDate(date) {
+				var options = { year: 'numeric', month: 'short', day: 'numeric', hour: "numeric", minute: "numeric", second: "numeric" };
+				var curDate  = new Date(date);
+				return curDate.toLocaleDateString("en-US", options)
+			},
 			async loading() {
 				this.loaded = true
 			},
@@ -204,11 +220,24 @@
                 } else {
                     console.log(response.data.errors);
                 }
+			},
+			async queryEvent() {
+                this.item = {
+                    items: 7,
+                    type: "all",
+					token: this.accessToken
+                    };
+                var response = await getEvents(this.item);
+                if (response.data.success) {
+					this.events = response.data.result;
+                } else {
+                    console.log(response.data.errors);
+                }
 			}
-
 		},
 		 created() {
 			this.queryAsset()
+			this.queryEvent()
 			setTimeout(this.loading, 100);
 		}
 	})

@@ -144,6 +144,9 @@ apiRouter.use('/tags', tagsRouter);
 const typeRouter = require('./routes/type.router.js');
 apiRouter.use('/type', typeRouter);
 
+const eventRouter = require('./routes/event.router.js');
+apiRouter.use('/event', eventRouter);
+
 apiRouter.get('/', function(req, res, next) {
     res.json({
         "success": true,

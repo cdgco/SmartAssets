@@ -4,6 +4,51 @@ const Role = db.roles;
 
 var jwt = require("jsonwebtoken");
 var bcrypt = require("bcryptjs");
+const Event = db.event;
+
+function logEvent(req, title, description, asset, type, color) {
+    if (req.get('Authorization')) {
+        jwt.verify(req.get('Authorization').replace('Bearer ', ''), process.env.JWT_SECRET, (err, decoded) => {
+            if (!err) {
+                User.findById(decoded.id).then(data => {
+                    var user = (data.email) ? data.email : '';
+                    const event = new Event({
+                        title: title,
+                        description: description,
+                        user: user,
+                        asset: asset,
+                        type: type,
+                        color: color
+                    });
+
+                    event.save((error, event) => { return event });
+                })
+            } else {
+                const event = new Event({
+                    title: title,
+                    description: description,
+                    user: null,
+                    asset: asset,
+                    type: type,
+                    color: color
+                });
+
+                event.save((error, event) => { return event });
+            }
+        })
+    } else {
+        const event = new Event({
+            title: title,
+            description: description,
+            user: null,
+            asset: asset,
+            type: type,
+            color: color
+        });
+
+        event.save((error, event) => { return event });
+    }
+}
 
 exports.checkToken = (req, res) => {
     if (req.body.token && req.body.refresh) {
@@ -151,6 +196,7 @@ exports.signup = (req, res) => {
                     });
                 } else {
                     user.populate('roles', '-__v -_id -createdAt -updatedAt', function(err, user) {
+                        logEvent(req, "User Created", "User Created", null, "user", "green")
                         var copyUser = user.toObject();
                         delete copyUser.password
                         return res.json({
@@ -224,6 +270,7 @@ exports.signin = (req, res) => {
             for (let i = 0; i < user.roles.length; i++) {
                 authorities.push("ROLE_" + user.roles[i].name.toUpperCase());
             }
+            logEvent(req, "User Signed In", "User Signed In", null, "user", "blue")
             return res.json({
                 "success": true,
                 "code": 200,
@@ -420,6 +467,7 @@ exports.update = (req, res) => {
                     "result": null
                 });
             } else {
+                logEvent(req, "User Updated", "User Updated", null, "user", "orange")
                 res.json({
                     "success": true,
                     "code": 200,
@@ -454,6 +502,7 @@ exports.delete = (req, res) => {
                     "result": null
                 });
             } else {
+                logEvent(req, "User Deleted", "User Deleted", null, "user", "red")
                 res.json({
                     "success": true,
                     "code": 200,

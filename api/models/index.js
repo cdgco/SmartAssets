@@ -15,5 +15,6 @@ db.supplier = require("./supplier.model.js")(mongoose);
 db.tags = require("./tags.model.js")(mongoose);
 db.location = require("./location.model.js")(mongoose);
 db.type = require("./type.model.js")(mongoose);
+db.event = require("./event.model.js")(mongoose);
 
 module.exports = db;

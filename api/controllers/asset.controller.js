@@ -7,11 +7,12 @@ const Company = db.company;
 const Model = db.model;
 const Supplier = db.supplier;
 const Tags = db.tags;
+const User = db.users;
+const Event = db.event;
 const { Client } = require('@elastic/elasticsearch')
 const elasticConfig = require("../../elastic.config.js");
+var jwt = require("jsonwebtoken");
 const Papa = require('papaparse');
-const { manufacturer } = require("../models");
-const { model } = require("mongoose");
 const elasticClient = new Client({
     node: elasticConfig.protocol + "://" + elasticConfig.host + ":" + elasticConfig.port,
     auth: {
@@ -40,10 +41,57 @@ function returnSuccess(res, asset) {
     });
 }
 
-function createAsset(asset, res) {
+function logEvent(req, title, description, asset, type, color) {
+    if (req.get('Authorization')) {
+        jwt.verify(req.get('Authorization').replace('Bearer ', ''), process.env.JWT_SECRET, (err, decoded) => {
+            if (!err) {
+                User.findById(decoded.id).then(data => {
+                    var user = (data.email) ? data.email : '';
+                    const event = new Event({
+                        title: title,
+                        description: description,
+                        user: user,
+                        asset: asset,
+                        type: type,
+                        color: color
+                    });
+
+                    event.save((error, event) => { return event });
+                })
+            } else {
+                const event = new Event({
+                    title: title,
+                    description: description,
+                    user: null,
+                    asset: asset,
+                    type: type,
+                    color: color
+                });
+
+                event.save((error, event) => { return event });
+            }
+        })
+    } else {
+        const event = new Event({
+            title: title,
+            description: description,
+            user: null,
+            asset: asset,
+            type: type,
+            color: color
+        });
+
+        event.save((error, event) => { return event });
+    }
+}
+
+function createAsset(asset, req, res) {
     asset.save((error, asset) => {
         if (error) return returnErr(res, error)
-        else return returnSuccess(res, asset)
+        else {
+            logEvent(req, "Created", "Created New Asset", asset.name, "asset", "green")
+            return returnSuccess(res, asset)
+        }
     });
 }
 
@@ -56,13 +104,13 @@ function createTags(asset, req, res) {
                         if (err) return returnErr(res, err)
                         else {
                             asset.tags.push(tag);
-                            if (index === array.length - 1) createAsset(asset, res)
+                            if (index === array.length - 1) createAsset(asset, req, res)
                         }
                     });
 
             })
-        } else createAsset(asset, res)
-    } else createAsset(asset, res)
+        } else createAsset(asset, req, res)
+    } else createAsset(asset, req, res)
 }
 
 function createLocation(asset, req, res) {
@@ -260,7 +308,7 @@ exports.findOne = (req, res) => {
         });
 };
 
-function updateAsset(id, dynUpdate, res) {
+function updateAsset(id, dynUpdate, res, req) {
     Asset.findByIdAndUpdate(id, dynUpdate, { useFindAndModify: false, returnDocument: 'after' })
         .populate("manufacturer")
         .populate("type")
@@ -279,6 +327,7 @@ function updateAsset(id, dynUpdate, res) {
                     "result": null
                 });
             } else {
+                logEvent(req, "Updated", "Updated Asset", data.name, "asset", "orange")
                 return res.json({
                     "success": true,
                     "code": 200,
@@ -311,12 +360,12 @@ function updateTags(req, res, id, dynUpdate) {
                         if (err) return returnErr(res, err)
                         else {
                             dynUpdate.tags.push(tag);
-                            if (index === array.length - 1) updateAsset(id, dynUpdate, res)
+                            if (index === array.length - 1) updateAsset(id, dynUpdate, res, req)
                         }
                     });
             })
         }
-    } else updateAsset(id, dynUpdate, res)
+    } else updateAsset(id, dynUpdate, res, req)
 }
 
 function updateLocation(req, res, id, dynUpdate) {
@@ -440,6 +489,7 @@ exports.delete = (req, res) => {
                     "result": null
                 });
             } else {
+                logEvent(req, "Deleted", "Deleted Asset from Database", data.name, "asset", "red")
                 return res.json({
                     "success": true,
                     "code": 200,
@@ -462,6 +512,7 @@ exports.delete = (req, res) => {
 
 // Delete all assets from the database.
 exports.deleteAll = (req, res) => {
+    logEvent(req, "Deleted Assets", "Deleted All Assets from Database", null, "user", "red")
     Asset.deleteMany({})
         .then(data => {
             return res.json({
@@ -486,6 +537,7 @@ exports.deleteAll = (req, res) => {
 function insertAsset(asset, res) {
     asset.save((error, asset) => {
         if (error) res.push(error)
+        logEvent(req, "Imported", "Imported Asset from CSV", asset.name, "asset", "green")
     });
 }
 
@@ -586,6 +638,7 @@ function insertType(asset, req, res) {
 }
 
 exports.importCSV = (req, res) => {
+    logEvent(req, "Imported Assets", "Imported Assets from CSV", null, "user", "green")
     var errArr = []
     if (!req.files[0] || req.files[0].mimetype != 'text/csv') {
         return res.json({
@@ -628,6 +681,8 @@ exports.importCSV = (req, res) => {
 };
 
 exports.exportCSV = (req, res) => {
+    logEvent(req, "Exported Assets", "Generated and Exported CSV of Assets", null, "user", "green")
+
     var dataCopy = []
     req.body.assets.forEach(function(element, index, array) {
         var tags = []

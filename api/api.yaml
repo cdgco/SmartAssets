@@ -312,6 +312,47 @@ paths:
             application/json:
               schema:
                 type: object
+  /event:
+    get:
+      description: Retrieve all events
+      parameters:
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: user
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: asset
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: number
+        - name: skip
+          in: query
+          required: false
+          schema:
+            type: number
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
   /assets/{id}:
     get:
       description: Retrieve asset with specified ID

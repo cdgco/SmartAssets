@@ -1,8 +1,8 @@
 import axios from "axios";
 
-export const search = async item => {
+export const getEvents = async item => {
     let request = {
-        url: process.env.VUE_APP_API_URL + "/assets/nativesearch?q=" + encodeURIComponent(item.query) + "&limit=" + item.items + "&skip=" + ((item.page - 1) * item.items),
+        url: process.env.VUE_APP_API_URL + "/event/?limit=" + item.items + "&type=" + item.type,
         method: "get",
         headers: {
             "Authorization": "Bearer " + item.token
