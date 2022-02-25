@@ -197,7 +197,7 @@
                 numResults: 0,
                 seconds: 0,
                 current: 1,
-                pageSize: 50,
+                pageSize: 20,
                 countWord : "results",
                 titleColon: "",
                 accessToken: accessToken

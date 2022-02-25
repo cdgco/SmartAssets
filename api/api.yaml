@@ -140,6 +140,38 @@ paths:
             application/json:
               schema:
                 type: object
+  /assets/import:
+    post:
+      description: Import assets from CSV.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Token Valid
+          content:
+            application/json:
+              schema:
+                type: object
+  /assets/export:
+    post:
+      description: Convert JSON Assets to CSV File
+      requestBody:
+        required: true
+        content:
+           application/json:
+              schema:
+                type: object
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
   /company:
     get:
       description: Retrieve all companies

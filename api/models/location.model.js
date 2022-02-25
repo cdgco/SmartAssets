@@ -1,9 +1,13 @@
 module.exports = mongoose => {
-    const Location = mongoose.model(
-        "Location",
-        mongoose.Schema({
-            name: String,
-        }, { timestamps: false })
-    );
+    const uniqueValidator = require('mongoose-unique-validator');
+    var schema = mongoose.Schema({
+        name: {
+            type: String,
+            unique: true,
+        },
+    }, { timestamps: false })
+
+    schema.plugin(uniqueValidator);
+    const Location = mongoose.model("Location", schema);
     return Location;
 };

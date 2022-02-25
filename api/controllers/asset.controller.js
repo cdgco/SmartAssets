@@ -9,6 +9,9 @@ const Supplier = db.supplier;
 const Tags = db.tags;
 const { Client } = require('@elastic/elasticsearch')
 const elasticConfig = require("../../elastic.config.js");
+const Papa = require('papaparse');
+const { manufacturer } = require("../models");
+const { model } = require("mongoose");
 const elasticClient = new Client({
     node: elasticConfig.protocol + "://" + elasticConfig.host + ":" + elasticConfig.port,
     auth: {
@@ -479,6 +482,189 @@ exports.deleteAll = (req, res) => {
                 "result": null
             });
         });
+};
+
+function insertAsset(asset, res) {
+    asset.save((error, asset) => {
+        if (error) res.push(error)
+    });
+}
+
+function insertTags(asset, req, res) {
+    if (req.body.tags) { // If asset has tags
+        if (req.body.tags.length > 0) {
+            req.body.tags.forEach(function(tag, index, array) {
+                Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
+                    function(err, tag) {
+                        if (err) res.push(err)
+                        else {
+                            asset.tags.push(tag);
+                            if (index === array.length - 1) insertAsset(asset, res)
+                        }
+                    });
+
+            })
+        } else insertAsset(asset, res)
+    } else insertAsset(asset, res)
+}
+
+function insertLocation(asset, req, res) {
+    if (req.body.location) { // If asset has location
+        Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+            function(err, location) {
+                if (err) res.push(err)
+                else {
+                    asset.location.push(location);
+                    insertTags(asset, req, res)
+                }
+            });
+    } else insertTags(asset, req, res)
+}
+
+function insertSupplier(asset, req, res) {
+    if (req.body.supplier) { // If asset has supplier
+        Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+            function(err, supplier) {
+                if (err) res.push(err)
+                else {
+                    asset.supplier.push(supplier);
+                    insertLocation(asset, req, res)
+                }
+            });
+    } else insertLocation(asset, req, res)
+}
+
+function insertModel(asset, req, res) {
+    if (req.body.model) { // If asset has model
+        Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true },
+            function(err, model) {
+                if (err) res.push(err)
+                else {
+                    asset.assetModel.push(model);
+                    insertSupplier(asset, req, res)
+                }
+            });
+    } else insertSupplier(asset, req, res)
+}
+
+function insertCompany(asset, req, res) {
+    if (req.body.company) { // If asset has company
+        Company.findOneAndUpdate({ name: req.body.company }, { name: req.body.company }, { new: true, upsert: true },
+            function(err, company) {
+                if (err) res.push(err)
+                else {
+                    asset.company.push(company);
+                    insertModel(asset, req, res)
+                }
+            });
+    } else insertModel(asset, req, res)
+}
+
+function insertManufacturer(asset, req, res) {
+    if (req.body.manufacturer) { // If asset has manufacturer
+        Manufacturer.findOneAndUpdate({ name: req.body.manufacturer }, { name: req.body.manufacturer }, { new: true, upsert: true },
+            function(err, manufacturer) {
+                if (err) res.push(err)
+                else {
+                    asset.manufacturer.push(manufacturer);
+                    insertCompany(asset, req, res)
+                }
+            });
+    } else insertCompany(asset, req, res)
+}
+
+function insertType(asset, req, res) {
+    if (req.body.type) { // If Asset has type
+        Type.findOneAndUpdate({ name: req.body.type }, { name: req.body.type }, { new: true, upsert: true },
+            function(err, type) {
+                if (err) res.push(err)
+                else {
+                    asset.type.push(type);
+                    insertManufacturer(asset, req, res)
+                }
+            });
+    } else insertManufacturer(asset, req, res)
+}
+
+exports.importCSV = (req, res) => {
+    var errArr = []
+    if (!req.files[0] || req.files[0].mimetype != 'text/csv') {
+        return res.json({
+            "success": false,
+            "code": 400,
+            "errors": ['Invalid File'],
+            "messages": [],
+            "result": null
+        });
+    } else {
+        var fileBuffer = req.files[0].buffer.toString()
+        var csv = Papa.parse(fileBuffer, {
+            header: true,
+            skipEmptyLines: true
+        })
+        csv.data.forEach(function(element, index, array) {
+            const asset = new Asset({
+                name: (element.Name || element.name || ''),
+                quantity: (element.Quantity || element.quantity || ''),
+                serial: (element.Serial || element.serial || element.SerialNumber || element.serialnumber || ''),
+            });
+            var assetRequest = { body: {} }
+            assetRequest.body.type = (element.Type || element.type || '')
+            assetRequest.body.location = (element.Location || element.location || '')
+            assetRequest.body.manufacturer = (element.Manufacturer || element.manufacturer || '')
+            assetRequest.body.supplier = (element.Supplier || element.supplier || '')
+            assetRequest.body.company = (element.Company || element.company || '')
+            insertType(asset, assetRequest, errArr)
+            if (index === array.length - 1) {
+                return res.json({
+                    "success": true,
+                    "code": 200,
+                    "errors": errArr,
+                    "messages": [],
+                    "result": null
+                });
+            }
+        });
+    }
+};
+
+exports.exportCSV = (req, res) => {
+    var dataCopy = []
+    console.log(req.body.assets)
+    req.body.assets.forEach(function(element, index, array) {
+        console.log(element)
+        var tags = []
+        if (element.tags && element.tags[0]) {
+            element.tags.forEach(function(tag, index, array) {
+                tags.push(tag.name)
+            })
+        }
+        var newAsset = {
+            name: element.name,
+            quantity: (element.quantity) ? element.quantity : '',
+            location: (element.location && element.location[0]) ? element.location[0].name : '',
+            type: (element.type && element.type[0]) ? element.type[0].name : '',
+            manufacturer: (element.manufacturer && element.manufacturer[0]) ? element.manufacturer[0].name : '',
+            supplier: (element.supplier && element.supplier[0]) ? element.supplier[0].name : '',
+            company: (element.company && element.company[0]) ? element.company[0].name : '',
+            serial: (element.serial) ? element.serial : '',
+            model: (element.assetModel && element.assetModel[0]) ? element.assetModel[0].name : '',
+            tags: tags,
+        }
+        if (element.customFields && element.customFields[0]) {
+            element.customFields.forEach(function(field, index, array) {
+                newAsset[field.name] = field.value
+            })
+        }
+        dataCopy.push(newAsset)
+        if (index === array.length - 1) {
+            var csv = Papa.unparse(JSON.stringify(dataCopy))
+            res.header('Content-Type', 'text/csv')
+            res.attachment('assets.csv')
+            return res.send(csv)
+        }
+    })
+
 };
 
 exports.search = (req, res) => {

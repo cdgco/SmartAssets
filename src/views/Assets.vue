@@ -108,6 +108,32 @@
                     style="display: flex; justify-content: center;"/>		
 				</a-col>
 			</a-row>
+            <a-row>
+                <a-button @click="showModal">Import from CSV</a-button>&nbsp;
+                <a-button @click="downloadAssets">Export to CSV</a-button>
+            </a-row>
+            <br><br>
+            <a-modal v-model="visible" title="Import Assets From CSV" :destroyOnClose=true :bodyStyle="{padding: 2}" :footer="null">
+                    <a-upload-dragger
+                    name="file"
+                    :multiple="false"
+                    :action="uploadURL"
+                    @change="uploadChange"
+                    accept=".csv"
+                    :showUploadList="false"
+                    :headers="accessHeader"
+                >
+                    <p class="ant-upload-drag-icon">
+                    <a-icon type="inbox" />
+                    </p>
+                    <p class="ant-upload-text">
+                    Click or drag file to upload
+                    </p>
+                    <p class="ant-upload-hint">
+                    CSV files with headers on first line
+                    </p>
+                </a-upload-dragger>
+			</a-modal>
 		<!-- / Projects Table -->
 
 	</div>
@@ -117,7 +143,7 @@
 
 	// "Projects" table component.
 	import CardAssetTable from '../components/Cards/CardAssetTable' ;
-	import { getAssets, deleteAsset } from "../components/asset.script";
+	import { getAssets, deleteAsset, exportAssets } from "../components/asset.script";
 
 
 	// "Projects" table list of columns and their properties.
@@ -186,6 +212,7 @@
 			var jsonToken = localStorage.getItem("user")
             var rawToken = JSON.parse(jsonToken)
             var accessToken = rawToken.accessToken
+            this.$message.config({maxCount: 1});
 			return {
 				tableData: [],
                 pagination: {},
@@ -194,13 +221,44 @@
                 numResults: 0,
                 seconds: 0,
                 current: 1,
-                pageSize: 50,
+                pageSize: 20,
                 countWord : "results",
 				accessToken: accessToken,
+                visible: false,
+                accessHeader: {
+                    Authorization: 'Bearer ' + accessToken
+                },
+                uploadURL: process.env.VUE_APP_API_URL + "/assets/import",
 
 			}
 		},
 		methods: {
+            uploadChange(event) {
+				this.visible = false;
+                if (event.file.status == "uploading") {
+                    this.$message.loading('Importing Assets ...', 0);
+                }
+                else if (event.file.status == "done") {
+                    this.$message.destroy();
+                    if (event.file.response.code == 200 && event.file.response.errors.length == 0) {
+                        this.$message.success('Import Completed', 1);
+                    }
+                    else if (event.file.response.code == 200) {
+                        this.$message.warning('Import Completed With Errors', 2);
+                    }
+                    else {
+                        this.$message.error('Import Failed', 2);
+                    }
+                }
+                else {
+                    this.$message.destroy();
+                    this.$message.error('Import Failed', 2);
+
+                }
+			},
+            showModal() {
+				this.visible = true;
+			},
             error(message) {
 				this.$error({
 					title: 'Failed to delete asset',
@@ -216,6 +274,37 @@
                 if (response.data.success) {
                     this.queryAsset()
                     this.$message.success('Asset Deleted Successfuly');
+                } else {
+                    this.error(response.data.errors[0])
+                }
+			},
+            async downloadAssets() {
+                this.$message.loading('Retrieving Assets ...', 0);
+				this.assetItem = {
+					token: this.accessToken,
+                    items: 0,
+                    page: 1
+                };
+                const assetResponse = await getAssets(this.assetItem);
+                if (assetResponse.data.success) {
+                    this.$message.destroy();
+                    this.$message.loading('Generating CSV ...', 0);
+                    this.csvItem = {
+                        token: this.accessToken,
+                        assets: assetResponse.data.result.results
+                    };
+                    const response = await exportAssets(this.csvItem);
+                    if (response) {
+                        this.$message.destroy();
+                        this.$message.success('Downloaded CSV', 1);
+                    }
+                    const url = window.URL.createObjectURL(new Blob([response.data]))
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', 'assets.csv');
+                    document.body.appendChild(link)
+                    link.click();
+
                 } else {
                     this.error(response.data.errors[0])
                 }

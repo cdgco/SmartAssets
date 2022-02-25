@@ -50,9 +50,9 @@ if (process.argv[2] != 'skipKeyCycle') {
     });
 }
 
-app.use(express.urlencoded({ extended: false }));
-app.use(express.text());
-app.use(express.json());
+app.use(express.text({ limit: '25mb' }));
+app.use(express.json({ limit: '25mb' }));
+app.use(express.urlencoded({ limit: '25mb', extended: false }));
 
 User.countDocuments({})
     .then(data => {

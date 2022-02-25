@@ -13,6 +13,12 @@ assetRouter.get("/search", assets.search);
 // Retrieve all assets
 assetRouter.get("/nativesearch", assets.nativeSearch);
 
+// Import assets from CSV
+assetRouter.post("/import", assets.importCSV);
+
+// Export assets to CSV
+assetRouter.post("/export", assets.exportCSV);
+
 // Retrieve a single asset with id
 assetRouter.get("/:id", assets.findOne);
 
@@ -24,6 +30,5 @@ assetRouter.delete("/:id", assets.delete);
 
 // Delete all assets
 assetRouter.delete("/", assets.deleteAll);
-
 
 module.exports = assetRouter;

@@ -13,6 +13,22 @@ export const getAsset = async item => {
     return response;
 };
 
+export const exportAssets = async item => {
+    let request = {
+        url: process.env.VUE_APP_API_URL + "/assets/export",
+        method: "post",
+        responseType: "blob",
+        headers: {
+            "Content-type": "application/json",
+            "Authorization": "Bearer " + item.token
+        },
+        data: JSON.stringify(item)
+    };
+
+    const response = await axios(request);
+    return response;
+};
+
 export const getAssets = async item => {
     let request = {
         url: process.env.VUE_APP_API_URL + "/assets/?limit=" + item.items + "&skip=" + ((item.page - 1) * item.items) + "&sort=desc",

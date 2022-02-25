@@ -1,9 +1,13 @@
 module.exports = mongoose => {
-    const Type = mongoose.model(
-        "Type",
-        mongoose.Schema({
-            name: String,
-        }, { timestamps: false })
-    );
+    const uniqueValidator = require('mongoose-unique-validator');
+    var schema = mongoose.Schema({
+        name: {
+            type: String,
+            unique: true,
+        },
+    }, { timestamps: false })
+
+    schema.plugin(uniqueValidator);
+    const Type = mongoose.model("Type", schema);
     return Type;
 };
