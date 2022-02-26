@@ -505,16 +505,26 @@ exports.update = (req, res) => {
     const id = req.params.id;
     var dynUpdate = {}
     var updateDescription = []
-    if (req.body.name) {
-        updateDescription.push("Changed Name to: " + req.body.name)
+    if (req.body.name !== undefined) {
+        updateDescription.push("Changed Name to: " + req.body.name.toString())
         dynUpdate.name = req.body.name
     }
-    if (req.body.quantity) {
-        updateDescription.push("Changed Quantity to: " + req.body.quantity)
-        dynUpdate.quantity = req.body.quantity
+    if (req.body.quantity !== undefined) {
+        console.log(req.body.quantity.toString())
+        if (req.body.quantity == -1) {
+            updateDescription.push("Removed Quantity")
+            dynUpdate.quantity = null
+        } else {
+            updateDescription.push("Changed Quantity to: " + req.body.quantity.toString())
+            dynUpdate.quantity = req.body.quantity
+        }
     }
-    if (req.body.serial) {
-        updateDescription.push("Changed Serial to: " + req.body.serial)
+    if (req.body.serial !== undefined) {
+        if (req.body.serial == '') {
+            updateDescription.push("Removed Serial")
+        } else {
+            updateDescription.push("Changed Serial to: " + req.body.serial.toString())
+        }
         dynUpdate.serial = req.body.serial
     }
     updateType(req, res, id, dynUpdate, updateDescription)

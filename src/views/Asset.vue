@@ -426,8 +426,11 @@
 					};
 				if (values.assetName != this.originalObject.name) this.item.name = values.assetName;
 				if (values.serial != this.originalObject.serial) this.item.serial = values.serial;
-				if (values.quantity != this.originalObject.quantity) this.item.quantity = values.quantity;
-
+				console.log(values.quantity)
+				if (values.quantity != this.originalObject.quantity) {
+					if (values.quantity == null) this.item.quantity = -1;
+					else this.item.quantity = values.quantity;
+				}
 				if ((this.originalObject.type[0] && values.type != this.originalObject.type[0].name) || (!this.originalObject.type[0] && values.type)) this.item.type = values.type;
 				if ((this.originalObject.manufacturer[0] && values.manufacturer != this.originalObject.manufacturer[0].name) || (!this.originalObject.manufacturer[0] && values.manufacturer)) this.item.manufacturer = values.manufacturer;
 				if ((this.originalObject.assetModel[0] && values.model != this.originalObject.assetModel[0].name) || (!this.originalObject.assetModel[0] && values.model)) this.item.model = values.model;
