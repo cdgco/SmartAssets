@@ -12,10 +12,10 @@ exports.findAll = (req, res) => {
         dynCondition.type = req.query.type
     }
     if (req.query.user) {
-        dynCondition.user = req.query.user
+        dynCondition.userId = req.query.user
     }
     if (req.query.asset) {
-        dynCondition.asset = req.query.asset
+        dynCondition.assetId = req.query.asset
     }
     Event.find(dynCondition)
         .skip(parseInt(req.query.skip) || 0)

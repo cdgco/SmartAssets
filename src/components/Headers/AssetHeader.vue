@@ -186,7 +186,6 @@ import { getAsset } from "../asset.script";
 		methods: {
 			onDecode (result) {
 				this.visible = false;
-				console.log(encodeURIComponent(result))
 				this.queryAsset(encodeURIComponent(result)).then((response) => {
 					if (response) this.$router.push("/assets/" +encodeURIComponent(result)).catch(() => { /* ignore */ });
 					else this.$router.push("/search/" +encodeURIComponent(result)).catch(() => { /* ignore */ });

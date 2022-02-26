@@ -41,7 +41,7 @@ function returnSuccess(res, asset) {
     });
 }
 
-function logEvent(req, title, description, asset, type, color) {
+function logEvent(req, title, description, asset, assetId, type, color) {
     if (req.get('Authorization')) {
         jwt.verify(req.get('Authorization').replace('Bearer ', ''), process.env.JWT_SECRET, (err, decoded) => {
             if (!err) {
@@ -51,7 +51,9 @@ function logEvent(req, title, description, asset, type, color) {
                         title: title,
                         description: description,
                         user: user,
+                        userId: decoded.id,
                         asset: asset,
+                        assetId: assetId,
                         type: type,
                         color: color
                     });
@@ -63,7 +65,9 @@ function logEvent(req, title, description, asset, type, color) {
                     title: title,
                     description: description,
                     user: null,
+                    userId: null,
                     asset: asset,
+                    assetId: assetId,
                     type: type,
                     color: color
                 });
@@ -76,7 +80,9 @@ function logEvent(req, title, description, asset, type, color) {
             title: title,
             description: description,
             user: null,
+            user: null,
             asset: asset,
+            assetId: assetId,
             type: type,
             color: color
         });
@@ -88,10 +94,8 @@ function logEvent(req, title, description, asset, type, color) {
 function createAsset(asset, req, res) {
     asset.save((error, asset) => {
         if (error) return returnErr(res, error)
-        else {
-            logEvent(req, "Created", "Created New Asset", asset.name, "asset", "green")
-            return returnSuccess(res, asset)
-        }
+        logEvent(req, "Created: " + asset.name, "Created Asset", asset.name, asset._id, "asset", "green")
+        return returnSuccess(res, asset)
     });
 }
 
@@ -99,13 +103,13 @@ function createTags(asset, req, res) {
     if (req.body.tags) { // If asset has tags
         if (req.body.tags.length > 0) {
             req.body.tags.forEach(function(tag, index, array) {
-                Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
-                    function(err, tag) {
+                Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true, rawResult: true },
+                    function(err, data) {
                         if (err) return returnErr(res, err)
-                        else {
-                            asset.tags.push(tag);
-                            if (index === array.length - 1) createAsset(asset, req, res)
-                        }
+                        if (data.lastErrorObject.updatedExisting == false)
+                            logEvent(req, "Created Tag: " + data.value.name, "Created Tag", null, null, "user", "green")
+                        asset.tags.push(data.value);
+                        if (index === array.length - 1) createAsset(asset, req, res)
                     });
 
             })
@@ -116,77 +120,77 @@ function createTags(asset, req, res) {
 function createLocation(asset, req, res) {
     if (req.body.location) { // If asset has location
         Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
-            function(err, location) {
+            function(err, data) {
                 if (err) return returnErr(res, err)
-                else {
-                    asset.location.push(location);
-                    createTags(asset, req, res)
-                }
+                if (data.lastErrorObject.updatedExisting == false)
+                    logEvent(req, "Created Location: " + data.value.name, "Created Location", null, null, "user", "green")
+                asset.location.push(data.value);
+                createTags(asset, req, res)
             });
     } else createTags(asset, req, res)
 }
 
 function createSupplier(asset, req, res) {
     if (req.body.supplier) { // If asset has supplier
-        Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
-            function(err, supplier) {
+        Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true, rawResult: true },
+            function(err, data) {
                 if (err) return returnErr(res, err)
-                else {
-                    asset.supplier.push(supplier);
-                    createLocation(asset, req, res)
-                }
+                if (data.lastErrorObject.updatedExisting == false)
+                    logEvent(req, "Created Supplier: " + data.value.name, "Created Supplier", null, null, "user", "green")
+                asset.supplier.push(data.value);
+                createLocation(asset, req, res)
             });
     } else createLocation(asset, req, res)
 }
 
 function createModel(asset, req, res) {
     if (req.body.model) { // If asset has model
-        Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true },
-            function(err, model) {
+        Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true, rawResult: true },
+            function(err, data) {
                 if (err) return returnErr(res, err)
-                else {
-                    asset.assetModel.push(model);
-                    createSupplier(asset, req, res)
-                }
+                if (data.lastErrorObject.updatedExisting == false)
+                    logEvent(req, "Created Model: " + data.value.name, "Created Model", null, null, "user", "green")
+                asset.assetModel.push(data.value);
+                createSupplier(asset, req, res)
             });
     } else createSupplier(asset, req, res)
 }
 
 function createCompany(asset, req, res) {
     if (req.body.company) { // If asset has company
-        Company.findOneAndUpdate({ name: req.body.company }, { name: req.body.company }, { new: true, upsert: true },
-            function(err, company) {
+        Company.findOneAndUpdate({ name: req.body.company }, { name: req.body.company }, { new: true, upsert: true, rawResult: true },
+            function(err, data) {
                 if (err) return returnErr(res, err)
-                else {
-                    asset.company.push(company);
-                    createModel(asset, req, res)
-                }
+                if (data.lastErrorObject.updatedExisting == false)
+                    logEvent(req, "Created Company: " + data.value.name, "Created Company", null, null, "user", "green")
+                asset.company.push(data.value);
+                createModel(asset, req, res)
             });
     } else createModel(asset, req, res)
 }
 
 function createManufacturer(asset, req, res) {
     if (req.body.manufacturer) { // If asset has manufacturer
-        Manufacturer.findOneAndUpdate({ name: req.body.manufacturer }, { name: req.body.manufacturer }, { new: true, upsert: true },
-            function(err, manufacturer) {
+        Manufacturer.findOneAndUpdate({ name: req.body.manufacturer }, { name: req.body.manufacturer }, { new: true, upsert: true, rawResult: true },
+            function(err, data) {
                 if (err) return returnErr(res, err)
-                else {
-                    asset.manufacturer.push(manufacturer);
-                    createCompany(asset, req, res)
-                }
+                if (data.lastErrorObject.updatedExisting == false)
+                    logEvent(req, "Created Manufacturer: " + data.value.name, "Created Manufacturer", null, null, "user", "green")
+                asset.manufacturer.push(data.value);
+                createCompany(asset, req, res)
             });
     } else createCompany(asset, req, res)
 }
 
 function createType(asset, req, res) {
     if (req.body.type) { // If Asset has type
-        Type.findOneAndUpdate({ name: req.body.type }, { name: req.body.type }, { new: true, upsert: true },
-            function(err, type) {
+        Type.findOneAndUpdate({ name: req.body.type }, { name: req.body.type }, { new: true, upsert: true, rawResult: true },
+            function(err, data) {
                 if (err) return returnErr(res, err)
-                else {
-                    asset.type.push(type);
-                    createManufacturer(asset, req, res)
-                }
+                if (data.lastErrorObject.updatedExisting == false)
+                    logEvent(req, "Created Type: " + data.value.name, "Created Type", null, null, "user", "green")
+                asset.type.push(data.value);
+                createManufacturer(asset, req, res)
             });
     } else createManufacturer(asset, req, res)
 }
@@ -308,7 +312,7 @@ exports.findOne = (req, res) => {
         });
 };
 
-function updateAsset(id, dynUpdate, res, req) {
+function updateAsset(req, res, id, dynUpdate, updateDescription) {
     Asset.findByIdAndUpdate(id, dynUpdate, { useFindAndModify: false, returnDocument: 'after' })
         .populate("manufacturer")
         .populate("type")
@@ -327,7 +331,7 @@ function updateAsset(id, dynUpdate, res, req) {
                     "result": null
                 });
             } else {
-                logEvent(req, "Updated", "Updated Asset", data.name, "asset", "orange")
+                logEvent(req, "Updated: " + data.name, updateDescription.join("\n"), data.name, data._id, "asset", "orange")
                 return res.json({
                     "success": true,
                     "code": 200,
@@ -348,130 +352,172 @@ function updateAsset(id, dynUpdate, res, req) {
         });
 }
 
-function updateTags(req, res, id, dynUpdate) {
+function updateTags(req, res, id, dynUpdate, updateDescription) {
     if (req.body.tags !== undefined) { // If asset has tags
         dynUpdate.tags = []
         if (req.body.tags.length == 0) {
-            updateAsset(id, dynUpdate, res)
+            updateDescription.push("Removed Tags")
+            updateAsset(req, res, id, dynUpdate, updateDescription)
         } else {
+            var tagString = "Changed Tags to: ";
             req.body.tags.forEach(function(tag, index, array) {
-                Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
-                    function(err, tag) {
+                Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true, rawResult: true },
+                    function(err, data) {
                         if (err) return returnErr(res, err)
-                        else {
-                            dynUpdate.tags.push(tag);
-                            if (index === array.length - 1) updateAsset(id, dynUpdate, res, req)
+                        if (data.lastErrorObject.updatedExisting == false)
+                            logEvent(req, "Created Tag: " + data.value.name, "Created Tag", null, null, "user", "green")
+                        dynUpdate.tags.push(data.value);
+                        if (index === array.length - 1) {
+                            tagString = tagString + data.value.name
+                            updateDescription.push(tagString)
+                            updateAsset(req, res, id, dynUpdate, updateDescription)
+                        } else {
+                            tagString = tagString + data.value.name + ", "
                         }
                     });
             })
         }
-    } else updateAsset(id, dynUpdate, res, req)
+    } else updateAsset(req, res, id, dynUpdate, updateDescription)
 }
 
-function updateLocation(req, res, id, dynUpdate) {
+function updateLocation(req, res, id, dynUpdate, updateDescription) {
     if (req.body.location !== undefined) { // If location updated
         if (req.body.location == '') {
+            updateDescription.push("Removed Location")
             dynUpdate.location = []
-            updateTags(req, res, id, dynUpdate)
+            updateTags(req, res, id, dynUpdate, updateDescription)
         } else {
-            Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+            Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true, rawResult: true },
                 function(err, data) {
                     if (err) return returnErr(res, err)
-                    dynUpdate.location = [data._id]
-                    updateTags(req, res, id, dynUpdate)
+                    updateDescription.push("Changed Location to: " + data.value.name)
+                    if (data.lastErrorObject.updatedExisting == false)
+                        logEvent(req, "Created Location: " + data.value.name, "Created Location", null, null, "user", "green")
+                    dynUpdate.location = [data.value._id]
+                    updateTags(req, res, id, dynUpdate, updateDescription)
                 });
         }
-    } else updateTags(req, res, id, dynUpdate)
+    } else updateTags(req, res, id, dynUpdate, updateDescription)
 }
 
-function updateSupplier(req, res, id, dynUpdate) {
+function updateSupplier(req, res, id, dynUpdate, updateDescription) {
     if (req.body.supplier !== undefined) { // If supplier updated
         if (req.body.supplier == '') {
+            updateDescription.push("Removed Supplier")
             dynUpdate.supplier = []
-            updateLocation(req, res, id, dynUpdate)
+            updateLocation(req, res, id, dynUpdate, updateDescription)
         } else {
-            Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
+            Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true, rawResult: true },
                 function(err, data) {
                     if (err) return returnErr(res, err)
-                    dynUpdate.supplier = [data._id]
-                    updateLocation(req, res, id, dynUpdate)
+                    updateDescription.push("Changed Supplier to: " + data.value.name)
+                    if (data.lastErrorObject.updatedExisting == false)
+                        logEvent(req, "Created Supplier: " + data.value.name, "Created Supplier", null, null, "user", "green")
+                    dynUpdate.supplier = [data.value._id]
+                    updateLocation(req, res, id, dynUpdate, updateDescription)
                 });
         }
-    } else updateLocation(req, res, id, dynUpdate)
+    } else updateLocation(req, res, id, dynUpdate, updateDescription)
 }
 
-function updateModel(req, res, id, dynUpdate) {
+function updateModel(req, res, id, dynUpdate, updateDescription) {
     if (req.body.model !== undefined) { // If model updated
         if (req.body.model == '') {
+            updateDescription.push("Removed Model")
             dynUpdate.assetModel = []
-            updateSupplier(req, res, id, dynUpdate)
+            updateSupplier(req, res, id, dynUpdate, updateDescription)
         } else {
-            Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true },
+            Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true, rawResult: true },
                 function(err, data) {
                     if (err) return returnErr(res, err)
-                    dynUpdate.assetModel = [data._id]
-                    updateSupplier(req, res, id, dynUpdate)
+                    updateDescription.push("Changed Model to: " + data.value.name)
+                    if (data.lastErrorObject.updatedExisting == false)
+                        logEvent(req, "Created Model: " + data.value.name, "Created Model", null, null, "user", "green")
+                    dynUpdate.assetModel = [data.value._id]
+                    updateSupplier(req, res, id, dynUpdate, updateDescription)
                 });
         }
-    } else updateSupplier(req, res, id, dynUpdate)
+    } else updateSupplier(req, res, id, dynUpdate, updateDescription)
 }
 
-function updateCompany(req, res, id, dynUpdate) {
+function updateCompany(req, res, id, dynUpdate, updateDescription) {
     if (req.body.company !== undefined) { // If company updated
         if (req.body.company == '') {
+            updateDescription.push("Removed Company")
             dynUpdate.company = []
-            updateModel(req, res, id, dynUpdate)
+            updateModel(req, res, id, dynUpdate, updateDescription)
         } else {
-            Company.findOneAndUpdate({ name: req.body.company }, { name: req.body.company }, { new: true, upsert: true },
+            Company.findOneAndUpdate({ name: req.body.company }, { name: req.body.company }, { new: true, upsert: true, rawResult: true },
                 function(err, data) {
                     if (err) return returnErr(res, err)
-                    dynUpdate.company = [data._id]
-                    updateModel(req, res, id, dynUpdate)
+                    updateDescription.push("Changed Company to: " + data.value.name)
+                    if (data.lastErrorObject.updatedExisting == false)
+                        logEvent(req, "Created Company: " + data.value.name, "Created Company", null, null, "user", "green")
+                    dynUpdate.company = [data.value._id]
+                    updateModel(req, res, id, dynUpdate, updateDescription)
                 });
         }
-    } else updateModel(req, res, id, dynUpdate)
+    } else updateModel(req, res, id, dynUpdate, updateDescription)
 }
 
-function updateManufacturer(req, res, id, dynUpdate) {
+function updateManufacturer(req, res, id, dynUpdate, updateDescription) {
     if (req.body.manufacturer !== undefined) { // If manufacturer updated
         if (req.body.manufacturer == '') {
+            updateDescription.push("Removed Manufacturer")
             dynUpdate.manufacturer = []
-            updateCompany(req, res, id, dynUpdate)
+            updateCompany(req, res, id, dynUpdate, updateDescription)
         } else {
-            Manufacturer.findOneAndUpdate({ name: req.body.manufacturer }, { name: req.body.manufacturer }, { new: true, upsert: true },
+            Manufacturer.findOneAndUpdate({ name: req.body.manufacturer }, { name: req.body.manufacturer }, { new: true, upsert: true, rawResult: true },
                 function(err, data) {
                     if (err) return returnErr(res, err)
-                    dynUpdate.manufacturer = [data._id]
-                    updateCompany(req, res, id, dynUpdate)
+                    updateDescription.push("Changed Manufacturer to: " + data.value.name)
+                    if (data.lastErrorObject.updatedExisting == false)
+                        logEvent(req, "Created Manufacturer: " + data.value.name, "Created Manufacturer", null, null, "user", "green")
+                    dynUpdate.manufacturer = [data.value._id]
+                    updateCompany(req, res, id, dynUpdate, updateDescription)
                 });
         }
-    } else updateCompany(req, res, id, dynUpdate)
+    } else updateCompany(req, res, id, dynUpdate, updateDescription)
 }
 
-function updateType(req, res, id, dynUpdate) {
+function updateType(req, res, id, dynUpdate, updateDescription) {
     if (req.body.type !== undefined) { // If type updated
         if (req.body.type == '') {
+            updateDescription.push("Removed Type")
             dynUpdate.type = []
-            updateManufacturer(req, res, id, dynUpdate)
+            updateManufacturer(req, res, id, dynUpdate, updateDescription)
         } else {
-            Type.findOneAndUpdate({ name: req.body.type }, { name: req.body.type }, { new: true, upsert: true },
+            Type.findOneAndUpdate({ name: req.body.type }, { name: req.body.type }, { new: true, upsert: true, rawResult: true },
                 function(err, data) {
                     if (err) return returnErr(res, err)
-                    dynUpdate.type = [data._id]
-                    updateManufacturer(req, res, id, dynUpdate)
+                    updateDescription.push("Changed Type to: " + data.value.name)
+                    if (data.lastErrorObject.updatedExisting == false)
+                        logEvent(req, "Created Type: " + data.value.name, "Created Type", null, null, "user", "green")
+                    dynUpdate.type = [data.value._id]
+                    updateManufacturer(req, res, id, dynUpdate, updateDescription)
                 });
         }
-    } else updateManufacturer(req, res, id, dynUpdate)
+    } else updateManufacturer(req, res, id, dynUpdate, updateDescription)
 }
 
 // Update an asset identified by the id in the request
 exports.update = (req, res) => {
     const id = req.params.id;
     var dynUpdate = {}
-    if (req.body.name) { dynUpdate.name = req.body.name }
-    if (req.body.quantity) { dynUpdate.quantity = req.body.quantity }
-    if (req.body.serial) { dynUpdate.serial = req.body.serial }
-    updateType(req, res, id, dynUpdate)
+    var updateDescription = []
+    if (req.body.name) {
+        updateDescription.push("Changed Name to: " + req.body.name)
+        dynUpdate.name = req.body.name
+    }
+    if (req.body.quantity) {
+        updateDescription.push("Changed Quantity to: " + req.body.quantity)
+        dynUpdate.quantity = req.body.quantity
+    }
+    if (req.body.serial) {
+        updateDescription.push("Changed Serial to: " + req.body.serial)
+        dynUpdate.serial = req.body.serial
+    }
+    updateType(req, res, id, dynUpdate, updateDescription)
 };
 
 // Delete an asset with the specified id in the request
@@ -489,7 +535,7 @@ exports.delete = (req, res) => {
                     "result": null
                 });
             } else {
-                logEvent(req, "Deleted", "Deleted Asset from Database", data.name, "asset", "red")
+                logEvent(req, "Deleted: " + data.name, "Deleted Asset from Database", data.name, data._id, "asset", "red")
                 return res.json({
                     "success": true,
                     "code": 200,
@@ -537,7 +583,7 @@ exports.deleteAll = (req, res) => {
 function insertAsset(asset, res) {
     asset.save((error, asset) => {
         if (error) res.push(error)
-        logEvent(req, "Imported", "Imported Asset from CSV", asset.name, "asset", "green")
+        logEvent(req, "Imported: " + asset.name, "Imported Asset from CSV", asset.name, asset._id, "asset", "green")
     });
 }
 
@@ -545,13 +591,13 @@ function insertTags(asset, req, res) {
     if (req.body.tags) { // If asset has tags
         if (req.body.tags.length > 0) {
             req.body.tags.forEach(function(tag, index, array) {
-                Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true },
-                    function(err, tag) {
+                Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true, rawResult: true },
+                    function(err, data) {
                         if (err) res.push(err)
-                        else {
-                            asset.tags.push(tag);
-                            if (index === array.length - 1) insertAsset(asset, res)
-                        }
+                        if (data.lastErrorObject.updatedExisting == false)
+                            logEvent(req, "Created Tag: " + data.value.name, "Created Tag vie import", null, null, "user", "green")
+                        asset.tags.push(data.value);
+                        if (index === array.length - 1) insertAsset(asset, res)
                     });
 
             })
@@ -561,84 +607,84 @@ function insertTags(asset, req, res) {
 
 function insertLocation(asset, req, res) {
     if (req.body.location) { // If asset has location
-        Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
-            function(err, location) {
+        Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true, rawResult: true },
+            function(err, data) {
                 if (err) res.push(err)
-                else {
-                    asset.location.push(location);
-                    insertTags(asset, req, res)
-                }
+                if (data.lastErrorObject.updatedExisting == false)
+                    logEvent(req, "Created Location: " + data.value.name, "Created Location via import", null, null, "user", "green")
+                asset.location.push(data.value);
+                insertTags(asset, req, res)
             });
     } else insertTags(asset, req, res)
 }
 
 function insertSupplier(asset, req, res) {
     if (req.body.supplier) { // If asset has supplier
-        Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true },
-            function(err, supplier) {
+        Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true, rawResult: true },
+            function(err, data) {
                 if (err) res.push(err)
-                else {
-                    asset.supplier.push(supplier);
-                    insertLocation(asset, req, res)
-                }
+                if (data.lastErrorObject.updatedExisting == false)
+                    logEvent(req, "Created Supplier: " + data.value.name, "Created Supplier via import", null, null, "user", "green")
+                asset.supplier.push(data.value);
+                insertLocation(asset, req, res)
             });
     } else insertLocation(asset, req, res)
 }
 
 function insertModel(asset, req, res) {
     if (req.body.model) { // If asset has model
-        Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true },
-            function(err, model) {
+        Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true, rawResult: true },
+            function(err, data) {
                 if (err) res.push(err)
-                else {
-                    asset.assetModel.push(model);
-                    insertSupplier(asset, req, res)
-                }
+                if (data.lastErrorObject.updatedExisting == false)
+                    logEvent(req, "Created Model: " + data.value.name, "Created Model via import", null, null, "user", "green")
+                asset.assetModel.push(data.value);
+                insertSupplier(asset, req, res)
             });
     } else insertSupplier(asset, req, res)
 }
 
 function insertCompany(asset, req, res) {
     if (req.body.company) { // If asset has company
-        Company.findOneAndUpdate({ name: req.body.company }, { name: req.body.company }, { new: true, upsert: true },
-            function(err, company) {
+        Company.findOneAndUpdate({ name: req.body.company }, { name: req.body.company }, { new: true, upsert: true, rawResult: true },
+            function(err, data) {
                 if (err) res.push(err)
-                else {
-                    asset.company.push(company);
-                    insertModel(asset, req, res)
-                }
+                if (data.lastErrorObject.updatedExisting == false)
+                    logEvent(req, "Created Company: " + data.value.name, "Created Company via import", null, null, "user", "green")
+                asset.company.push(data.value);
+                insertModel(asset, req, res)
             });
     } else insertModel(asset, req, res)
 }
 
 function insertManufacturer(asset, req, res) {
     if (req.body.manufacturer) { // If asset has manufacturer
-        Manufacturer.findOneAndUpdate({ name: req.body.manufacturer }, { name: req.body.manufacturer }, { new: true, upsert: true },
-            function(err, manufacturer) {
+        Manufacturer.findOneAndUpdate({ name: req.body.manufacturer }, { name: req.body.manufacturer }, { new: true, upsert: true, rawResult: true },
+            function(err, data) {
                 if (err) res.push(err)
-                else {
-                    asset.manufacturer.push(manufacturer);
-                    insertCompany(asset, req, res)
-                }
+                if (data.lastErrorObject.updatedExisting == false)
+                    logEvent(req, "Created Manufacturer: " + data.value.name, "Created Tag via import", null, null, "user", "green")
+                asset.manufacturer.push(data.value);
+                insertCompany(asset, req, res)
             });
     } else insertCompany(asset, req, res)
 }
 
 function insertType(asset, req, res) {
     if (req.body.type) { // If Asset has type
-        Type.findOneAndUpdate({ name: req.body.type }, { name: req.body.type }, { new: true, upsert: true },
-            function(err, type) {
+        Type.findOneAndUpdate({ name: req.body.type }, { name: req.body.type }, { new: true, upsert: true, rawResult: true },
+            function(err, data) {
                 if (err) res.push(err)
-                else {
-                    asset.type.push(type);
-                    insertManufacturer(asset, req, res)
-                }
+                if (data.lastErrorObject.updatedExisting == false)
+                    logEvent(req, "Created Type: " + data.value.name, "Created Type via import", null, null, "user", "green")
+                asset.type.push(data.value);
+                insertManufacturer(asset, req, res)
             });
     } else insertManufacturer(asset, req, res)
 }
 
 exports.importCSV = (req, res) => {
-    logEvent(req, "Imported Assets", "Imported Assets from CSV", null, "user", "green")
+    logEvent(req, "Imported Assets", "Imported Assets from CSV", null, null, "user", "green")
     var errArr = []
     if (!req.files[0] || req.files[0].mimetype != 'text/csv') {
         return res.json({
@@ -681,7 +727,7 @@ exports.importCSV = (req, res) => {
 };
 
 exports.exportCSV = (req, res) => {
-    logEvent(req, "Exported Assets", "Generated and Exported CSV of Assets", null, "user", "green")
+    logEvent(req, "Exported Assets", "Generated and Exported CSV of Assets", null, null, "user", "green")
 
     var dataCopy = []
     req.body.assets.forEach(function(element, index, array) {

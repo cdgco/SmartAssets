@@ -1,16 +1,6 @@
-<!-- 
-	This is the user profile page, it uses the dashboard layout in: 
-	"./layouts/Dashboard.vue" .
- -->
-
 <template>
 	<div>
-
-		<!-- Header Background Image -->
 		<div class="profile-nav-bg" style="background-image: url('images/bg-profile.jpg')"></div>
-		<!-- / Header Background Image -->
-
-		<!-- User Profile Card -->
 		<a-card :bordered="false" class="card-profile-head" :bodyStyle="{padding: 0,}">
 			<template #title>
 				<a-row type="flex" align="middle">
@@ -24,45 +14,34 @@
 				</a-row>
 			</template>
 		</a-card>
-		<!-- User Profile Card -->
 
 		<a-row type="flex" :gutter="24">
 
-			<!-- Platform Settings Column -->
 			<a-col :span="24" :md="8" class="mb-24">
 
-				<!-- Platform Settings Card -->
 				<CardPlatformSettings></CardPlatformSettings>
-				<!-- / Platform Settings Card -->
 
 			</a-col>
-			<!-- / Platform Settings Column -->
-
-			<!-- Profile Information Column -->
 			<a-col :span="24" :md="8" class="mb-24">
 
-				<!-- Profile Information Card -->
 				<CardProfileInformation></CardProfileInformation>
-				<!-- / Profile Information Card -->
 
 			</a-col>
-			<!-- / Profile Information Column -->
-			
-			<!-- Conversations Column -->
 			<a-col :span="24" :md="8" class="mb-24">
-			
-				<!-- Conversations Card -->
-				<CardConversations
-					:data="conversationsData"
-				></CardConversations>
-				<!-- / Conversations Card -->
-
+				<a-card :bordered="false" class="header-solid h-full" :bodyStyle="{paddingTop: '12px',}">
+					<template #title>
+						<h6>Recent Events</h6>			
+					</template>
+					<a-timeline v-if="events.length > 0" :reverse="timelineReverse">
+						<a-timeline-item v-for="item in events" :key="item._id" :color="item.color">
+							{{ item.title }}
+							<p>{{ formatDate(item.createdAt) }}</p>
+						</a-timeline-item>
+					</a-timeline>
+					<a-empty v-else />
+				</a-card>
 			</a-col>
-			<!-- / Conversations Column -->
-
 		</a-row>
-
-
 	</div>
 </template>
 
@@ -70,42 +49,7 @@
 
 	import CardPlatformSettings from "../components/Cards/CardPlatformSettings"
 	import CardProfileInformation from "../components/Cards/CardProfileInformation"
-	import CardConversations from "../components/Cards/CardConversations"
-
-	// Conversation's list data.
-	const conversationsData = [
-		{
-			id: "1",
-			title: "Sophie B.",
-			code: "Hi! I need more information…",
-			avatar: "images/face-3.jpg",
-		},
-		{
-			id: "2",
-			title: "Anne Marie",
-			code: "Awesome work, can you…",
-			avatar: "images/face-4.jpg",
-		},
-		{
-			id: "3",
-			title: "Ivan",
-			code: "About files I can…",
-			avatar: "images/face-5.jpeg",
-		},
-		{
-			id: "4",
-			title: "Peterson",
-			code: "Have a great afternoon…",
-			avatar: "images/face-6.jpeg",
-		},
-		{
-			id: "5",
-			title: "Nick Daniel",
-			code: "Hi! I need more information…",
-			avatar: "images/face-2.jpg",
-		},
-	] ;
-
+	import { getEvents } from "../components/event.script";
 
 	export default ({
 		metaInfo: {
@@ -114,21 +58,43 @@
 		components: {
 			CardPlatformSettings,
 			CardProfileInformation,
-			CardConversations,
 		},
 		data() {
+			var jsonToken = localStorage.getItem("user")
+            var rawToken = JSON.parse(jsonToken)
+            var accessToken = rawToken.accessToken
 			return {
-				// Active button for the "User Profile" card's radio button group.
+				accessToken: accessToken,
+				rawToken: rawToken,
 				profileHeaderBtns: 'overview',
-
-				// Associating Conversation's list data with its corresponding property.
-				conversationsData,
-
+				timelineReverse: false,
+				events: []
 			}
 		},
+		methods: {
+			formatDate(date) {
+				var options = { year: 'numeric', month: 'short', day: 'numeric', hour: "numeric", minute: "numeric", second: "numeric" };
+				var curDate  = new Date(date);
+				return curDate.toLocaleDateString("en-US", options)
+			},
+			async queryEvent() {
+                this.item = {
+                    items: 7,
+					user: this.rawToken.id,
+                    type: "all",
+					token: this.accessToken
+                    };
+                var response = await getEvents(this.item);
+                if (response.data.success) {
+					this.events = response.data.result;
+                } else {
+                    console.log(response.data.errors);
+                }
+			}
+		},
+		created() {
+			this.queryEvent()
+		}
 	})
 
 </script>
-
-<style lang="scss">
-</style>

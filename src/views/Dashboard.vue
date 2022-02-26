@@ -1,38 +1,17 @@
-<!-- 
-	This is the dashboard page, it uses the dashboard layout in: 
-	"./layouts/Dashboard.vue" .
- -->
-
 <template>
 	<div>
-
-		<!-- Charts -->
 		<a-row :gutter="24" type="flex" align="stretch">
 			<a-col :span="24" :lg="10" class="mb-24">
-
-				<!-- Active Users Card -->
 				<CardBarChart v-if="loaded"></CardBarChart>
 				<a-skeleton active v-else/>
-				<!-- Active Users Card -->
-
 			</a-col>
 			<a-col :span="24" :lg="14" class="mb-24">
-				
-				<!-- Sales Overview Card -->
 				<CardLineChart v-if="loaded"></CardLineChart>
 				<a-skeleton active v-else/>
-				<!-- / Sales Overview Card -->
-
 			</a-col>
 		</a-row>
-		<!-- / Charts -->
-
-		<!-- Table & Timeline -->
 		<a-row :gutter="24" type="flex" align="stretch">
-			<!-- Table -->
 			<a-col :span="24" :lg="16" class="mb-24">
-				
-				<!-- Projects Table Card -->
 				<a-card v-if="loaded" :bordered="false" class="header-solid h-full" :bodyStyle="{padding: 0,}">
                     <template #title>
                         <a-row type="flex" align="middle">
@@ -95,55 +74,38 @@
                     </a-table>
                 </a-card>
 				<a-skeleton active v-else/>
-				<!-- / Projects Table Card -->
 				
 			</a-col>
-			<!-- / Table -->
-
-			<!-- Timeline -->
 			<a-col :span="24" :lg="8" class="mb-24">
 
-				<!-- Orders History Timeline Card -->
 				<a-card :bordered="false" class="header-solid h-full" :bodyStyle="{paddingTop: '12px',}">
 					<template #title>
 						<h6>Recent Events</h6>			
 					</template>
 					<a-timeline v-if="events.length > 0" :reverse="timelineReverse">
 						<a-timeline-item v-for="item in events" :key="item._id" :color="item.color">
-							{{item.asset}} {{item.title}}
+							{{ item.title }}
 							<p>{{ formatDate(item.createdAt) }}</p>
 							<p>{{item.user}}</p>
 						</a-timeline-item>
 					</a-timeline>
 					<a-empty v-else />
 				</a-card>
-				<!-- / Orders History Timeline Card -->
 
 			</a-col>
-			<!-- / Timeline -->
 		</a-row>
-		<!-- / Table & Timeline -->
 
 	</div>
 </template>
 
 <script>
 
-	// Bar chart for "Active Users" card.
 	import CardBarChart from '../components/Cards/CardBarChart' ;
-
-	// Line chart for "Sales Overview" card.
 	import CardLineChart from '../components/Cards/CardLineChart' ;
-
-	// "Projects" table component.
 	import CardAssetTable from '../components/Cards/CardAssetTable' ;
-
 	import { getAssets } from "../components/asset.script";
-
 	import { getEvents } from "../components/event.script";
 
-
-	// "Projects" table list of columns and their properties.
 	const columns = [
 		{
 			title: 'NAME',
@@ -224,7 +186,7 @@
 			async queryEvent() {
                 this.item = {
                     items: 7,
-                    type: "all",
+                    type: "asset",
 					token: this.accessToken
                     };
                 var response = await getEvents(this.item);
@@ -243,6 +205,3 @@
 	})
 
 </script>
-
-<style lang="scss">
-</style>

@@ -1,19 +1,12 @@
-<!-- 
-	This is the billing page, it uses the dashboard layout in: 
-	"./layouts/Dashboard.vue" .
- -->
-
 <template>
 	<div>
 		<a-spin :spinning="spinning" size="large">
 		<a-row type="flex" :gutter="24">
 
-			<!-- Billing Info Column -->
 			<a-col :span="24" :md="16">
 				<a-row type="flex" :gutter="24">
 					<a-col :span="24" class="mb-24">
 
-						<!-- Payment Methods Card -->
 						<a-card :bordered="false" class="header-solid h-full" :bodyStyle="{padding: 4,}">
 							<br>
 							<a-form :form="form" :label-col="{ span: 5 }" :wrapper-col="{ span: 12 }" :hideRequiredMark="true" @submit="handleSubmit" autocomplete="off">
@@ -136,9 +129,6 @@
 					</a-col>
 				</a-row>
 			</a-col>
-			<!-- / Billing Info Column -->
-			
-			<!-- Invoices Column -->
 			<a-col :span="24" :md="8" class="mb-24">
 				<a-row>
 					<a-card :bordered="false" class="header-solid h-full" :bodyStyle="{padding: 4,}">
@@ -195,9 +185,7 @@
 
 		<a-row type="flex" :gutter="24">
 
-			<!-- Billing Information Column -->
 			<a-col :span="24" :md="16" class="mb-24">
-					<!-- Billing Information Card -->
 					<a-card :bordered="false" class="header-solid h-full" :bodyStyle="{paddingTop: 0, paddingBottom: '16px' }">
 						<template #title>
 							<h6 class="font-semibold m-0">Notes</h6>
@@ -217,14 +205,22 @@
 							</a-form-item>
 						</a-form>
 					</a-card>
-					<!-- / Billing Information Card -->
 			</a-col>
 			<a-col :span="24" :md="8" class="mb-24">
-					<!-- Billing Information Card -->
-					<CardAssetHistory></CardAssetHistory>
-					<!-- / Billing Information Card -->
+				<a-card :bordered="false" class="header-solid h-full" :bodyStyle="{paddingTop: '12px',}">
+					<template #title>
+						<h6>Event Log</h6>			
+					</template>
+					<a-timeline v-if="events.length > 0" :reverse="timelineReverse">
+						<a-timeline-item v-for="item in events" :key="item._id" :color="item.color">
+							<span v-html="formatDescription(item.description)"></span>
+							<p>{{ formatDate(item.createdAt) }}</p>
+							<p>{{item.user}}</p>
+						</a-timeline-item>
+					</a-timeline>
+					<a-empty v-else />
+				</a-card>
 			</a-col>
-			<!-- Billing Information Column -->
 
 
 		</a-row>
@@ -235,14 +231,14 @@
 <script>
 	import AssetForm from '../components/Cards/AssetForm' ;
 	var JsBarcode = require('jsbarcode');
-	
-	import CardAssetHistory from "../components/Cards/CardAssetHistory"
+
 	import CardConnectionMarketplace from "../components/Cards/CardConnectionMarketplace"
 	import CardActiveConnections from "../components/Cards/CardActiveConnections"
 	import CardAssetNotes from "../components/Cards/CardAssetNotes"
 
 	import { getAsset, deleteAsset, updateAsset } from "../components/asset.script";
 	import { getCompanies, getLocations, getManufacturers, getModels, getSuppliers, getTypes, getTags } from "../components/autocomplete.script";
+	import { getEvents } from "../components/event.script";
 
 	export default ({
 		metaInfo () {
@@ -251,7 +247,6 @@
 			}
 		},
 		components: {
-			CardAssetHistory,
 			CardConnectionMarketplace,
 			CardActiveConnections,
 			CardAssetNotes,
@@ -265,8 +260,6 @@
 			return {
 				formLayout: 'horizontal',
 				form: this.$form.createForm(this, { name: 'coordinated'}),
-
-				// Associating "Invoices" list data with its corresponding property.
 				spinning: true,
 				accessToken: accessToken,
 				assetId: '',
@@ -287,7 +280,8 @@
 				originalObject: {},
 				query,
 				tags: [],
-
+				timelineReverse: false,
+				events: [],
 				fields: {
 					assetName: '',
 					id: ''
@@ -296,6 +290,14 @@
 			}
 		},
 		methods: {
+			formatDescription(description) {
+				return description.replace(/(?:\r\n|\r|\n)/g, '<br>')
+			},
+			formatDate(date) {
+				var options = { year: 'numeric', month: 'short', day: 'numeric', hour: "numeric", minute: "numeric", second: "numeric" };
+				var curDate  = new Date(date);
+				return curDate.toLocaleDateString("en-US", options)
+			},
 			handleChange(selectedItems) {
 				this.tagSelected = selectedItems;
 			},
@@ -391,6 +393,20 @@
                     this.$router.push({ path: `/assets/?err=a404` });
                 }
             },
+			async queryEvent(id) {
+                this.item = {
+                    items: 0,
+                    type: "asset",
+					asset: id,
+					token: this.accessToken
+                    };
+                var response = await getEvents(this.item);
+                if (response.data.success) {
+					this.events = response.data.result;
+                } else {
+                    console.log(response.data.errors);
+                }
+			},
 			async confirmDelete() {
 				 this.item = {
                     id: this.query,
@@ -425,6 +441,7 @@
 					this.loading = false;
 					this.$message.success('Asset Updated');
 					this.originalObject = response.data.result
+					this.queryEvent(this.$route.params.id)
 					
 				} else {
 					this.error(response.data.errors)
@@ -444,17 +461,16 @@
 		created() {
 			this.queryAutocomplete()
 			this.queryAsset()
+			this.queryEvent(this.$route.params.id)
         },
 		watch: {
             '$route.params.id': function (id) {
 				this.spinning = true
                 this.query = id
                 this.queryAsset()
+				this.queryEvent(id)
             }
         },
 	})
 
 </script>
-
-<style lang="scss">
-</style>

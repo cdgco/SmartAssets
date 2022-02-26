@@ -6,8 +6,8 @@ var jwt = require("jsonwebtoken");
 var bcrypt = require("bcryptjs");
 const Event = db.event;
 
-function logEvent(req, title, description, asset, type, color) {
-    if (req.get('Authorization')) {
+function logEvent(user, title, description, asset, assetId, type, color, req) {
+    if (req && req.get('Authorization')) {
         jwt.verify(req.get('Authorization').replace('Bearer ', ''), process.env.JWT_SECRET, (err, decoded) => {
             if (!err) {
                 User.findById(decoded.id).then(data => {
@@ -16,7 +16,9 @@ function logEvent(req, title, description, asset, type, color) {
                         title: title,
                         description: description,
                         user: user,
+                        userId: decoded.id,
                         asset: asset,
+                        assetId: assetId,
                         type: type,
                         color: color
                     });
@@ -28,7 +30,9 @@ function logEvent(req, title, description, asset, type, color) {
                     title: title,
                     description: description,
                     user: null,
+                    userId: null,
                     asset: asset,
+                    assetId: assetId,
                     type: type,
                     color: color
                 });
@@ -37,17 +41,36 @@ function logEvent(req, title, description, asset, type, color) {
             }
         })
     } else {
-        const event = new Event({
-            title: title,
-            description: description,
-            user: null,
-            asset: asset,
-            type: type,
-            color: color
-        });
-
-        event.save((error, event) => { return event });
+        User.findById(user.id).then(data => {
+            if (data) {
+                var email = (data.email) ? data.email : '';
+                const event = new Event({
+                    title: title,
+                    description: description,
+                    user: email,
+                    userId: user.id,
+                    asset: asset,
+                    assetId: assetId,
+                    type: type,
+                    color: color
+                });
+                event.save((error, event) => { return event });
+            } else {
+                const event = new Event({
+                    title: title,
+                    description: description,
+                    user: null,
+                    userId: null,
+                    asset: asset,
+                    assetId: assetId,
+                    type: type,
+                    color: color
+                });
+                event.save((error, event) => { return event });
+            }
+        })
     }
+
 }
 
 exports.checkToken = (req, res) => {
@@ -196,7 +219,7 @@ exports.signup = (req, res) => {
                     });
                 } else {
                     user.populate('roles', '-__v -_id -createdAt -updatedAt', function(err, user) {
-                        logEvent(req, "User Created", "User Created", null, "user", "green")
+                        logEvent(user, "User Created: " + user.email, "User Created", null, null, "user", "green", req)
                         var copyUser = user.toObject();
                         delete copyUser.password
                         return res.json({
@@ -270,7 +293,7 @@ exports.signin = (req, res) => {
             for (let i = 0; i < user.roles.length; i++) {
                 authorities.push("ROLE_" + user.roles[i].name.toUpperCase());
             }
-            logEvent(req, "User Signed In", "User Signed In", null, "user", "blue")
+            logEvent(user, "User Signed In: " + user.email, "User Signed In", null, null, "user", "blue", null)
             return res.json({
                 "success": true,
                 "code": 200,
@@ -467,7 +490,7 @@ exports.update = (req, res) => {
                     "result": null
                 });
             } else {
-                logEvent(req, "User Updated", "User Updated", null, "user", "orange")
+                logEvent(null, "User Updated: " + data.email, "User Updated", null, null, "user", "orange", req)
                 res.json({
                     "success": true,
                     "code": 200,
@@ -502,7 +525,7 @@ exports.delete = (req, res) => {
                     "result": null
                 });
             } else {
-                logEvent(req, "User Deleted", "User Deleted", null, "user", "red")
+                logEvent(null, "User Deleted: " + data.email, "User Deleted", null, null, "user", "red", req)
                 res.json({
                     "success": true,
                     "code": 200,
