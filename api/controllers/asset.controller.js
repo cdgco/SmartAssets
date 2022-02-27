@@ -644,7 +644,7 @@ exports.delete = (req, res) => {
 
 // Delete all assets from the database.
 exports.deleteAll = (req, res) => {
-    logEvent(req, "Deleted Assets", "Deleted All Assets from Database", null, "asset", "red")
+    logEvent(req, "Deleted All Assets", "Deleted All Assets from Database", null, null, "asset", "red")
     Asset.deleteMany({})
         .then(data => {
             Manufacturer.updateMany({ count: { $gt: 0 } }, { count: 0 }).exec();
@@ -687,7 +687,7 @@ function insertTags(asset, req, res) {
                     function(err, data) {
                         if (err) res.push(err)
                         if (data.lastErrorObject.updatedExisting == false)
-                            logEvent(req, "Created Tag: " + data.value.name, "Created Tag vie import", null, null, "user", "green")
+                            logEvent(req, "Created Tag: " + data.value.name, "Created Tag via import", null, null, "user", "green")
                         asset.tags.push(data.value);
                         if (index === array.length - 1) insertAsset(asset, res)
                     });
