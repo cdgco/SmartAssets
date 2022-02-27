@@ -644,7 +644,7 @@ exports.delete = (req, res) => {
 
 // Delete all assets from the database.
 exports.deleteAll = (req, res) => {
-    logEvent(req, "Deleted Assets", "Deleted All Assets from Database", null, "user", "red")
+    logEvent(req, "Deleted Assets", "Deleted All Assets from Database", null, "asset", "red")
     Asset.deleteMany({})
         .then(data => {
             Manufacturer.updateMany({ count: { $gt: 0 } }, { count: 0 }).exec();
@@ -776,7 +776,7 @@ function insertType(asset, req, res) {
 }
 
 exports.importCSV = (req, res) => {
-    logEvent(req, "Imported Assets", "Imported Assets from CSV", null, null, "user", "green")
+    logEvent(req, "Imported Assets", "Imported Assets from CSV", null, null, "asset", "green")
     var errArr = []
     if (!req.files[0] || req.files[0].mimetype != 'text/csv') {
         return res.json({
