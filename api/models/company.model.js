@@ -5,6 +5,7 @@ module.exports = mongoose => {
             type: String,
             unique: true,
         },
+        count: Number
     }, { timestamps: false })
 
     schema.plugin(uniqueValidator);

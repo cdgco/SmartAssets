@@ -119,7 +119,7 @@ function createTags(asset, req, res) {
 
 function createLocation(asset, req, res) {
     if (req.body.location) { // If asset has location
-        Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true },
+        Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location, $inc: { count: 1 } }, { new: true, upsert: true },
             function(err, data) {
                 if (err) return returnErr(res, err)
                 if (data.lastErrorObject.updatedExisting == false)
@@ -132,7 +132,7 @@ function createLocation(asset, req, res) {
 
 function createSupplier(asset, req, res) {
     if (req.body.supplier) { // If asset has supplier
-        Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true, rawResult: true },
+        Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier, $inc: { count: 1 } }, { new: true, upsert: true, rawResult: true },
             function(err, data) {
                 if (err) return returnErr(res, err)
                 if (data.lastErrorObject.updatedExisting == false)
@@ -145,7 +145,7 @@ function createSupplier(asset, req, res) {
 
 function createModel(asset, req, res) {
     if (req.body.model) { // If asset has model
-        Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true, rawResult: true },
+        Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model, $inc: { count: 1 } }, { new: true, upsert: true, rawResult: true },
             function(err, data) {
                 if (err) return returnErr(res, err)
                 if (data.lastErrorObject.updatedExisting == false)
@@ -158,7 +158,7 @@ function createModel(asset, req, res) {
 
 function createCompany(asset, req, res) {
     if (req.body.company) { // If asset has company
-        Company.findOneAndUpdate({ name: req.body.company }, { name: req.body.company }, { new: true, upsert: true, rawResult: true },
+        Company.findOneAndUpdate({ name: req.body.company }, { name: req.body.company, $inc: { count: 1 } }, { new: true, upsert: true, rawResult: true },
             function(err, data) {
                 if (err) return returnErr(res, err)
                 if (data.lastErrorObject.updatedExisting == false)
@@ -171,7 +171,7 @@ function createCompany(asset, req, res) {
 
 function createManufacturer(asset, req, res) {
     if (req.body.manufacturer) { // If asset has manufacturer
-        Manufacturer.findOneAndUpdate({ name: req.body.manufacturer }, { name: req.body.manufacturer }, { new: true, upsert: true, rawResult: true },
+        Manufacturer.findOneAndUpdate({ name: req.body.manufacturer }, { name: req.body.manufacturer, $inc: { count: 1 } }, { new: true, upsert: true, rawResult: true },
             function(err, data) {
                 if (err) return returnErr(res, err)
                 if (data.lastErrorObject.updatedExisting == false)
@@ -184,7 +184,7 @@ function createManufacturer(asset, req, res) {
 
 function createType(asset, req, res) {
     if (req.body.type) { // If Asset has type
-        Type.findOneAndUpdate({ name: req.body.type }, { name: req.body.type }, { new: true, upsert: true, rawResult: true },
+        Type.findOneAndUpdate({ name: req.body.type }, { name: req.body.type, $inc: { count: 1 } }, { new: true, upsert: true, rawResult: true },
             function(err, data) {
                 if (err) return returnErr(res, err)
                 if (data.lastErrorObject.updatedExisting == false)
@@ -382,6 +382,8 @@ function updateTags(req, res, id, dynUpdate, updateDescription) {
 
 function updateLocation(req, res, id, dynUpdate, updateDescription) {
     if (req.body.location !== undefined) { // If location updated
+        if (oldAsset.location[0] && oldAsset.location[0].count > 0)
+            Location.findByIdAndUpdate(oldAsset.location[0]._id, { $inc: { count: -1 } }).exec();
         if (req.body.location == '') {
             updateDescription.push("Removed Location")
             dynUpdate.location = []
@@ -400,8 +402,10 @@ function updateLocation(req, res, id, dynUpdate, updateDescription) {
     } else updateTags(req, res, id, dynUpdate, updateDescription)
 }
 
-function updateSupplier(req, res, id, dynUpdate, updateDescription) {
+function updateSupplier(req, res, id, dynUpdate, updateDescription, oldAsset) {
     if (req.body.supplier !== undefined) { // If supplier updated
+        if (oldAsset.supplier[0] && oldAsset.supplier[0].count > 0)
+            Supplier.findByIdAndUpdate(oldAsset.supplier[0]._id, { $inc: { count: -1 } }).exec();
         if (req.body.supplier == '') {
             updateDescription.push("Removed Supplier")
             dynUpdate.supplier = []
@@ -420,12 +424,14 @@ function updateSupplier(req, res, id, dynUpdate, updateDescription) {
     } else updateLocation(req, res, id, dynUpdate, updateDescription)
 }
 
-function updateModel(req, res, id, dynUpdate, updateDescription) {
+function updateModel(req, res, id, dynUpdate, updateDescription, oldAsset) {
     if (req.body.model !== undefined) { // If model updated
+        if (oldAsset.assetModel[0] && oldAsset.assetModel[0].count > 0)
+            Model.findByIdAndUpdate(oldAsset.assetModel[0]._id, { $inc: { count: -1 } }).exec();
         if (req.body.model == '') {
             updateDescription.push("Removed Model")
             dynUpdate.assetModel = []
-            updateSupplier(req, res, id, dynUpdate, updateDescription)
+            updateSupplier(req, res, id, dynUpdate, updateDescription, oldAsset)
         } else {
             Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true, rawResult: true },
                 function(err, data) {
@@ -434,18 +440,20 @@ function updateModel(req, res, id, dynUpdate, updateDescription) {
                     if (data.lastErrorObject.updatedExisting == false)
                         logEvent(req, "Created Model: " + data.value.name, "Created Model", null, null, "user", "green")
                     dynUpdate.assetModel = [data.value._id]
-                    updateSupplier(req, res, id, dynUpdate, updateDescription)
+                    updateSupplier(req, res, id, dynUpdate, updateDescription, oldAsset)
                 });
         }
-    } else updateSupplier(req, res, id, dynUpdate, updateDescription)
+    } else updateSupplier(req, res, id, dynUpdate, updateDescription, oldAsset)
 }
 
-function updateCompany(req, res, id, dynUpdate, updateDescription) {
+function updateCompany(req, res, id, dynUpdate, updateDescription, oldAsset) {
     if (req.body.company !== undefined) { // If company updated
+        if (oldAsset.company[0] && oldAsset.company[0].count > 0)
+            Company.findByIdAndUpdate(oldAsset.company[0]._id, { $inc: { count: -1 } }).exec();
         if (req.body.company == '') {
             updateDescription.push("Removed Company")
             dynUpdate.company = []
-            updateModel(req, res, id, dynUpdate, updateDescription)
+            updateModel(req, res, id, dynUpdate, updateDescription, oldAsset)
         } else {
             Company.findOneAndUpdate({ name: req.body.company }, { name: req.body.company }, { new: true, upsert: true, rawResult: true },
                 function(err, data) {
@@ -454,18 +462,20 @@ function updateCompany(req, res, id, dynUpdate, updateDescription) {
                     if (data.lastErrorObject.updatedExisting == false)
                         logEvent(req, "Created Company: " + data.value.name, "Created Company", null, null, "user", "green")
                     dynUpdate.company = [data.value._id]
-                    updateModel(req, res, id, dynUpdate, updateDescription)
+                    updateModel(req, res, id, dynUpdate, updateDescription, oldAsset)
                 });
         }
-    } else updateModel(req, res, id, dynUpdate, updateDescription)
+    } else updateModel(req, res, id, dynUpdate, updateDescription, oldAsset)
 }
 
-function updateManufacturer(req, res, id, dynUpdate, updateDescription) {
+function updateManufacturer(req, res, id, dynUpdate, updateDescription, oldAsset) {
     if (req.body.manufacturer !== undefined) { // If manufacturer updated
+        if (oldAsset.manufacturer[0] && oldAsset.manufacturer[0].count > 0)
+            Manufacturer.findByIdAndUpdate(oldAsset.manufacturer[0]._id, { $inc: { count: -1 } }).exec();
         if (req.body.manufacturer == '') {
             updateDescription.push("Removed Manufacturer")
             dynUpdate.manufacturer = []
-            updateCompany(req, res, id, dynUpdate, updateDescription)
+            updateCompany(req, res, id, dynUpdate, updateDescription, oldAsset)
         } else {
             Manufacturer.findOneAndUpdate({ name: req.body.manufacturer }, { name: req.body.manufacturer }, { new: true, upsert: true, rawResult: true },
                 function(err, data) {
@@ -474,30 +484,32 @@ function updateManufacturer(req, res, id, dynUpdate, updateDescription) {
                     if (data.lastErrorObject.updatedExisting == false)
                         logEvent(req, "Created Manufacturer: " + data.value.name, "Created Manufacturer", null, null, "user", "green")
                     dynUpdate.manufacturer = [data.value._id]
-                    updateCompany(req, res, id, dynUpdate, updateDescription)
+                    updateCompany(req, res, id, dynUpdate, updateDescription, oldAsset)
                 });
         }
-    } else updateCompany(req, res, id, dynUpdate, updateDescription)
+    } else updateCompany(req, res, id, dynUpdate, updateDescription, oldAsset)
 }
 
-function updateType(req, res, id, dynUpdate, updateDescription) {
+function updateType(req, res, id, dynUpdate, updateDescription, oldAsset) {
     if (req.body.type !== undefined) { // If type updated
+        if (oldAsset.type[0] && oldAsset.type[0].count > 0)
+            Type.findByIdAndUpdate(oldAsset.type[0]._id, { $inc: { count: -1 } }).exec();
         if (req.body.type == '') {
             updateDescription.push("Removed Type")
             dynUpdate.type = []
-            updateManufacturer(req, res, id, dynUpdate, updateDescription)
+            updateManufacturer(req, res, id, dynUpdate, updateDescription, oldAsset)
         } else {
-            Type.findOneAndUpdate({ name: req.body.type }, { name: req.body.type }, { new: true, upsert: true, rawResult: true },
+            Type.findOneAndUpdate({ name: req.body.type }, { name: req.body.type, $inc: { count: 1 } }, { new: true, upsert: true, rawResult: true },
                 function(err, data) {
                     if (err) return returnErr(res, err)
                     updateDescription.push("Changed Type to: " + data.value.name)
                     if (data.lastErrorObject.updatedExisting == false)
                         logEvent(req, "Created Type: " + data.value.name, "Created Type", null, null, "user", "green")
                     dynUpdate.type = [data.value._id]
-                    updateManufacturer(req, res, id, dynUpdate, updateDescription)
+                    updateManufacturer(req, res, id, dynUpdate, updateDescription, oldAsset)
                 });
         }
-    } else updateManufacturer(req, res, id, dynUpdate, updateDescription)
+    } else updateManufacturer(req, res, id, dynUpdate, updateDescription, oldAsset)
 }
 
 // Update an asset identified by the id in the request
@@ -527,40 +539,104 @@ exports.update = (req, res) => {
         }
         dynUpdate.serial = req.body.serial
     }
-    updateType(req, res, id, dynUpdate, updateDescription)
-};
-
-// Delete an asset with the specified id in the request
-exports.delete = (req, res) => {
-    const id = req.params.id;
-
-    Asset.findByIdAndRemove(id)
+    Asset.findById(id)
+        .populate("manufacturer")
+        .populate("type")
+        .populate("company")
+        .populate("location")
+        .populate("assetModel")
+        .populate("supplier")
         .then(data => {
             if (!data) {
                 return res.json({
                     "success": false,
                     "code": 404,
-                    "errors": [`Cannot delete asset with id=${id}. Maybe asset was not found!`],
-                    "messages": [`Cannot delete asset with id=${id}. Maybe asset was not found!`],
+                    "errors": ["No found asset with id " + id],
+                    "messages": ["No found asset with id " + id],
                     "result": null
                 });
             } else {
-                logEvent(req, "Deleted: " + data.name, "Deleted Asset from Database", data.name, data._id, "asset", "red")
-                return res.json({
-                    "success": true,
-                    "code": 200,
-                    "errors": [],
-                    "messages": ["Asset was deleted successfully!"],
-                    "result": null
-                });
+                updateType(req, res, id, dynUpdate, updateDescription, data)
             }
         })
         .catch(err => {
             return res.json({
                 "success": false,
                 "code": 500,
-                "errors": ["Could not delete asset with id=" + id],
-                "messages": ["Could not delete asset with id=" + id],
+                "errors": ["Error updating asset with id=" + id],
+                "messages": ["Error updating asset with id=" + id],
+                "result": null
+            });
+        });
+};
+
+// Delete an asset with the specified id in the request
+exports.delete = (req, res) => {
+    const id = req.params.id;
+
+    Asset.findById(id)
+        .populate("manufacturer")
+        .populate("type")
+        .populate("company")
+        .populate("location")
+        .populate("assetModel")
+        .populate("supplier")
+        .then(assetData => {
+            if (!assetData) {
+                return res.json({
+                    "success": false,
+                    "code": 404,
+                    "errors": ["No found asset with id " + id],
+                    "messages": ["No found asset with id " + id],
+                    "result": null
+                });
+            } else {
+                var data = JSON.parse(JSON.stringify(assetData))
+                console.log(data)
+                if (data.manufacturer[0] && data.manufacturer[0].count > 0) Manufacturer.findByIdAndUpdate(data.manufacturer[0]._id, { $inc: { count: -1 } }).exec();
+                if (data.type[0] && data.type[0].count > 0) Type.findByIdAndUpdate(data.type[0]._id, { $inc: { count: -1 } }).exec();
+                if (data.company[0] && data.company[0].count > 0) Company.findByIdAndUpdate(data.company[0]._id, { $inc: { count: -1 } }).exec();
+                if (data.location[0] && data.location[0].count > 0) Location.findByIdAndUpdate(data.location[0]._id, { $inc: { count: -1 } }).exec();
+                if (data.assetModel[0] && data.assetModel[0].count > 0) Model.findByIdAndUpdate(data.assetModel[0]._id, { $inc: { count: -1 } }).exec();
+                if (data.supplier[0] && data.supplier[0].count > 0) Supplier.findByIdAndUpdate(data.supplier[0]._id, { $inc: { count: -1 } }).exec();
+                Asset.findByIdAndRemove(id)
+                    .then(data => {
+                        if (!data) {
+                            return res.json({
+                                "success": false,
+                                "code": 404,
+                                "errors": [`Cannot delete asset with id=${id}. Maybe asset was not found!`],
+                                "messages": [`Cannot delete asset with id=${id}. Maybe asset was not found!`],
+                                "result": null
+                            });
+                        } else {
+                            logEvent(req, "Deleted: " + data.name, "Deleted Asset from Database", data.name, data._id, "asset", "red")
+                            return res.json({
+                                "success": true,
+                                "code": 200,
+                                "errors": [],
+                                "messages": ["Asset was deleted successfully!"],
+                                "result": null
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        return res.json({
+                            "success": false,
+                            "code": 500,
+                            "errors": ["Could not delete asset with id=" + id],
+                            "messages": ["Could not delete asset with id=" + id],
+                            "result": null
+                        });
+                    });
+            }
+        })
+        .catch(err => {
+            return res.json({
+                "success": false,
+                "code": 500,
+                "errors": ["Error updating asset with id=" + id],
+                "messages": ["Error updating asset with id=" + id],
                 "result": null
             });
         });
@@ -571,6 +647,12 @@ exports.deleteAll = (req, res) => {
     logEvent(req, "Deleted Assets", "Deleted All Assets from Database", null, "user", "red")
     Asset.deleteMany({})
         .then(data => {
+            Manufacturer.updateMany({ count: { $gt: 0 } }, { count: 0 }).exec();
+            Type.updateMany({ count: { $gt: 0 } }, { count: 0 }).exec();
+            Company.updateMany({ count: { $gt: 0 } }, { count: 0 }).exec();
+            Location.updateMany({ count: { $gt: 0 } }, { count: 0 }).exec();
+            Model.updateMany({ count: { $gt: 0 } }, { count: 0 }).exec();
+            Supplier.updateMany({ count: { $gt: 0 } }, { count: 0 }).exec();
             return res.json({
                 "success": true,
                 "code": 200,
@@ -617,7 +699,7 @@ function insertTags(asset, req, res) {
 
 function insertLocation(asset, req, res) {
     if (req.body.location) { // If asset has location
-        Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location }, { new: true, upsert: true, rawResult: true },
+        Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location, $inc: { count: 1 } }, { new: true, upsert: true, rawResult: true },
             function(err, data) {
                 if (err) res.push(err)
                 if (data.lastErrorObject.updatedExisting == false)
@@ -630,7 +712,7 @@ function insertLocation(asset, req, res) {
 
 function insertSupplier(asset, req, res) {
     if (req.body.supplier) { // If asset has supplier
-        Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier }, { new: true, upsert: true, rawResult: true },
+        Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier, $inc: { count: 1 } }, { new: true, upsert: true, rawResult: true },
             function(err, data) {
                 if (err) res.push(err)
                 if (data.lastErrorObject.updatedExisting == false)
@@ -643,7 +725,7 @@ function insertSupplier(asset, req, res) {
 
 function insertModel(asset, req, res) {
     if (req.body.model) { // If asset has model
-        Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model }, { new: true, upsert: true, rawResult: true },
+        Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model, $inc: { count: 1 } }, { new: true, upsert: true, rawResult: true },
             function(err, data) {
                 if (err) res.push(err)
                 if (data.lastErrorObject.updatedExisting == false)
@@ -656,7 +738,7 @@ function insertModel(asset, req, res) {
 
 function insertCompany(asset, req, res) {
     if (req.body.company) { // If asset has company
-        Company.findOneAndUpdate({ name: req.body.company }, { name: req.body.company }, { new: true, upsert: true, rawResult: true },
+        Company.findOneAndUpdate({ name: req.body.company }, { name: req.body.company, $inc: { count: 1 } }, { new: true, upsert: true, rawResult: true },
             function(err, data) {
                 if (err) res.push(err)
                 if (data.lastErrorObject.updatedExisting == false)
@@ -669,7 +751,7 @@ function insertCompany(asset, req, res) {
 
 function insertManufacturer(asset, req, res) {
     if (req.body.manufacturer) { // If asset has manufacturer
-        Manufacturer.findOneAndUpdate({ name: req.body.manufacturer }, { name: req.body.manufacturer }, { new: true, upsert: true, rawResult: true },
+        Manufacturer.findOneAndUpdate({ name: req.body.manufacturer }, { name: req.body.manufacturer, $inc: { count: 1 } }, { new: true, upsert: true, rawResult: true },
             function(err, data) {
                 if (err) res.push(err)
                 if (data.lastErrorObject.updatedExisting == false)
@@ -682,7 +764,7 @@ function insertManufacturer(asset, req, res) {
 
 function insertType(asset, req, res) {
     if (req.body.type) { // If Asset has type
-        Type.findOneAndUpdate({ name: req.body.type }, { name: req.body.type }, { new: true, upsert: true, rawResult: true },
+        Type.findOneAndUpdate({ name: req.body.type }, { name: req.body.type, $inc: { count: 1 } }, { new: true, upsert: true, rawResult: true },
             function(err, data) {
                 if (err) res.push(err)
                 if (data.lastErrorObject.updatedExisting == false)
