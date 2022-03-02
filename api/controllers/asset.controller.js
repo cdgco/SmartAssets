@@ -672,107 +672,107 @@ exports.deleteAll = (req, res) => {
         });
 };
 
-function insertAsset(asset, res) {
-    asset.save((error, asset) => {
-        if (error) res.push(error)
-        logEvent(req, "Imported: " + asset.name, "Imported Asset from CSV", asset.name, asset._id, "asset", "green")
+function insertAsset(asset, assetRequest, errArr, req, res) {
+    asset.save((error, data) => {
+        if (error) errArr.push(error)
+        else logEvent(req, "Imported: " + data.name, "Imported Asset from CSV", data.name, data._id, "asset", "green")
     });
 }
 
-function insertTags(asset, req, res) {
-    if (req.body.tags) { // If asset has tags
-        if (req.body.tags.length > 0) {
-            req.body.tags.forEach(function(tag, index, array) {
+function insertTags(asset, assetRequest, errArr, req, res) {
+    if (assetRequest.body.tags) { // If asset has tags
+        if (assetRequest.body.tags.length > 0) {
+            assetRequest.body.tags.forEach(function(tag, index, array) {
                 Tags.findOneAndUpdate({ name: tag }, { name: tag }, { new: true, upsert: true, rawResult: true },
                     function(err, data) {
-                        if (err) res.push(err)
+                        if (err) errArr.push(err)
                         if (data.lastErrorObject.updatedExisting == false)
                             logEvent(req, "Created Tag: " + data.value.name, "Created Tag via import", null, null, "user", "green")
                         asset.tags.push(data.value);
-                        if (index === array.length - 1) insertAsset(asset, res)
+                        if (index === array.length - 1) insertAsset(asset, assetRequest, errArr, req, res)
                     });
 
             })
-        } else insertAsset(asset, res)
-    } else insertAsset(asset, res)
+        } else insertAsset(asset, assetRequest, errArr, req, res)
+    } else insertAsset(asset, assetRequest, errArr, req, res)
 }
 
-function insertLocation(asset, req, res) {
-    if (req.body.location) { // If asset has location
-        Location.findOneAndUpdate({ name: req.body.location }, { name: req.body.location, $inc: { count: 1 } }, { new: true, upsert: true, rawResult: true },
+function insertLocation(asset, assetRequest, errArr, req, res) {
+    if (assetRequest.body.location) { // If asset has location
+        Location.findOneAndUpdate({ name: assetRequest.body.location }, { name: assetRequest.body.location, $inc: { count: 1 } }, { new: true, upsert: true, rawResult: true },
             function(err, data) {
-                if (err) res.push(err)
+                if (err) errArr.push(err)
                 if (data.lastErrorObject.updatedExisting == false)
                     logEvent(req, "Created Location: " + data.value.name, "Created Location via import", null, null, "user", "green")
                 asset.location.push(data.value);
-                insertTags(asset, req, res)
+                insertTags(asset, assetRequest, errArr, req, res)
             });
-    } else insertTags(asset, req, res)
+    } else insertTags(asset, assetRequest, errArr, req, res)
 }
 
-function insertSupplier(asset, req, res) {
-    if (req.body.supplier) { // If asset has supplier
-        Supplier.findOneAndUpdate({ name: req.body.supplier }, { name: req.body.supplier, $inc: { count: 1 } }, { new: true, upsert: true, rawResult: true },
+function insertSupplier(asset, assetRequest, errArr, req, res) {
+    if (assetRequest.body.supplier) { // If asset has supplier
+        Supplier.findOneAndUpdate({ name: assetRequest.body.supplier }, { name: assetRequest.body.supplier, $inc: { count: 1 } }, { new: true, upsert: true, rawResult: true },
             function(err, data) {
-                if (err) res.push(err)
+                if (err) errArr.push(err)
                 if (data.lastErrorObject.updatedExisting == false)
                     logEvent(req, "Created Supplier: " + data.value.name, "Created Supplier via import", null, null, "user", "green")
                 asset.supplier.push(data.value);
-                insertLocation(asset, req, res)
+                insertLocation(asset, assetRequest, errArr, req, res)
             });
-    } else insertLocation(asset, req, res)
+    } else insertLocation(asset, assetRequest, errArr, req, res)
 }
 
-function insertModel(asset, req, res) {
-    if (req.body.model) { // If asset has model
-        Model.findOneAndUpdate({ name: req.body.model }, { name: req.body.model, $inc: { count: 1 } }, { new: true, upsert: true, rawResult: true },
+function insertModel(asset, assetRequest, errArr, req, res) {
+    if (assetRequest.body.model) { // If asset has model
+        Model.findOneAndUpdate({ name: assetRequest.body.model }, { name: assetRequest.body.model, $inc: { count: 1 } }, { new: true, upsert: true, rawResult: true },
             function(err, data) {
-                if (err) res.push(err)
+                if (err) errArr.push(err)
                 if (data.lastErrorObject.updatedExisting == false)
                     logEvent(req, "Created Model: " + data.value.name, "Created Model via import", null, null, "user", "green")
                 asset.assetModel.push(data.value);
-                insertSupplier(asset, req, res)
+                insertSupplier(asset, assetRequest, errArr, req, res)
             });
-    } else insertSupplier(asset, req, res)
+    } else insertSupplier(asset, assetRequest, errArr, req, res)
 }
 
-function insertCompany(asset, req, res) {
-    if (req.body.company) { // If asset has company
-        Company.findOneAndUpdate({ name: req.body.company }, { name: req.body.company, $inc: { count: 1 } }, { new: true, upsert: true, rawResult: true },
+function insertCompany(asset, assetRequest, errArr, req, res) {
+    if (assetRequest.body.company) { // If asset has company
+        Company.findOneAndUpdate({ name: assetRequest.body.company }, { name: assetRequest.body.company, $inc: { count: 1 } }, { new: true, upsert: true, rawResult: true },
             function(err, data) {
-                if (err) res.push(err)
+                if (err) errArr.push(err)
                 if (data.lastErrorObject.updatedExisting == false)
                     logEvent(req, "Created Company: " + data.value.name, "Created Company via import", null, null, "user", "green")
                 asset.company.push(data.value);
-                insertModel(asset, req, res)
+                insertModel(asset, assetRequest, errArr, req, res)
             });
-    } else insertModel(asset, req, res)
+    } else insertModel(asset, assetRequest, errArr, req, res)
 }
 
-function insertManufacturer(asset, req, res) {
-    if (req.body.manufacturer) { // If asset has manufacturer
-        Manufacturer.findOneAndUpdate({ name: req.body.manufacturer }, { name: req.body.manufacturer, $inc: { count: 1 } }, { new: true, upsert: true, rawResult: true },
+function insertManufacturer(asset, assetRequest, errArr, req, res) {
+    if (assetRequest.body.manufacturer) { // If asset has manufacturer
+        Manufacturer.findOneAndUpdate({ name: assetRequest.body.manufacturer }, { name: assetRequest.body.manufacturer, $inc: { count: 1 } }, { new: true, upsert: true, rawResult: true },
             function(err, data) {
-                if (err) res.push(err)
+                if (err) errArr.push(err)
                 if (data.lastErrorObject.updatedExisting == false)
                     logEvent(req, "Created Manufacturer: " + data.value.name, "Created Tag via import", null, null, "user", "green")
                 asset.manufacturer.push(data.value);
-                insertCompany(asset, req, res)
+                insertCompany(asset, assetRequest, errArr, req, res)
             });
-    } else insertCompany(asset, req, res)
+    } else insertCompany(asset, assetRequest, errArr, req, res)
 }
 
-function insertType(asset, req, res) {
-    if (req.body.type) { // If Asset has type
-        Type.findOneAndUpdate({ name: req.body.type }, { name: req.body.type, $inc: { count: 1 } }, { new: true, upsert: true, rawResult: true },
+function insertType(asset, assetRequest, errArr, req, res) {
+    if (assetRequest.body.type) { // If Asset has type
+        Type.findOneAndUpdate({ name: assetRequest.body.type }, { name: assetRequest.body.type, $inc: { count: 1 } }, { new: true, upsert: true, rawResult: true },
             function(err, data) {
-                if (err) res.push(err)
+                if (err) errArr.push(err)
                 if (data.lastErrorObject.updatedExisting == false)
                     logEvent(req, "Created Type: " + data.value.name, "Created Type via import", null, null, "user", "green")
                 asset.type.push(data.value);
-                insertManufacturer(asset, req, res)
+                insertManufacturer(asset, assetRequest, errArr, req, res)
             });
-    } else insertManufacturer(asset, req, res)
+    } else insertManufacturer(asset, assetRequest, errArr, req, res)
 }
 
 exports.importCSV = (req, res) => {
@@ -804,7 +804,7 @@ exports.importCSV = (req, res) => {
             assetRequest.body.manufacturer = (element.Manufacturer || element.manufacturer || '')
             assetRequest.body.supplier = (element.Supplier || element.supplier || '')
             assetRequest.body.company = (element.Company || element.company || '')
-            insertType(asset, assetRequest, errArr)
+            insertType(asset, assetRequest, errArr, req, res)
             if (index === array.length - 1) {
                 return res.json({
                     "success": true,

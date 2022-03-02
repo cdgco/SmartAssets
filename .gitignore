@@ -4,3 +4,4 @@ dist
 db.config.js
 elastic.config.js
 jwt.key
+.DS_Store
