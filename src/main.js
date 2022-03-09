@@ -21,6 +21,7 @@ import DashboardRTLLayout from './layouts/DashboardRTL.vue'
 import AssetLayout from './layouts/Asset.vue'
 import NewAssetLayout from './layouts/NewAsset.vue'
 import Toast from "vue-toastification";
+import VueHtmlToPaper from 'vue-html-to-paper';
 import "./css/toast.css";
 import router from './router'
 import axios from 'axios';
@@ -49,6 +50,8 @@ Vue.use(Toast, {
         return toast;
     }
 });
+
+Vue.use(VueHtmlToPaper);
 
 Vue.config.productionTip = false
 

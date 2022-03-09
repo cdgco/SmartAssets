@@ -153,7 +153,14 @@
 							<h6 class="font-semibold m-0">Asset Code</h6>
 						</template>
 						<a-row class="card-footer" type="flex" justify="center" align="top">
-							<img id="barcode" style="max-width: 80%;"/>
+							<span id="printMe">
+								<div style="display:grid; justify-items: center" @click="print">
+									<h6 style="margin: 0; font-weight: 700;">{{this.tagCompanyName}}</h6>
+									<p style="margin: 0; font-weight: 600;">{{this.fields.assetName}}</p>
+									<img id="barcode" style="max-width: 80%;"/>
+									<p style="margin: 0; font-weight: 600;">{{this.fields.id}}</p>
+								</div>
+							</span>
 						</a-row>
 					</a-card>
 				</a-row>
@@ -230,6 +237,7 @@
 
 <script>
 	import AssetForm from '../components/Cards/AssetForm' ;
+	import VueHtmlToPaper from 'vue-html-to-paper';
 	var JsBarcode = require('jsbarcode');
 
 	import CardConnectionMarketplace from "../components/Cards/CardConnectionMarketplace"
@@ -278,6 +286,7 @@
 				tagSource: [],
 				tagSelected: [],
 				originalObject: {},
+				tagCompanyName: process.env.VUE_APP_TAG_NAME,
 				query,
 				tags: [],
 				timelineReverse: false,
@@ -305,6 +314,10 @@
 				return (
 					option.componentOptions.children[0].text.toUpperCase().indexOf(input.toUpperCase()) >= 0
 				);
+			},
+			async print () {
+				// Pass the element id here
+				await this.$htmlToPaper('printMe');
 			},
 			async queryAutocomplete() {
 				this.item = { token: this.accessToken };
@@ -386,7 +399,9 @@
 						format: "CODE128",
 						lineColor: "#262626",
 						width:5,
-						height:50
+						height:50,
+						displayValue: false,
+						margin: 0
 					});
 					this.originalObject = response.data.result
                 } else {
@@ -408,7 +423,7 @@
                 }
 			},
 			async confirmDelete() {
-				 this.item = {
+				this.item = {
                     id: this.query,
 					token: this.accessToken
                 };

@@ -34,11 +34,13 @@
         "mongoose-sequence": "^5.3.1",
         "mongoose-unique-validator": "^3.0.0",
         "morgan": "^1.10.0",
+        "node-ptouch": "^0.0.4",
         "papaparse": "^5.3.1",
         "register-service-worker": "^1.7.1",
         "selfsigned": "^2.0.0",
         "vue": "2.6.14",
         "vue-barcode-reader": "^0.0.3",
+        "vue-html-to-paper": "^1.4.4",
         "vue-meta": "^2.4.0",
         "vue-router": "3.5.2",
         "vue-toastification": "^1.7.14"
