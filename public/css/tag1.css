@@ -1,0 +1,29 @@
+html {
+    font-family: open sans, Helvetica, Arial, sans-serif;
+    letter-spacing: -.3px;
+    text-align: left;
+    line-height: 1.5;
+}
+
+h6 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+p {
+    margin: 0;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+#printMe {
+    display: grid;
+    justify-items: center
+}
+
+@media print {
+    @page {
+        size: landscape
+    }
+}

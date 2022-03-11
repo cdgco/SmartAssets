@@ -154,11 +154,11 @@
 						</template>
 						<a-row class="card-footer" type="flex" justify="center" align="top">
 							<span id="printMe">
-								<div style="display:grid; justify-items: center" @click="print">
-									<h6 style="margin: 0; font-weight: 700;">{{this.tagCompanyName}}</h6>
-									<p style="margin: 0; font-weight: 600;">{{this.fields.assetName}}</p>
+								<div id="printCode" style="display:grid; justify-items: center; font-family: open sans, Helvetica, Arial, sans-serif; letter-spacing: -.3px; text-align: left; line-height: 1.5;" @click="print">
+									<h6 style="margin: 0; font-weight: 700; font-size: 16x !important;">{{this.tagCompanyName}}</h6>
+									<p style="margin: 0; font-weight: 600; font-size: 14x !important;">{{this.fields.assetName}}</p>
 									<img id="barcode" style="max-width: 80%;"/>
-									<p style="margin: 0; font-weight: 600;">{{this.fields.id}}</p>
+									<p style="margin: 0; font-weight: 600; font-size: 14x !important;">{{this.fields.id}}</p>
 								</div>
 							</span>
 						</a-row>

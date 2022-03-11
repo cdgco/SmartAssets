@@ -51,7 +51,19 @@ Vue.use(Toast, {
     }
 });
 
-Vue.use(VueHtmlToPaper);
+const options = {
+    name: '_blank',
+    specs: [
+        'fullscreen=no',
+        'titlebar=no',
+        'scrollbars=no'
+    ],
+    styles: ['/css/tag1.css'],
+    timeout: 1000, // default timeout before the print window appears
+    autoClose: false, // if false, the window will not close after printing
+}
+
+Vue.use(VueHtmlToPaper, options);
 
 Vue.config.productionTip = false
 
